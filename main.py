@@ -170,6 +170,11 @@ Examples:
         action="store_true",
         help="Enable Multi-Resolution Analysis & Reasoning",
     )
+    parser.add_argument(
+        "--quran-persona",
+        action="store_true",
+        help="Enable Quran Persona steering (aggregates all resolutions)",
+    )
 
     return parser.parse_args()
 
@@ -344,6 +349,8 @@ def main():
             cache_path=cache_path,
         )
         steerer.prepare_thematic_steering(args.theme)
+    elif args.quran_persona:
+        steerer.prepare_quran_persona(cache_dir=args.cache_dir)
     else:
         steerer.prepare_quran_steering(
             chunk_by=args.chunk_by,

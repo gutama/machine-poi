@@ -515,6 +515,73 @@ class QuranSteerer:
 
         return self.prepare_verse_steering(list(top_indices))
 
+    def prepare_quran_persona(
+        self,
+        cache_dir: str = "vectors",
+    ) -> Dict[int, torch.Tensor]:
+        """
+        Create a "Quran Persona" by aggregating all embedding layers.
+
+        Combines Verse, Passage, and Surah embeddings into a single
+        weighted global steering vector.
+
+        Args:
+            cache_dir: Directory to store/load embeddings
+
+        Returns:
+            Steering vectors per layer
+        """
+        if self.embedder is None or self.llm is None:
+            self.load_models()
+        
+        resolutions = ["verse", "paragraph", "surah"]
+        all_embeddings = []
+        
+        print("Constructing Quran Persona from all resolutions...")
+        
+        for res in resolutions:
+            cache_path = Path(cache_dir) / f"quran_{self.embedding_model_name}_{res}.npz"
+            
+            # Load or create
+            if cache_path.exists():
+                print(f"  Loading {res} embeddings...")
+                data = self.embedder.load_cached_embeddings(cache_path)
+            else:
+                print(f"  Generating {res} embeddings...")
+                data = self.embedder.create_quran_embeddings(
+                    file_path=self.quran_path,
+                    chunk_by=res,
+                    save_path=cache_path,
+                )
+            
+            # Use the mean embedding of this resolution
+            all_embeddings.append(data["mean_embedding"])
+
+        # Aggregate: currently equal weighting
+        # We could weight macro levels higher for "character" but mean is a good start
+        persona_embedding = np.mean(all_embeddings, axis=0)
+        
+        # Normalize
+        persona_embedding = persona_embedding / np.linalg.norm(persona_embedding)
+        
+        # Project
+        if self.vector_extractor is None:
+             self.vector_extractor = SteeringVectorExtractor(
+                source_dim=persona_embedding.shape[0],
+                target_dim=self.llm.hidden_size,
+                projection_type="random",
+                device=self.device,
+            )
+
+        self.steering_vectors = self.vector_extractor.create_multi_layer_vectors(
+            embedding=persona_embedding,
+            n_layers=self.llm.num_layers,
+        )
+        
+        self._apply_steering()
+        print("Quran Persona activated.")
+        return self.steering_vectors
+
     def _apply_steering(self):
         """Apply current steering vectors to LLM."""
         if self.steering_vectors is None or self.llm is None:
