@@ -75,6 +75,7 @@ class QuranEmbeddings:
         "bge-m3": "BAAI/bge-m3",
         "qwen-embedding": "Alibaba-NLP/gte-Qwen2-7B-instruct",
         "multilingual-e5": "intfloat/multilingual-e5-large-instruct",
+        "multilingual-e5-large": "intfloat/multilingual-e5-large",
         "paraphrase-mpnet": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
         "paraphrase-minilm": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
     }

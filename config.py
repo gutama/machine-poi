@@ -199,6 +199,13 @@ EMBEDDING_MODELS = {
         "supports_arabic": True,
         "memory_gb": 2.0,
     },
+    "multilingual-e5-large": {
+        "hf_path": "intfloat/multilingual-e5-large",
+        "embedding_dim": 1024,
+        "max_length": 512,
+        "supports_arabic": True,
+        "memory_gb": 2.0,
+    },
     "paraphrase-mpnet": {
         "hf_path": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
         "embedding_dim": 768,
