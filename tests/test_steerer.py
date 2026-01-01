@@ -207,36 +207,37 @@ class TestComputeDynamicSteering:
         steerer.llm.hidden_size = sample_hidden_dim
         steerer.llm.num_layers = sample_num_layers
         
-        # Mock vector extractor
-        steerer.vector_extractor = SteeringVectorExtractor(
-            source_dim=sample_embedding_dim,
-            target_dim=sample_hidden_dim,
-            projection_type="random",
-            device="cpu",
-        )
+        # Mock activations extraction
+        # Returns Dict[layer_idx, tensor]
+        def mock_extract(text):
+            return {
+                i: torch.randn(1, 10, sample_hidden_dim) # [batch, seq, dim]
+                for i in range(sample_num_layers)
+            }
+        steerer.llm.extract_layer_activations = mock_extract
+        
+        steerer.device = "cpu"
         
         return steerer
 
-    def test_compute_dynamic_steering_with_embeddings(
+    def test_compute_dynamic_steering_with_activations(
         self, mock_steerer_with_models, sample_embedding_dim
     ):
-        """Test computing steering from retrieved embeddings."""
+        """Test computing steering from retrieved content using activations."""
         steerer = mock_steerer_with_models
         
-        # Create mock retrieved results with embeddings
+        # Create mock retrieved results (embedding field is ignored now)
         mock_results = {
             "verse": [
                 {
                     "content": "verse text",
                     "score": 0.9,
-                    "embedding": np.random.randn(sample_embedding_dim).tolist(),
                 },
             ],
             "passage": [
                 {
                     "content": "passage text",
                     "score": 0.8,
-                    "embedding": np.random.randn(sample_embedding_dim).tolist(),
                 },
             ],
             "surah": [],
@@ -247,6 +248,7 @@ class TestComputeDynamicSteering:
         assert vectors is not None
         assert isinstance(vectors, dict)
         assert len(vectors) == steerer.llm.num_layers
+        assert isinstance(vectors[0], torch.Tensor)
 
     def test_compute_dynamic_steering_empty_results(self, mock_steerer_with_models):
         """Test computing steering from empty results."""
@@ -270,13 +272,13 @@ class TestComputeDynamicSteering:
         
         mock_results = {
             "verse": [
-                {"content": "v", "score": 0.5, "embedding": np.random.randn(sample_embedding_dim).tolist()},
+                {"content": "v", "score": 0.5},
             ],
             "passage": [
-                {"content": "p", "score": 0.5, "embedding": np.random.randn(sample_embedding_dim).tolist()},
+                {"content": "p", "score": 0.5},
             ],
             "surah": [
-                {"content": "s", "score": 0.5, "embedding": np.random.randn(sample_embedding_dim).tolist()},
+                {"content": "s", "score": 0.5},
             ],
         }
         
@@ -304,16 +306,9 @@ class TestPrepareQuranSteering:
         
         steerer = QuranSteerer()
         
-        # Mock embedder
+        # Mock embedder - just for loading text now
         steerer.embedder = Mock(spec=QuranEmbeddings)
-        steerer.embedder.create_quran_embeddings.return_value = {
-            "embeddings": np.random.randn(10, sample_embedding_dim).astype(np.float32),
-            "texts": ["text"] * 10,
-            "mean_embedding": np.random.randn(sample_embedding_dim).astype(np.float32),
-            "model_name": "bge-m3",
-            "chunk_by": "verse",
-        }
-        steerer.embedder.load_cached_embeddings.return_value = steerer.embedder.create_quran_embeddings.return_value
+        steerer.embedder.load_quran_text.return_value = ["verse 1", "verse 2", "verse 3"]
         
         # Mock LLM
         steerer.llm = Mock(spec=SteeredLLM)
@@ -321,6 +316,16 @@ class TestPrepareQuranSteering:
         steerer.llm.num_layers = sample_num_layers
         steerer.llm.register_steering_hook = Mock()
         steerer.llm.clear_steering = Mock()
+        
+        # Mock extractions
+        def mock_extract(text):
+            return {
+                i: torch.randn(1, 5, sample_hidden_dim) 
+                for i in range(sample_num_layers)
+            }
+        steerer.llm.extract_layer_activations = mock_extract
+        
+        steerer.device = "cpu"
         
         return steerer
 
@@ -355,20 +360,15 @@ class TestPrepareThematicSteering:
     ):
         """Create a steerer that's already prepared."""
         from src.steerer import QuranSteerer
-        from src.steering_vectors import SteeringVectorExtractor
         
         steerer = QuranSteerer()
+        
+        texts_list = [f"verse {i}" for i in range(20)]
         
         # Mock embedder
         steerer.embedder = Mock()
         steerer.embedder.create_embeddings.return_value = np.random.randn(1, sample_embedding_dim).astype(np.float32)
-        
-        # Set up quran embeddings
-        steerer.quran_embeddings = {
-            "embeddings": np.random.randn(20, sample_embedding_dim).astype(np.float32),
-            "texts": [f"verse {i}" for i in range(20)],
-            "mean_embedding": np.random.randn(sample_embedding_dim).astype(np.float32),
-        }
+        steerer.embedder.load_quran_text.return_value = texts_list
         
         # Mock LLM
         steerer.llm = Mock()
@@ -377,12 +377,20 @@ class TestPrepareThematicSteering:
         steerer.llm.register_steering_hook = Mock()
         steerer.llm.clear_steering = Mock()
         
-        # Vector extractor
-        steerer.vector_extractor = SteeringVectorExtractor(
-            source_dim=sample_embedding_dim,
-            target_dim=sample_hidden_dim,
-            device="cpu",
-        )
+        def mock_extract(text):
+            return {
+                i: torch.randn(1, 5, sample_hidden_dim) 
+                for i in range(sample_num_layers)
+            }
+        steerer.llm.extract_layer_activations = mock_extract
+        
+        # Mock Quran embeddings for search
+        steerer.quran_embeddings = {
+            "embeddings": np.random.randn(20, sample_embedding_dim).astype(np.float32),
+            "texts": texts_list,
+        }
+        
+        steerer.device = "cpu"
         
         return steerer
 
@@ -396,15 +404,6 @@ class TestPrepareThematicSteering:
         assert vectors is not None
         assert len(vectors) == prepared_steerer.llm.num_layers
 
-    def test_prepare_thematic_steering_raises_without_embeddings(self):
-        """Test that error is raised if embeddings not prepared."""
-        from src.steerer import QuranSteerer
-        
-        steerer = QuranSteerer()
-        
-        with pytest.raises(ValueError, match="prepare_quran_steering first"):
-            steerer.prepare_thematic_steering("mercy")
-
 
 class TestPrepareQuranPersona:
     """Test Quran Persona preparation."""
@@ -415,23 +414,13 @@ class TestPrepareQuranPersona:
     ):
         """Create steerer for persona testing."""
         from src.steerer import QuranSteerer
+        from src.quran_embeddings import QuranEmbeddings
         
         steerer = QuranSteerer()
         
         # Mock embedder
-        steerer.embedder = Mock()
-        
-        def mock_create(file_path, chunk_by, save_path=None):
-            return {
-                "embeddings": np.random.randn(10, sample_embedding_dim).astype(np.float32),
-                "texts": ["text"] * 10,
-                "mean_embedding": np.random.randn(sample_embedding_dim).astype(np.float32),
-                "model_name": "bge-m3",
-                "chunk_by": chunk_by,
-            }
-        
-        steerer.embedder.create_quran_embeddings = mock_create
-        steerer.embedder.load_cached_embeddings = lambda p: mock_create(None, "verse")
+        steerer.embedder = Mock(spec=QuranEmbeddings)
+        steerer.embedder.load_quran_text.return_value = ["v1", "v2", "v3"]
         
         # Mock LLM
         steerer.llm = Mock()
@@ -440,10 +429,20 @@ class TestPrepareQuranPersona:
         steerer.llm.register_steering_hook = Mock()
         steerer.llm.clear_steering = Mock()
         
+        def mock_extract(text):
+            return {
+                i: torch.randn(1, 5, sample_hidden_dim) 
+                for i in range(sample_num_layers)
+            }
+        steerer.llm.extract_layer_activations = mock_extract
+        
+        steerer.device = "cpu"
+        
         return steerer
 
     def test_prepare_quran_persona_creates_vectors(self, persona_steerer, tmp_path):
         """Test that persona creates steering vectors."""
+        # Note: calling internal method or mocked method
         vectors = persona_steerer.prepare_quran_persona(cache_dir=str(tmp_path))
         
         assert vectors is not None

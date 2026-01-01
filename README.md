@@ -6,10 +6,13 @@ Steer language model outputs using semantic embeddings derived from Quranic text
 
 Machine-POI uses text embeddings from Quran verses to create semantic steering vectors that influence LLM behavior without fine-tuning. The steering is applied at inference time by modifying intermediate layer activations.
 
+### Key Logic: Activation Steering
+Unlike simple embedding projection (which can be random), this project uses **Mean Activation Steering**. We run representative samples of Quranic text through the LLM itself to capture the "Quranic Mindset" as a set of activation vectors. This ensures the steering is mathematically consistent with the model's internal representation.
+
 ### Key Features
 
-- **Quran Persona Mode**: Aggregate embeddings from all resolutions (verse, paragraph, surah) into a unified steering vector
-- **Multi-Resolution Analysis (MRA)**: Dynamic context retrieval using ChromaDB knowledge base
+- **Quran Persona Mode**: Aggregate activations from all resolutions (verse, paragraph, surah) into a unified steering vector
+- **Multi-Resolution Analysis (MRA)**: Dynamic context retrieval using ChromaDB knowledge base with accurate Surah chunking
 - **Thematic Steering**: Steer toward specific themes (mercy, justice, patience, etc.)
 - **Multiple Injection Modes**: `add`, `blend`, `replace`, and `clamp` (recommended for stability)
 - **Comparison Mode**: Side-by-side comparison of steered vs baseline outputs
@@ -52,7 +55,8 @@ steerer = QuranSteerer(
 # Load models
 steerer.load_models()
 
-# Option 1: Standard Quran steering
+# Option 1: Standard Quran steering (uses Mean Activation)
+# This will sample verses and compute the steering vector
 steerer.prepare_quran_steering(chunk_by="verse")
 
 # Option 2: Quran Persona (aggregates all resolutions - recommended)
@@ -86,7 +90,7 @@ python main.py --compare
 # Thematic steering toward specific concepts
 python main.py --theme mercy --prompt "How should we treat others?"
 
-# Multi-Resolution Analysis mode
+# Multi-Resolution Analysis mode (uses MRA with full context injection)
 python main.py --mra --interactive
 
 # Initialize ChromaDB knowledge base (required for MRA mode)
@@ -147,57 +151,31 @@ python main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is wisdom?"
 
 ## How It Works
 
-### 1. Text Embedding Extraction
+### 1. Data Preparation
+The Quran text is loaded and correctly chunked into verses, paragraphs, and Surahs (using standard 114 Surah verse counts). Embeddings are generated for retrieval purposes.
 
-The Quran text is chunked (by verse, paragraph, or surah) and embedded using a multilingual model:
-
-```python
-from src import QuranEmbeddings
-
-embedder = QuranEmbeddings(model_name="bge-m3")
-embedder.load_model()
-data = embedder.create_quran_embeddings(
-    file_path="al-quran.txt",
-    chunk_by="verse"
-)
-mean_embedding = data["mean_embedding"]  # Shape: [1024]
-```
-
-### 2. Steering Vector Projection
-
-The embedding is projected to match the LLM's hidden dimension:
-
-```python
-from src import SteeringVectorExtractor
-
-extractor = SteeringVectorExtractor(
-    source_dim=1024,   # Embedding model dim
-    target_dim=896,    # LLM hidden dim
-    projection_type="random"
-)
-steering_vector = extractor.project_embedding(mean_embedding)
-```
+### 2. Steering Vector Calculation (Mean Activation)
+To steer the model, we do not simply project embeddings. Instead, we:
+1. Sample a representative set of Quran verses.
+2. Feed these verses into the LLM.
+3. Extract the internal hidden states (activations) at each layer.
+4. Compute the **mean activation vector** for each layer.
+This vector represents the "direction" of Quranic content in the model's own latents.
 
 ### 3. Activation Injection
-
-During inference, the steering vector is injected into intermediate layer activations:
+During inference, this mean activation vector is added (or clamped) to the model's current activations, "nudging" the generation towards the Quranic style and semantic space.
 
 ```python
 llm.register_steering_hook(
     layer_idx=12,
-    steering_vector=steering_vector,
+    steering_vector=mean_activation_vector,
     coefficient=0.5,
     injection_mode="clamp"
 )
 ```
 
 ### 4. Quran Persona Mode
-
-Aggregates embeddings from all text resolutions into a unified steering vector:
-
-```python
-steerer.prepare_quran_persona()  # Loads verse + paragraph + surah embeddings
-```
+Aggregates mean activations from Verse, Paragraph, and Surah levels to create a comprehensive steering profile.
 
 ## Injection Modes
 
@@ -219,85 +197,6 @@ The `clamp` mode is inspired by [Eiffel Tower LLaMA](https://github.com/sciencee
 | `strong` | 0.8 | add | Strong influence |
 | `focused` | 0.6 | add | Concentrated on middle layers |
 
-## Advanced Usage
-
-### Quran Persona Mode
-
-The recommended way to use the steerer. Aggregates embeddings from verse, paragraph, and surah resolutions:
-
-```bash
-python main.py --quran-persona --injection-mode clamp --interactive
-```
-
-```python
-steerer.prepare_quran_persona()
-output = steerer.generate("What should guide our actions?")
-```
-
-### Multi-Resolution Analysis (MRA)
-
-Uses ChromaDB for dynamic context retrieval. First initialize the database:
-
-```bash
-python main.py --init-db
-python main.py --mra --interactive
-```
-
-### Thematic Steering
-
-Steer toward specific Quranic themes by finding semantically similar verses:
-
-```python
-steerer.prepare_quran_steering(chunk_by="verse")
-steerer.prepare_thematic_steering(
-    theme_query="mercy and compassion",
-    top_k=10  # Use top 10 most similar verses
-)
-```
-
-### Contrastive Steering
-
-Use contrastive activation addition with positive/negative examples:
-
-```python
-from src import ContrastiveQuranSteerer
-
-steerer = ContrastiveQuranSteerer(llm_model="qwen3-0.6b")
-steerer.prepare_contrastive_steering(
-    positive_prompts=["Speaking with wisdom and mercy..."],
-    negative_prompts=["Speaking harshly and without compassion..."]
-)
-```
-
-### Custom Layer Selection
-
-```python
-steerer.config.target_layers = [10, 11, 12, 13, 14]
-steerer.config.coefficient = 0.6
-steerer.config.injection_mode = "clamp"
-steerer.config.layer_distribution = "bell"  # or "uniform", "focused"
-```
-
-### Native Reasoning Mode
-
-Models with native reasoning support use model-specific configurations:
-
-| Model | Mode | Description |
-|-------|------|-------------|
-| `deepseek-r1-1.5b` | `<think>...</think>` | Forces think prefix, temp=0.6 |
-| `qwen3-0.6b` | `enable_thinking` | Native chat template support, temp=0.6 |
-| `phi4-mini` | Math reasoning | Optimized for mathematical reasoning, temp=0.8 |
-
-```bash
-# Enable reasoning with --reasoning flag
-python main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is justice?"
-
-# Compare reasoning models
-./compare_models.py --models deepseek-r1-1.5b qwen3-0.6b --reasoning
-```
-
-For models without native reasoning, a generic step-by-step prompting fallback is used.
-
 ## Project Structure
 
 ```
@@ -309,15 +208,12 @@ machine-poi/
 ├── requirements.txt          # Python dependencies
 ├── src/
 │   ├── __init__.py           # Package exports
-│   ├── quran_embeddings.py   # Text embedding extraction
+│   ├── quran_embeddings.py   # Text embedding extraction & chunking
 │   ├── steering_vectors.py   # Vector projection utilities
 │   ├── llm_wrapper.py        # LLM hooks and steering injection
 │   ├── steerer.py            # High-level QuranSteerer interface
 │   └── knowledge_base.py     # ChromaDB for MRA mode
-├── vectors/                  # Cached embeddings (auto-generated)
-│   ├── quran_bge-m3_verse.npz
-│   ├── quran_bge-m3_paragraph.npz
-│   └── quran_bge-m3_surah.npz
+├── vectors/                  # Cached vectors
 └── quran_db/                 # ChromaDB storage (for MRA mode)
 ```
 

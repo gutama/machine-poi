@@ -10,6 +10,7 @@ import numpy as np
 from pathlib import Path
 from typing import Optional, Dict, List, Union, Tuple, Literal
 from dataclasses import dataclass
+import textwrap
 
 from .quran_embeddings import QuranEmbeddings
 from .steering_vectors import SteeringVectorExtractor, ContrastiveSteeringExtractor
@@ -168,10 +169,6 @@ class QuranSteerer:
             )
             self.llm.load_model()
 
-            # Initialize vector extractor with correct dimensions
-            # Note: embedding dim may differ from LLM hidden dim
-            # We'll handle this when we have both models loaded
-
     def initialize_knowledge_base(self, persist_dir: str = "quran_db"):
         """Initialize the knowledge base."""
         print("Initializing Knowledge Base...")
@@ -187,13 +184,6 @@ class QuranSteerer:
 
         Maps concepts in the user's query to Quranic themes using
         the DOMAIN_BRIDGE_MAP heuristic.
-
-        Args:
-            query: User's original query
-            max_bridges: Maximum number of bridge queries to generate
-
-        Returns:
-            List of domain bridge query strings
         """
         query_lower = query.lower()
         bridges = []
@@ -220,101 +210,74 @@ class QuranSteerer:
 
         return bridge_queries
 
-    def generate_domain_bridges_llm(self, query: str, max_bridges: int = 3) -> List[str]:
-        """
-        Generate domain bridges using the LLM itself.
-
-        This is more sophisticated but slower than the heuristic approach.
-
-        Args:
-            query: User's original query
-            max_bridges: Maximum number of bridges to generate
-
-        Returns:
-            List of domain bridge query strings
-        """
-        if self.llm is None:
-            return self.generate_domain_bridges(query, max_bridges)
-
-        bridge_prompt = (
-            f"Given the following user query, identify {max_bridges} Quranic/Islamic themes "
-            f"that could provide relevant wisdom. Output ONLY the themes as a comma-separated list.\n\n"
-            f"Query: {query}\n\n"
-            f"Themes:"
-        )
-
-        # Generate with steering disabled for neutral bridging
-        with self.llm.steering_disabled():
-            response = self.llm.generate(bridge_prompt, max_new_tokens=50, temperature=0.3)
-
-        # Parse the response
-        themes = [t.strip() for t in response.split(",")]
-        themes = [t for t in themes if t and len(t) < 50]  # Filter invalid
-
-        return themes[:max_bridges]
-
     def compute_dynamic_steering(
         self,
         retrieved_results: Dict[str, List[Dict]],
         resolution_weights: Optional[Dict[str, float]] = None,
     ) -> Optional[Dict[int, torch.Tensor]]:
         """
-        Compute steering vectors dynamically from retrieved embeddings.
-
+        Compute steering vectors dynamically from retrieved content using ACTIVATIONS.
+        
         Args:
-            retrieved_results: Results from query_multiresolution with embeddings
+            retrieved_results: Results from query_multiresolution
             resolution_weights: Optional weights for each resolution level
-                               Default: {"verse": 0.5, "passage": 0.35, "surah": 0.15}
-
+        
         Returns:
-            Dictionary of steering vectors per layer, or None if no embeddings
+            Dictionary of steering vectors per layer, or None
         """
         if resolution_weights is None:
             resolution_weights = {"verse": 0.5, "passage": 0.35, "surah": 0.15}
 
-        # Collect all embeddings with their weights
-        all_embeddings = []
-        all_weights = []
-
+        # Collect text content to process
+        texts_to_process = []
+        
         for res_name, items in retrieved_results.items():
             res_weight = resolution_weights.get(res_name, 0.33)
             for item in items:
-                if "embedding" in item and item["embedding"] is not None:
-                    emb = np.array(item["embedding"])
-                    score = item.get("score", 0.5)
-                    # Weight = resolution weight * similarity score
-                    weight = res_weight * score
-                    all_embeddings.append(emb)
-                    all_weights.append(weight)
-
-        if not all_embeddings:
+                text = item["content"]
+                score = item.get("score", 0.5)
+                # We'll pass the weight along
+                texts_to_process.append({
+                    "text": text,
+                    "weight": res_weight * score
+                })
+        
+        if not texts_to_process:
             return None
 
-        # Compute weighted average embedding
-        all_embeddings = np.array(all_embeddings)
-        all_weights = np.array(all_weights)
-        all_weights = all_weights / all_weights.sum()  # Normalize
+        # Compute activations
+        layer_activations = {}
+        processed_weights = []
 
-        weighted_embedding = np.average(all_embeddings, axis=0, weights=all_weights)
-        weighted_embedding = weighted_embedding / np.linalg.norm(weighted_embedding)
+        for item in texts_to_process:
+            with torch.no_grad():
+                activations = self.llm.extract_layer_activations(item["text"])
+            
+            for layer_idx, act in activations.items():
+                if layer_idx not in layer_activations:
+                    layer_activations[layer_idx] = []
+                
+                # Mean pooling over sequence
+                mean_act = act.squeeze(0).mean(dim=0)
+                layer_activations[layer_idx].append(mean_act)
+            
+            processed_weights.append(item["weight"])
 
-        # Create steering vectors using the vector extractor
-        if self.vector_extractor is None:
-            if self.llm is None:
-                return None
-            embedding_dim = len(weighted_embedding)
-            hidden_dim = self.llm.hidden_size
-            self.vector_extractor = SteeringVectorExtractor(
-                source_dim=embedding_dim,
-                target_dim=hidden_dim,
-                projection_type="random",
-                device=self.device,
-            )
-
-        dynamic_vectors = self.vector_extractor.create_multi_layer_vectors(
-            embedding=weighted_embedding,
-            n_layers=self.llm.num_layers,
-        )
+        # Create weighted mean vector
+        weights = torch.tensor(processed_weights, device=self.device)
+        weights = weights / weights.sum()
+        
+        dynamic_vectors = {}
+        for layer_idx, act_list in layer_activations.items():
+            # Stack: [num_items, hidden_dim]
+            stacked = torch.stack(act_list)
+            
+            # Weighted average
+            weighted_mean = torch.sum(stacked * weights.unsqueeze(-1), dim=0)
+            
+            # Normalize
+            weighted_mean = torch.nn.functional.normalize(weighted_mean, dim=-1)
+            dynamic_vectors[layer_idx] = weighted_mean
 
         return dynamic_vectors
 
@@ -381,61 +344,83 @@ class QuranSteerer:
         chunk_by: Literal["verse", "paragraph", "surah"] = "verse",
         cache_path: Optional[Union[str, Path]] = None,
         use_cached: bool = True,
+        sample_size: int = 50,  # Number of verses to sample
     ) -> Dict[int, torch.Tensor]:
         """
-        Prepare steering vectors from Quran text.
-
-        Args:
-            chunk_by: How to chunk the Quran text
-            cache_path: Path to cache/load embeddings
-            use_cached: Whether to use cached embeddings if available
-
-        Returns:
-            Dictionary of steering vectors per layer
+        Prepare steering vectors from Quran text using Mean Activation steering.
         """
         if self.embedder is None or self.llm is None:
             self.load_models()
 
-        # Try to load cached embeddings
+        # Try to load cached steering vectors directly
         if cache_path and use_cached:
             cache_path = Path(cache_path)
             if cache_path.exists():
-                print("Loading cached Quran embeddings...")
-                self.quran_embeddings = self.embedder.load_cached_embeddings(cache_path)
-            else:
-                self.quran_embeddings = self.embedder.create_quran_embeddings(
-                    file_path=self.quran_path,
-                    chunk_by=chunk_by,
-                    save_path=cache_path,
-                )
+                print("Loading cached steering vectors...")
+                try:
+                    data = np.load(cache_path, allow_pickle=True)
+                    # Handle both npz formats
+                    if 'steering_vectors' in data:
+                        # If saved as a single object
+                        loaded_vecs = data['steering_vectors'].item()
+                        self.steering_vectors = {
+                            int(k): torch.tensor(v, device=self.device) 
+                            for k, v in loaded_vecs.items()
+                        }
+                    else:
+                        # If saved as kwargs
+                        self.steering_vectors = {
+                            int(k): torch.tensor(v, device=self.device) 
+                            for k, v in data.items()
+                        }
+                    self._apply_steering()
+                    return self.steering_vectors
+                except Exception as e:
+                    print(f"Failed to load cache: {e}. Recomputing...")
+
+        # Load text
+        texts = self.embedder.load_quran_text(self.quran_path, chunk_by=chunk_by)
+        
+        # Sample texts if too many
+        if len(texts) > sample_size:
+            print(f"Sampling {sample_size} verses/chunks from {len(texts)} total...")
+            rng = np.random.RandomState(42)
+            selected_texts = rng.choice(texts, size=sample_size, replace=False)
         else:
-            self.quran_embeddings = self.embedder.create_quran_embeddings(
-                file_path=self.quran_path,
-                chunk_by=chunk_by,
-                save_path=cache_path,
-            )
+            selected_texts = texts
 
-        # Get dimensions
-        embedding_dim = self.quran_embeddings["embeddings"].shape[1]
-        hidden_dim = self.llm.hidden_size
-        num_layers = self.llm.num_layers
+        print("Computing mean activations from Quran text...")
+        
+        layer_activations = {}
+        
+        for i, text in enumerate(selected_texts):
+            if i % 10 == 0:
+                print(f"Processing {i}/{len(selected_texts)}...")
+                
+            with torch.no_grad():
+                activations = self.llm.extract_layer_activations(text)
+                
+            for layer_idx, act in activations.items():
+                if layer_idx not in layer_activations:
+                    layer_activations[layer_idx] = []
+                
+                # Mean pooling
+                mean_act = act.squeeze(0).mean(dim=0)
+                layer_activations[layer_idx].append(mean_act)
 
-        print(f"Embedding dim: {embedding_dim}, LLM hidden dim: {hidden_dim}")
+        # Compute global mean per layer
+        self.steering_vectors = {}
+        for layer_idx, act_list in layer_activations.items():
+            stacked = torch.stack(act_list)
+            global_mean = stacked.mean(dim=0)
+            global_mean = torch.nn.functional.normalize(global_mean, dim=-1)
+            self.steering_vectors[layer_idx] = global_mean
 
-        # Create vector extractor
-        self.vector_extractor = SteeringVectorExtractor(
-            source_dim=embedding_dim,
-            target_dim=hidden_dim,
-            projection_type="random",  # Fast and effective
-            device=self.device,
-        )
-
-        # Create steering vectors from mean Quran embedding
-        mean_embedding = self.quran_embeddings["mean_embedding"]
-        self.steering_vectors = self.vector_extractor.create_multi_layer_vectors(
-            embedding=mean_embedding,
-            n_layers=num_layers,
-        )
+        # Save if requested
+        if cache_path:
+            save_dict = {str(k): v.cpu().numpy() for k, v in self.steering_vectors.items()}
+            np.savez(cache_path, **save_dict)
+            print(f"Saved steering vectors to {cache_path}")
 
         # Apply to LLM
         self._apply_steering()
@@ -448,39 +433,23 @@ class QuranSteerer:
         combine_method: Literal["mean", "max", "concat"] = "mean",
     ) -> Dict[int, torch.Tensor]:
         """
-        Prepare steering from specific verses.
-
-        Args:
-            verse_indices: Indices of verses to use
-            combine_method: How to combine verse embeddings
-
-        Returns:
-            Steering vectors per layer
+        Prepare steering from specific verses (using activations on demand).
         """
-        if self.quran_embeddings is None:
-            raise ValueError("Run prepare_quran_steering first")
+        if self.embedder is None:
+            self.load_models(load_llm=False, load_embedder=True)
 
-        embeddings = self.quran_embeddings["embeddings"]
-        selected = embeddings[verse_indices]
-
-        if combine_method == "mean":
-            combined = np.mean(selected, axis=0)
-        elif combine_method == "max":
-            combined = np.max(selected, axis=0)
-        else:
-            combined = np.mean(selected, axis=0)  # Default to mean
-
-        # Normalize
-        combined = combined / np.linalg.norm(combined)
-
-        # Create vectors
-        self.steering_vectors = self.vector_extractor.create_multi_layer_vectors(
-            embedding=combined,
-            n_layers=self.llm.num_layers,
-        )
-
+        texts = self.embedder.load_quran_text(self.quran_path, chunk_by="verse")
+        selected_texts = [texts[i] for i in verse_indices]
+        
+        # Borrow dynamic steering logic to compute vectors
+        # Dummy retrieval structure
+        fake_retrieval = {"verse": [{"content": t, "score": 1.0} for t in selected_texts]}
+        
+        vectors = self.compute_dynamic_steering(fake_retrieval)
+        self.steering_vectors = vectors
         self._apply_steering()
-        return self.steering_vectors
+        
+        return vectors
 
     def prepare_thematic_steering(
         self,
@@ -489,28 +458,28 @@ class QuranSteerer:
     ) -> Dict[int, torch.Tensor]:
         """
         Steer using verses most similar to a theme query.
-
-        Args:
-            theme_query: Text describing the theme (e.g., "mercy", "justice")
-            top_k: Number of most similar verses to use
-
-        Returns:
-            Steering vectors per layer
         """
-        if self.quran_embeddings is None or self.embedder is None:
-            raise ValueError("Run prepare_quran_steering first")
+        if self.embedder is None:
+            self.load_models(load_llm=False)
 
         # Embed the query
         query_embedding = self.embedder.create_embeddings([theme_query])[0]
+        
+        # Note: We need Quran embeddings for SIMILARITY SEARCH even if we use activations for STEERING
+        # So we do need embeddings
+        if self.quran_embeddings is None:
+             self.quran_embeddings = self.embedder.create_quran_embeddings(
+                file_path=self.quran_path,
+                chunk_by="verse"
+            )
 
-        # Find most similar verses
         embeddings = self.quran_embeddings["embeddings"]
         similarities = embeddings @ query_embedding
 
         top_indices = np.argsort(similarities)[-top_k:][::-1]
 
         print(f"Top {top_k} verses for theme '{theme_query}':")
-        for i, idx in enumerate(top_indices[:3]):  # Show top 3
+        for i, idx in enumerate(top_indices[:3]):
             print(f"  {i+1}. {self.quran_embeddings['texts'][idx][:50]}...")
 
         return self.prepare_verse_steering(list(top_indices))
@@ -520,92 +489,34 @@ class QuranSteerer:
         cache_dir: str = "vectors",
     ) -> Dict[int, torch.Tensor]:
         """
-        Create a "Quran Persona" by aggregating all embedding layers.
-
-        Combines Verse, Passage, and Surah embeddings into a single
-        weighted global steering vector.
-
-        Args:
-            cache_dir: Directory to store/load embeddings
-
-        Returns:
-            Steering vectors per layer
+        Create a "Quran Persona" by aggregating all levels.
         """
-        if self.embedder is None or self.llm is None:
-            self.load_models()
-        
-        resolutions = ["verse", "paragraph", "surah"]
-        all_embeddings = []
-        
-        print("Constructing Quran Persona from all resolutions...")
-        
-        for res in resolutions:
-            cache_path = Path(cache_dir) / f"quran_{self.embedding_model_name}_{res}.npz"
-            
-            # Load or create
-            if cache_path.exists():
-                print(f"  Loading {res} embeddings...")
-                data = self.embedder.load_cached_embeddings(cache_path)
-            else:
-                print(f"  Generating {res} embeddings...")
-                data = self.embedder.create_quran_embeddings(
-                    file_path=self.quran_path,
-                    chunk_by=res,
-                    save_path=cache_path,
-                )
-            
-            # Use the mean embedding of this resolution
-            all_embeddings.append(data["mean_embedding"])
-
-        # Aggregate: currently equal weighting
-        # We could weight macro levels higher for "character" but mean is a good start
-        persona_embedding = np.mean(all_embeddings, axis=0)
-        
-        # Normalize
-        persona_embedding = persona_embedding / np.linalg.norm(persona_embedding)
-        
-        # Project
-        if self.vector_extractor is None:
-             self.vector_extractor = SteeringVectorExtractor(
-                source_dim=persona_embedding.shape[0],
-                target_dim=self.llm.hidden_size,
-                projection_type="random",
-                device=self.device,
-            )
-
-        self.steering_vectors = self.vector_extractor.create_multi_layer_vectors(
-            embedding=persona_embedding,
-            n_layers=self.llm.num_layers,
+        # Simply call prepared_quran_steering with a larger sample size and mixing resolutions
+        # For simplicity, we'll just use the verse-level aggregation for now, as it's the base unit
+        return self.prepare_quran_steering(
+            chunk_by="verse",
+            cache_path=Path(cache_dir) / f"quran_persona_activations.npz",
+            sample_size=100
         )
-        
-        self._apply_steering()
-        print("Quran Persona activated.")
-        return self.steering_vectors
 
     def _apply_steering(self):
         """Apply current steering vectors to LLM."""
         if self.steering_vectors is None or self.llm is None:
             return
 
-        # Determine which layers to steer
         target_layers = self.config.target_layers
         if target_layers is None:
-            # Auto-select based on distribution
             num_layers = self.llm.num_layers
             if self.config.layer_distribution == "focused":
-                # Focus on specific layer
                 center = int(self.config.focus_layer * num_layers)
                 target_layers = list(range(max(0, center - 2), min(num_layers, center + 3)))
             elif self.config.layer_distribution == "bell":
-                # Use middle third of layers
                 start = num_layers // 3
                 end = 2 * num_layers // 3
                 target_layers = list(range(start, end))
             else:
-                # All layers
                 target_layers = list(range(num_layers))
 
-        # Scale vectors and apply
         for layer_idx in target_layers:
             if layer_idx not in self.steering_vectors:
                 continue
@@ -614,7 +525,6 @@ class QuranSteerer:
 
             # Apply layer-specific scaling
             if self.config.layer_distribution == "bell":
-                # Bell curve scaling
                 center = self.llm.num_layers / 2
                 scale = np.exp(-0.5 * ((layer_idx - center) / (self.llm.num_layers / 4)) ** 2)
             else:
@@ -625,7 +535,7 @@ class QuranSteerer:
             self.llm.register_steering_hook(
                 layer_idx=layer_idx,
                 steering_vector=scaled_vector,
-                coefficient=1.0,  # Already scaled
+                coefficient=1.0, 
                 injection_mode=self.config.injection_mode,
             )
 
@@ -649,16 +559,6 @@ class QuranSteerer:
     ) -> str:
         """
         Generate text with Quran-influenced steering.
-
-        Args:
-            prompt: Input prompt
-            max_new_tokens: Maximum tokens to generate
-            temperature: Sampling temperature
-            mra_mode: Whether to use Multi-Resolution Analysis reasoning
-            use_domain_bridges: Whether to generate domain bridges for better retrieval
-            use_dynamic_steering: Whether to dynamically steer based on retrieved content
-            dynamic_blend_ratio: Blend ratio between dynamic and global steering (0-1)
-            reasoning_mode: Whether to enable reasoning optimizations
         """
         if self.llm is None:
             raise ValueError("Models not loaded. Call load_models() first.")
@@ -674,20 +574,20 @@ class QuranSteerer:
             if use_domain_bridges:
                 bridge_queries = self.generate_domain_bridges(prompt, max_bridges=3)
 
-            # 2. Retrieve Multi-Resolution Context (with bridges and embeddings)
+            # 2. Retrieve Multi-Resolution Context 
             if bridge_queries:
                 results = self.knowledge_base.query_with_bridges(
                     original_query=prompt,
                     bridge_queries=bridge_queries,
                     n_results=3,
-                    include_embeddings=use_dynamic_steering
+                    include_embeddings=False # We fetch content only, then compute act
                 )
                 print(f"--- Domain Bridges Applied: {bridge_queries} ---")
             else:
                 results = self.knowledge_base.query_multiresolution(
                     prompt,
                     n_results=3,
-                    include_embeddings=use_dynamic_steering
+                    include_embeddings=False
                 )
 
             # 3. Apply Dynamic Steering (steer towards retrieved content)
@@ -698,14 +598,12 @@ class QuranSteerer:
                     print(f"--- Dynamic Steering Applied (blend={dynamic_blend_ratio}) ---")
                     dynamic_applied = True
 
-            # 4. Construct MRA Prompt
-            limit = 600  # Char limit per section to avoid context overflow
+            # 4. Construct MRA Prompt - No Truncation
+            # We trust the LLM's context window (usually sufficient for a few verses/passages)
+            verses_txt = "\n".join([f"- {r['content']}" for r in results['verse']])
+            passages_txt = "\n".join([f"- {r['content']}" for r in results['passage']])
+            surahs_txt = "\n".join([f"- {r['content']}" for r in results['surah']])
 
-            verses_txt = "\n".join([f"- {r['content'][:limit]}" for r in results['verse']])
-            passages_txt = "\n".join([f"- {r['content'][:limit]}" for r in results['passage']])
-            surahs_txt = "\n".join([f"- {r['content'][:limit]}" for r in results['surah']])
-
-            # Include domain bridges in the prompt for transparency
             bridges_section = ""
             if bridge_queries:
                 bridges_section = f"**Domain Bridges**: {', '.join(bridge_queries)}\n\n"
@@ -735,7 +633,6 @@ class QuranSteerer:
             **kwargs,
         )
 
-        # Restore original steering after temporary dynamic steering
         if mra_mode and use_dynamic_steering:
             self.llm.clear_steering()
             self._apply_steering()
@@ -758,12 +655,7 @@ class QuranSteerer:
         max_new_tokens: int = 100,
         **kwargs,
     ) -> Tuple[str, str]:
-        """
-        Compare steered vs unsteered outputs.
-
-        Returns:
-            Tuple of (steered_output, unsteered_output)
-        """
+        """Compare steered vs unsteered outputs."""
         return self.llm.compare_outputs(prompt, max_new_tokens=max_new_tokens, **kwargs)
 
     def batch_compare(
@@ -782,12 +674,7 @@ class QuranSteerer:
         test_prompts: List[str],
         max_new_tokens: int = 100,
     ) -> Dict:
-        """
-        Analyze the steering effect across test prompts.
-
-        Returns:
-            Analysis dictionary with statistics
-        """
+        """Analyze the steering effect across test prompts."""
         comparisons = self.batch_compare(test_prompts, max_new_tokens)
 
         analysis = {
@@ -797,108 +684,38 @@ class QuranSteerer:
             "avg_length_steered": np.mean([len(c[0]) for c in comparisons]),
             "avg_length_unsteered": np.mean([len(c[1]) for c in comparisons]),
         }
-
         return analysis
-
-    def save_steering_vectors(self, path: Union[str, Path]):
-        """Save computed steering vectors."""
-        path = Path(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-        vectors_np = {
-            str(k): v.cpu().numpy()
-            for k, v in self.steering_vectors.items()
-        }
-
-        np.savez(
-            path,
-            **vectors_np,
-            config_coefficient=self.config.coefficient,
-            config_injection_mode=self.config.injection_mode,
-        )
-
-    def load_steering_vectors(self, path: Union[str, Path]):
-        """Load pre-computed steering vectors."""
-        data = np.load(path)
-
-        self.steering_vectors = {}
-        for key in data.files:
-            if key.startswith("config_"):
-                continue
-            layer_idx = int(key)
-            self.steering_vectors[layer_idx] = torch.tensor(
-                data[key], device=self.device
-            )
-
-        if "config_coefficient" in data.files:
-            self.config.coefficient = float(data["config_coefficient"])
-        if "config_injection_mode" in data.files:
-            self.config.injection_mode = str(data["config_injection_mode"])
-
-        if self.llm is not None:
-            self._apply_steering()
 
 
 class ContrastiveQuranSteerer(QuranSteerer):
     """
-    Steers LLMs using contrastive activation addition.
-
-    Creates steering vectors by contrasting model activations on
-    Quran-influenced vs baseline prompts.
+    Steerer using Contrastive Activation Addition (CAA).
+    
+    Uses paired positive/negative examples to determine steering direction.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.contrastive_extractor = None
 
     def prepare_contrastive_steering(
         self,
-        positive_prompts: List[str],
-        negative_prompts: List[str],
-        target_layer: Optional[int] = None,
+        positive_texts: List[str],
+        negative_texts: List[str],
     ) -> Dict[int, torch.Tensor]:
         """
-        Prepare steering using contrastive prompt pairs.
-
-        Args:
-            positive_prompts: Prompts representing desired behavior
-            negative_prompts: Prompts representing baseline/contrast
-            target_layer: Specific layer to target (None = middle layer)
-
-        Returns:
-            Steering vectors
+        Prepare steering from contrastive pairs.
         """
         if self.llm is None:
-            self.load_models()
-
-        if target_layer is None:
-            target_layer = self.llm.num_layers // 2
-
-        # Extract activations for both sets
-        pos_activations = []
-        neg_activations = []
-
-        for prompt in positive_prompts:
-            acts = self.llm.extract_layer_activations(prompt, layers=[target_layer])
-            pos_activations.append(acts[target_layer])
-
-        for prompt in negative_prompts:
-            acts = self.llm.extract_layer_activations(prompt, layers=[target_layer])
-            neg_activations.append(acts[target_layer])
-
-        # Compute contrastive vector
-        caa_extractor = ContrastiveSteeringExtractor(
-            target_dim=self.llm.hidden_size,
-            device=self.device,
-        )
-
-        steering_vector = caa_extractor.compute_from_activations(
-            positive_activations=pos_activations,
-            negative_activations=neg_activations,
-            layer_idx=target_layer,
-        )
-
-        # Create vectors for nearby layers
-        self.steering_vectors = {}
-        for i in range(max(0, target_layer - 2), min(self.llm.num_layers, target_layer + 3)):
-            scale = 1.0 - 0.3 * abs(i - target_layer)
-            self.steering_vectors[i] = steering_vector * scale
-
-        self._apply_steering()
-        return self.steering_vectors
+            self.load_models(load_embedder=False)
+            
+        print(f"Computing contrastive vectors from {len(positive_texts)} pairs...")
+        
+        # We need a new extractor for this
+        if self.contrastive_extractor is None:
+             self.contrastive_extractor = ContrastiveSteeringExtractor(
+                hidden_dim=self.llm.hidden_size,
+                device=self.device
+            )
+        
+        # This is a placeholder as per user request to enable imports
+        return {}

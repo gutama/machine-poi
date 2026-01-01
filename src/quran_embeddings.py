@@ -28,6 +28,22 @@ class QuranEmbeddings:
         "multilingual-e5": "intfloat/multilingual-e5-large-instruct",
     }
 
+    # Standard verse counts for all 114 Surahs
+    SURAH_VERSE_COUNTS = [
+        7, 286, 200, 176, 120, 165, 206, 75, 129, 109,
+        123, 111, 43, 52, 99, 128, 111, 110, 98, 135,
+        112, 78, 118, 64, 77, 227, 93, 88, 69, 60,
+        34, 30, 73, 54, 45, 83, 182, 88, 75, 85,
+        54, 53, 89, 59, 37, 35, 38, 29, 18, 45,
+        60, 49, 62, 55, 78, 96, 29, 22, 24, 13,
+        14, 11, 11, 18, 12, 12, 30, 52, 52, 44,
+        28, 28, 20, 56, 40, 31, 50, 40, 46, 42,
+        29, 19, 36, 25, 22, 17, 19, 26, 30, 20,
+        15, 21, 11, 8, 8, 19, 5, 8, 8, 11,
+        11, 8, 3, 9, 5, 4, 7, 3, 6, 3,
+        5, 4, 5, 6
+    ]
+
     def __init__(
         self,
         model_name: str = "bge-m3",
@@ -119,6 +135,7 @@ class QuranEmbeddings:
         if chunk_by == "verse":
             # Each line is a verse
             chunks = [line for line in lines if len(line) >= min_length]
+        
         elif chunk_by == "paragraph":
             # Group every N verses together
             n = 5
@@ -127,15 +144,25 @@ class QuranEmbeddings:
                 chunk = " ".join(lines[i:i+n])
                 if len(chunk) >= min_length:
                     chunks.append(chunk)
+
         elif chunk_by == "surah":
-            # Group by assumed surah boundaries (simplified)
-            # In practice, you'd need surah markers
-            n = 50
+            # Group by actual Surah boundaries
             chunks = []
-            for i in range(0, len(lines), n):
-                chunk = " ".join(lines[i:i+n])
+            current_line = 0
+            
+            for verse_count in self.SURAH_VERSE_COUNTS:
+                if current_line >= len(lines):
+                    break
+                    
+                end_line = min(current_line + verse_count, len(lines))
+                # Skip Bismillah if it's considered a separate line in some files
+                # But here we assume strict line-per-verse mapping
+                chunk = " ".join(lines[current_line:end_line])
+                
                 if len(chunk) >= min_length:
                     chunks.append(chunk)
+                
+                current_line = end_line
         else:
             chunks = lines
 
