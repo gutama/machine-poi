@@ -114,45 +114,110 @@ class QuranKnowledgeBase:
         self,
         query_text: str,
         n_results: int = 3,
+        include_embeddings: bool = False,
     ) -> Dict[str, List[Dict]]:
         """
         Query all resolutions simultaneously.
-        
+
+        Args:
+            query_text: The query string
+            n_results: Number of results per resolution
+            include_embeddings: Whether to include embeddings in results (for dynamic steering)
+
         Returns:
             Dict with 'verse', 'passage', 'surah' results.
         """
         # Embed query
         query_embedding = self.embedder.create_embeddings([query_text])[0].tolist()
-        
+
         results = {}
         for res_name, collection in self.collections.items():
             # Adjust n_results for macro levels (fewer surahs needed)
             k = n_results
             if res_name == "surah":
                 k = max(1, n_results // 3)
-            
+
+            # Include embeddings if requested
+            include_fields = ["documents", "metadatas", "distances"]
+            if include_embeddings:
+                include_fields.append("embeddings")
+
             response = collection.query(
                 query_embeddings=[query_embedding],
-                n_results=k
+                n_results=k,
+                include=include_fields
             )
-            
+
             # Formatter
             formatted = []
             if response["documents"]:
                 docs = response["documents"][0]
                 metas = response["metadatas"][0]
                 dists = response["distances"][0]
-                
-                for doc, meta, dist in zip(docs, metas, dists):
-                    formatted.append({
+                embeds = response.get("embeddings", [[None] * len(docs)])[0] if include_embeddings else [None] * len(docs)
+
+                for doc, meta, dist, emb in zip(docs, metas, dists, embeds):
+                    item = {
                         "content": doc,
                         "metadata": meta,
                         "distance": dist,
                         "score": 1.0 - dist  # Cosine distance to similarity
-                    })
+                    }
+                    if include_embeddings and emb is not None:
+                        item["embedding"] = emb
+                    formatted.append(item)
             results[res_name] = formatted
-            
+
         return results
+
+    def query_with_bridges(
+        self,
+        original_query: str,
+        bridge_queries: List[str],
+        n_results: int = 3,
+        include_embeddings: bool = False,
+    ) -> Dict[str, List[Dict]]:
+        """
+        Query using both original query and domain bridge queries.
+
+        Combines results from the original query and bridge queries,
+        de-duplicating and re-ranking by best score.
+
+        Args:
+            original_query: The user's original query
+            bridge_queries: List of domain bridge queries
+            n_results: Number of results per resolution
+            include_embeddings: Whether to include embeddings
+
+        Returns:
+            Dict with 'verse', 'passage', 'surah' results (merged and ranked).
+        """
+        all_queries = [original_query] + bridge_queries
+
+        # Collect all results
+        merged_results = {"verse": {}, "passage": {}, "surah": {}}
+
+        for query in all_queries:
+            results = self.query_multiresolution(
+                query,
+                n_results=n_results,
+                include_embeddings=include_embeddings
+            )
+
+            for res_name, items in results.items():
+                for item in items:
+                    doc_id = item["metadata"].get("index", item["content"][:50])
+                    # Keep the highest scoring occurrence
+                    if doc_id not in merged_results[res_name] or item["score"] > merged_results[res_name][doc_id]["score"]:
+                        merged_results[res_name][doc_id] = item
+
+        # Convert back to list and sort by score
+        final_results = {}
+        for res_name, items_dict in merged_results.items():
+            sorted_items = sorted(items_dict.values(), key=lambda x: x["score"], reverse=True)
+            final_results[res_name] = sorted_items[:n_results]
+
+        return final_results
 
     def get_weighted_embedding(self, query_results: Dict[str, List[Dict]]) -> Dict[str, float]:
         """

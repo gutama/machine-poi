@@ -13,9 +13,52 @@ from dataclasses import dataclass
 
 from .quran_embeddings import QuranEmbeddings
 from .steering_vectors import SteeringVectorExtractor, ContrastiveSteeringExtractor
-from .steering_vectors import SteeringVectorExtractor, ContrastiveSteeringExtractor
 from .llm_wrapper import SteeredLLM
 from .knowledge_base import QuranKnowledgeBase
+
+
+# Domain bridge mappings: maps common concepts to Quranic themes
+DOMAIN_BRIDGE_MAP = {
+    # Technical/Programming domains
+    "bug": ["correction", "improvement", "refinement", "fixing mistakes"],
+    "debug": ["patience", "careful examination", "seeking truth"],
+    "error": ["forgiveness", "learning from mistakes", "repentance"],
+    "code": ["creation", "order", "structure", "wisdom"],
+    "refactor": ["purification", "improvement", "renewal"],
+    "optimize": ["excellence", "perfection", "ihsan"],
+    "test": ["verification", "proof", "examination"],
+    "deploy": ["trust in Allah", "tawakkul", "action after preparation"],
+
+    # Teamwork/Social domains
+    "team": ["unity", "brotherhood", "cooperation", "ummah"],
+    "conflict": ["reconciliation", "peace-making", "patience"],
+    "argue": ["respectful dialogue", "wisdom in speech", "reconciliation"],
+    "collaborate": ["mutual help", "cooperation", "supporting one another"],
+    "leadership": ["responsibility", "trust", "justice", "consultation"],
+    "decision": ["consultation", "shura", "seeking guidance", "istikharah"],
+
+    # Personal/Emotional domains
+    "stress": ["patience", "sabr", "trust in Allah", "peace of heart"],
+    "anxiety": ["remembrance of Allah", "tranquility", "tawakkul"],
+    "failure": ["perseverance", "learning", "hope", "never despair"],
+    "success": ["gratitude", "shukr", "humility", "continued effort"],
+    "motivation": ["purpose", "intention", "seeking Allah's pleasure"],
+    "fear": ["courage", "trust", "hope in Allah's mercy"],
+
+    # Learning/Growth domains
+    "learn": ["seeking knowledge", "wisdom", "reflection", "tadabbur"],
+    "understand": ["contemplation", "insight", "divine guidance"],
+    "teach": ["conveying truth", "patience", "wisdom", "example"],
+    "growth": ["spiritual development", "self-improvement", "tarbiyah"],
+
+    # General life domains
+    "money": ["trust", "provision from Allah", "gratitude", "moderation"],
+    "health": ["blessing", "patience in hardship", "gratitude"],
+    "family": ["mercy", "compassion", "responsibility", "kindness to parents"],
+    "time": ["value of time", "not wasting life", "preparation for hereafter"],
+    "death": ["certainty", "preparation", "meeting Allah", "legacy"],
+    "life": ["purpose", "test", "journey to Allah", "worship"],
+}
 
 
 @dataclass
@@ -139,6 +182,201 @@ class QuranSteerer:
             embedding_model_name=self.embedding_model_name,
             device=self.device,
         )
+
+    def generate_domain_bridges(self, query: str, max_bridges: int = 3) -> List[str]:
+        """
+        Generate domain bridge queries from user input.
+
+        Maps concepts in the user's query to Quranic themes using
+        the DOMAIN_BRIDGE_MAP heuristic.
+
+        Args:
+            query: User's original query
+            max_bridges: Maximum number of bridge queries to generate
+
+        Returns:
+            List of domain bridge query strings
+        """
+        query_lower = query.lower()
+        bridges = []
+
+        # Find matching keywords in the query
+        for keyword, themes in DOMAIN_BRIDGE_MAP.items():
+            if keyword in query_lower:
+                # Add the first theme as a bridge
+                bridges.extend(themes[:2])
+
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_bridges = []
+        for b in bridges:
+            if b not in seen:
+                seen.add(b)
+                unique_bridges.append(b)
+
+        # Limit to max_bridges
+        bridge_queries = unique_bridges[:max_bridges]
+
+        if bridge_queries:
+            print(f"Domain bridges: {bridge_queries}")
+
+        return bridge_queries
+
+    def generate_domain_bridges_llm(self, query: str, max_bridges: int = 3) -> List[str]:
+        """
+        Generate domain bridges using the LLM itself.
+
+        This is more sophisticated but slower than the heuristic approach.
+
+        Args:
+            query: User's original query
+            max_bridges: Maximum number of bridges to generate
+
+        Returns:
+            List of domain bridge query strings
+        """
+        if self.llm is None:
+            return self.generate_domain_bridges(query, max_bridges)
+
+        bridge_prompt = (
+            f"Given the following user query, identify {max_bridges} Quranic/Islamic themes "
+            f"that could provide relevant wisdom. Output ONLY the themes as a comma-separated list.\n\n"
+            f"Query: {query}\n\n"
+            f"Themes:"
+        )
+
+        # Generate with steering disabled for neutral bridging
+        with self.llm.steering_disabled():
+            response = self.llm.generate(bridge_prompt, max_new_tokens=50, temperature=0.3)
+
+        # Parse the response
+        themes = [t.strip() for t in response.split(",")]
+        themes = [t for t in themes if t and len(t) < 50]  # Filter invalid
+
+        return themes[:max_bridges]
+
+    def compute_dynamic_steering(
+        self,
+        retrieved_results: Dict[str, List[Dict]],
+        resolution_weights: Optional[Dict[str, float]] = None,
+    ) -> Optional[Dict[int, torch.Tensor]]:
+        """
+        Compute steering vectors dynamically from retrieved embeddings.
+
+        Args:
+            retrieved_results: Results from query_multiresolution with embeddings
+            resolution_weights: Optional weights for each resolution level
+                               Default: {"verse": 0.5, "passage": 0.35, "surah": 0.15}
+
+        Returns:
+            Dictionary of steering vectors per layer, or None if no embeddings
+        """
+        if resolution_weights is None:
+            resolution_weights = {"verse": 0.5, "passage": 0.35, "surah": 0.15}
+
+        # Collect all embeddings with their weights
+        all_embeddings = []
+        all_weights = []
+
+        for res_name, items in retrieved_results.items():
+            res_weight = resolution_weights.get(res_name, 0.33)
+            for item in items:
+                if "embedding" in item and item["embedding"] is not None:
+                    emb = np.array(item["embedding"])
+                    score = item.get("score", 0.5)
+                    # Weight = resolution weight * similarity score
+                    weight = res_weight * score
+                    all_embeddings.append(emb)
+                    all_weights.append(weight)
+
+        if not all_embeddings:
+            return None
+
+        # Compute weighted average embedding
+        all_embeddings = np.array(all_embeddings)
+        all_weights = np.array(all_weights)
+        all_weights = all_weights / all_weights.sum()  # Normalize
+
+        weighted_embedding = np.average(all_embeddings, axis=0, weights=all_weights)
+        weighted_embedding = weighted_embedding / np.linalg.norm(weighted_embedding)
+
+        # Create steering vectors using the vector extractor
+        if self.vector_extractor is None:
+            if self.llm is None:
+                return None
+            embedding_dim = len(weighted_embedding)
+            hidden_dim = self.llm.hidden_size
+            self.vector_extractor = SteeringVectorExtractor(
+                source_dim=embedding_dim,
+                target_dim=hidden_dim,
+                projection_type="random",
+                device=self.device,
+            )
+
+        dynamic_vectors = self.vector_extractor.create_multi_layer_vectors(
+            embedding=weighted_embedding,
+            n_layers=self.llm.num_layers,
+        )
+
+        return dynamic_vectors
+
+    def apply_dynamic_steering(
+        self,
+        dynamic_vectors: Dict[int, torch.Tensor],
+        blend_ratio: float = 0.5,
+    ):
+        """
+        Apply dynamic steering vectors, optionally blending with global steering.
+
+        Args:
+            dynamic_vectors: Steering vectors computed from retrieved content
+            blend_ratio: How much to blend dynamic vs global (0=all global, 1=all dynamic)
+        """
+        if dynamic_vectors is None or self.llm is None:
+            return
+
+        # Clear existing steering
+        self.llm.clear_steering()
+
+        # Determine target layers
+        target_layers = self.config.target_layers
+        if target_layers is None:
+            num_layers = self.llm.num_layers
+            if self.config.layer_distribution == "bell":
+                start = num_layers // 3
+                end = 2 * num_layers // 3
+                target_layers = list(range(start, end))
+            else:
+                target_layers = list(range(num_layers))
+
+        for layer_idx in target_layers:
+            if layer_idx not in dynamic_vectors:
+                continue
+
+            dynamic_vec = dynamic_vectors[layer_idx]
+
+            # Blend with global steering if available
+            if self.steering_vectors and layer_idx in self.steering_vectors:
+                global_vec = self.steering_vectors[layer_idx]
+                blended_vec = (blend_ratio * dynamic_vec) + ((1 - blend_ratio) * global_vec)
+            else:
+                blended_vec = dynamic_vec
+
+            # Apply layer-specific scaling
+            if self.config.layer_distribution == "bell":
+                center = self.llm.num_layers / 2
+                scale = np.exp(-0.5 * ((layer_idx - center) / (self.llm.num_layers / 4)) ** 2)
+            else:
+                scale = 1.0
+
+            scaled_vector = blended_vec * scale * self.config.coefficient
+
+            self.llm.register_steering_hook(
+                layer_idx=layer_idx,
+                steering_vector=scaled_vector,
+                coefficient=1.0,
+                injection_mode=self.config.injection_mode,
+            )
 
     def prepare_quran_steering(
         self,
@@ -338,6 +576,9 @@ class QuranSteerer:
         max_new_tokens: int = 100,
         temperature: float = 0.7,
         mra_mode: bool = False,
+        use_domain_bridges: bool = True,
+        use_dynamic_steering: bool = True,
+        dynamic_blend_ratio: float = 0.5,
         **kwargs,
     ) -> str:
         """
@@ -348,6 +589,9 @@ class QuranSteerer:
             max_new_tokens: Maximum tokens to generate
             temperature: Sampling temperature
             mra_mode: Whether to use Multi-Resolution Analysis reasoning
+            use_domain_bridges: Whether to generate domain bridges for better retrieval
+            use_dynamic_steering: Whether to dynamically steer based on retrieved content
+            dynamic_blend_ratio: Blend ratio between dynamic and global steering (0-1)
         """
         if self.llm is None:
             raise ValueError("Models not loaded. Call load_models() first.")
@@ -357,33 +601,61 @@ class QuranSteerer:
         if mra_mode:
             if self.knowledge_base is None:
                 self.initialize_knowledge_base()
-            
-            # 1. Retrieve Multi-Resolution Context
-            results = self.knowledge_base.query_multiresolution(prompt, n_results=3)
-            
-            # 2. Construct MRA Prompt
-            limit = 600 # Char limit per section to avoid context overflow
-            
-            verses_txt = "\\n".join([f"- {r['content'][:limit]}" for r in results['verse']])
-            passages_txt = "\\n".join([f"- {r['content'][:limit]}" for r in results['passage']])
-            surahs_txt = "\\n".join([f"- {r['content'][:limit]}" for r in results['surah']])
 
-            # Dynamic Steering (Optional: Steer towards retrieved verses)
-            # For now, we rely on the prompt context + global steering
-            
+            # 1. Generate Domain Bridges
+            bridge_queries = []
+            if use_domain_bridges:
+                bridge_queries = self.generate_domain_bridges(prompt, max_bridges=3)
+
+            # 2. Retrieve Multi-Resolution Context (with bridges and embeddings)
+            if bridge_queries:
+                results = self.knowledge_base.query_with_bridges(
+                    original_query=prompt,
+                    bridge_queries=bridge_queries,
+                    n_results=3,
+                    include_embeddings=use_dynamic_steering
+                )
+                print(f"--- Domain Bridges Applied: {bridge_queries} ---")
+            else:
+                results = self.knowledge_base.query_multiresolution(
+                    prompt,
+                    n_results=3,
+                    include_embeddings=use_dynamic_steering
+                )
+
+            # 3. Apply Dynamic Steering (steer towards retrieved content)
+            if use_dynamic_steering:
+                dynamic_vectors = self.compute_dynamic_steering(results)
+                if dynamic_vectors:
+                    self.apply_dynamic_steering(dynamic_vectors, blend_ratio=dynamic_blend_ratio)
+                    print(f"--- Dynamic Steering Applied (blend={dynamic_blend_ratio}) ---")
+
+            # 4. Construct MRA Prompt
+            limit = 600  # Char limit per section to avoid context overflow
+
+            verses_txt = "\n".join([f"- {r['content'][:limit]}" for r in results['verse']])
+            passages_txt = "\n".join([f"- {r['content'][:limit]}" for r in results['passage']])
+            surahs_txt = "\n".join([f"- {r['content'][:limit]}" for r in results['surah']])
+
+            # Include domain bridges in the prompt for transparency
+            bridges_section = ""
+            if bridge_queries:
+                bridges_section = f"**Domain Bridges**: {', '.join(bridge_queries)}\n\n"
+
             final_prompt = (
-                f"### Quranic Multi-Resolution Context\\n"
-                f"**Micro (Verses):**\\n{verses_txt}\\n\\n"
-                f"**Meso (Passages):**\\n{passages_txt}\\n\\n"
-                f"**Macro (Surahs):**\\n{surahs_txt}\\n\\n"
-                f"### Task\\n{prompt}\\n\\n"
-                f"### Instruction\\n"
-                f"Perform a Multi-Resolution Analysis (MRA) and Multidomain Analogy:\\n"
-                f"1. **Micro Analysis**: How do the specific verses relate?\\n"
-                f"2. **Theme Analysis**: How do the broader passage themes apply?\\n"
-                f"3. **Multidomain Analogy**: Draw an analogy between these Quranic principles and the user's specific domain context.\\n"
-                f"4. **Synthesis**: Provide a clear answer based on this deep thinking.\\n\\n"
-                f"### Response\\n"
+                f"### Quranic Multi-Resolution Context\n"
+                f"{bridges_section}"
+                f"**Micro (Verses):**\n{verses_txt}\n\n"
+                f"**Meso (Passages):**\n{passages_txt}\n\n"
+                f"**Macro (Surahs):**\n{surahs_txt}\n\n"
+                f"### Task\n{prompt}\n\n"
+                f"### Instruction\n"
+                f"Perform a Multi-Resolution Analysis (MRA) and Multidomain Analogy:\n"
+                f"1. **Micro Analysis**: How do the specific verses relate?\n"
+                f"2. **Theme Analysis**: How do the broader passage themes apply?\n"
+                f"3. **Multidomain Analogy**: Draw an analogy between these Quranic principles and the user's specific domain context.\n"
+                f"4. **Synthesis**: Provide a clear answer based on this deep thinking.\n\n"
+                f"### Response\n"
             )
             print("--- MRA Context Injected ---")
 
