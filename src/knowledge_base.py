@@ -7,13 +7,9 @@ Manages multi-resolution indexing of the Quran:
 3. Macro: Surahs (Chapters)
 """
 
-import os
 from pathlib import Path
 from typing import List, Dict, Optional, Union
 import chromadb
-from chromadb.config import Settings
-import numpy as np
-from tqdm import tqdm
 
 from .quran_embeddings import QuranEmbeddings
 

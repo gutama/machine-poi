@@ -7,7 +7,7 @@ into LLM hidden states during inference.
 
 import numpy as np
 import torch
-from typing import Optional, Dict, List, Union, Tuple
+from typing import Optional, Dict, List, Union
 from pathlib import Path
 
 

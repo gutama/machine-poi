@@ -134,8 +134,6 @@ class QuranSteerer:
         # Components (loaded lazily)
         self.embedder: Optional[QuranEmbeddings] = None
         self.llm: Optional[SteeredLLM] = None
-        self.embedder: Optional[QuranEmbeddings] = None
-        self.llm: Optional[SteeredLLM] = None
         self.vector_extractor: Optional[SteeringVectorExtractor] = None
         self.knowledge_base: Optional[QuranKnowledgeBase] = None
 

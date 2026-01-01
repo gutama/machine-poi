@@ -12,10 +12,6 @@ Based on:
 """
 
 import argparse
-import sys
-from pathlib import Path
-
-import torch
 
 from src import QuranSteerer
 from config import (

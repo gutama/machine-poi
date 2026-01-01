@@ -7,7 +7,7 @@ during inference without modifying model weights.
 
 import torch
 import torch.nn as nn
-from typing import Optional, Dict, List, Callable, Union, Tuple, Any
+from typing import Optional, Dict, List, Union, Tuple
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
@@ -97,33 +97,44 @@ class ActivationHook:
         self,
         module: nn.Module,
         input: Tuple[torch.Tensor, ...],
-        output: torch.Tensor,
-    ) -> torch.Tensor:
+        output: Union[torch.Tensor, Tuple],
+    ) -> Union[torch.Tensor, Tuple]:
         """Forward hook that captures and modifies activations."""
+        # Handle tuple outputs (common in HuggingFace models)
+        if isinstance(output, tuple):
+            hidden_states = output[0]
+            rest = output[1:]
+        else:
+            hidden_states = output
+            rest = None
+
         # Capture activation
-        self.captured_activation = output.detach().clone()
+        self.captured_activation = hidden_states.detach().clone()
 
         if not self.enabled or self.steering_vector is None:
             return output
 
         # Ensure steering vector is on same device and dtype
-        steering = self.steering_vector.to(output.device, output.dtype)
+        steering = self.steering_vector.to(hidden_states.device, hidden_states.dtype)
 
         # Apply steering based on mode
         if self.injection_mode == "add":
             # Add steering vector to all token positions
-            # output shape: [batch, seq_len, hidden_dim]
-            modified = output + steering * self.coefficient
+            # hidden_states shape: [batch, seq_len, hidden_dim]
+            modified = hidden_states + steering * self.coefficient
         elif self.injection_mode == "replace":
             # Replace activation with steering vector
-            modified = steering.unsqueeze(0).unsqueeze(0).expand_as(output)
+            modified = steering.unsqueeze(0).unsqueeze(0).expand_as(hidden_states)
         elif self.injection_mode == "blend":
             # Blend original and steering
             alpha = self.coefficient
-            modified = (1 - alpha) * output + alpha * steering.unsqueeze(0).unsqueeze(0).expand_as(output)
+            modified = (1 - alpha) * hidden_states + alpha * steering.unsqueeze(0).unsqueeze(0).expand_as(hidden_states)
         else:
-            modified = output
+            modified = hidden_states
 
+        # Return in same format as input
+        if rest is not None:
+            return (modified,) + rest
         return modified
 
     def set_steering_vector(self, vector: torch.Tensor, coefficient: float = 1.0):
