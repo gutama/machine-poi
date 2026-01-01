@@ -696,6 +696,7 @@ class QuranSteerer:
                 if dynamic_vectors:
                     self.apply_dynamic_steering(dynamic_vectors, blend_ratio=dynamic_blend_ratio)
                     print(f"--- Dynamic Steering Applied (blend={dynamic_blend_ratio}) ---")
+                    dynamic_applied = True
 
             # 4. Construct MRA Prompt
             limit = 600  # Char limit per section to avoid context overflow
@@ -726,13 +727,20 @@ class QuranSteerer:
             )
             print("--- MRA Context Injected ---")
 
-        return self.llm.generate(
+        output = self.llm.generate(
             prompt=final_prompt,
             max_new_tokens=max_new_tokens,
             temperature=temperature,
             reasoning_mode=reasoning_mode,
             **kwargs,
         )
+
+        # Restore original steering after temporary dynamic steering
+        if mra_mode and use_dynamic_steering:
+            self.llm.clear_steering()
+            self._apply_steering()
+
+        return output
 
     def generate_unsteered(
         self,

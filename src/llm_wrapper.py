@@ -451,10 +451,10 @@ class SteeredLLM:
             if mode == "deepseek":
                 # DeepSeek-R1: Force thinking with <think> prefix
                 # Per documentation: "enforce the model to initiate its response with <think>\n"
-                if config.get("force_think_prefix") and "<think>" not in prompt:
-                    # Add instruction for step-by-step reasoning
-                    if "step by step" not in prompt.lower():
-                        prompt += "\nPlease reason step by step."
+                if config.get("force_think_prefix"):
+                    stripped = prompt.lstrip()
+                    if not stripped.startswith("<think>"):
+                        prompt = "<think>\n" + prompt
             
             elif mode == "qwen3":
                 # Qwen3: Uses enable_thinking in chat template
@@ -488,8 +488,7 @@ class SteeredLLM:
                 except Exception:
                     pass  # Use raw prompt
             
-            # Increase max tokens for reasoning (models need space to think)
-            max_new_tokens = max(max_new_tokens, 1024)
+            # Respect user-provided max_new_tokens; no forced bump
         
         elif reasoning_mode:
             # Generic reasoning mode for models without native support
