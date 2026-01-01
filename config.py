@@ -206,6 +206,20 @@ EMBEDDING_MODELS = {
         "supports_arabic": False,  # Primarily Chinese
         "memory_gb": 1.5,
     },
+    "paraphrase-mpnet": {
+        "hf_path": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+        "embedding_dim": 768,
+        "max_length": 128,
+        "supports_arabic": True,  # 50+ languages
+        "memory_gb": 1.0,
+    },
+    "paraphrase-minilm": {
+        "hf_path": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        "embedding_dim": 384,
+        "max_length": 128,
+        "supports_arabic": True,  # 50+ languages
+        "memory_gb": 0.5,
+    },
 }
 
 

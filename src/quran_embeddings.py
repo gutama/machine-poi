@@ -76,6 +76,8 @@ class QuranEmbeddings:
         "qwen-embedding": "Alibaba-NLP/gte-Qwen2-7B-instruct",
         "bge-large-zh": "BAAI/bge-large-zh-v1.5",  # Good for Arabic/Chinese
         "multilingual-e5": "intfloat/multilingual-e5-large-instruct",
+        "paraphrase-mpnet": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+        "paraphrase-minilm": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
     }
 
     # Standard verse counts for all 114 Surahs
