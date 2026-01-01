@@ -306,7 +306,12 @@ def run_single_prompt(steerer: QuranSteerer, prompt: str, args):
     print(f"\nPrompt: {prompt}\n")
     print("-" * 60)
 
-    steered, baseline = steerer.compare(prompt, max_new_tokens=args.max_tokens)
+    steered, baseline = steerer.compare(
+        prompt,
+        max_new_tokens=args.max_tokens,
+        mra_mode=args.mra,
+        reasoning_mode=args.reasoning,
+    )
 
     print("STEERED OUTPUT:")
     print(steered)
