@@ -53,7 +53,7 @@ Examples:
     parser.add_argument(
         "--llm",
         type=str,
-        default="qwen2.5-0.5b",
+        default="deepseek-r1-1.5b",
         choices=list(LLM_MODELS.keys()) + ["custom"],
         help="LLM model to steer",
     )

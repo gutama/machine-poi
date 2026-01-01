@@ -149,7 +149,7 @@ class QuranSteerer:
 
     def __init__(
         self,
-        llm_model: str = "qwen3-0.6b",
+        llm_model: str = "deepseek-r1-1.5b",
         embedding_model: str = "bge-m3",
         quran_path: Union[str, Path] = "al-quran.txt",
         device: Optional[str] = None,
