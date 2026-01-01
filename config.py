@@ -199,13 +199,6 @@ EMBEDDING_MODELS = {
         "supports_arabic": True,
         "memory_gb": 2.0,
     },
-    "bge-large-zh": {
-        "hf_path": "BAAI/bge-large-zh-v1.5",
-        "embedding_dim": 1024,
-        "max_length": 512,
-        "supports_arabic": False,  # Primarily Chinese
-        "memory_gb": 1.5,
-    },
     "paraphrase-mpnet": {
         "hf_path": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
         "embedding_dim": 768,

@@ -17,7 +17,6 @@ Embedding Models:
 - bge-m3: BGE M3 (1024 dim, Arabic support)
 - multilingual-e5: Multilingual E5 Large (1024 dim, Arabic support)
 - qwen-embedding: Qwen2 7B Embedding (3584 dim, Arabic support)
-- bge-large-zh: BGE Large Chinese (1024 dim, Chinese-focused)
 - paraphrase-mpnet: Multilingual MPNet (768 dim, 50+ languages)
 - paraphrase-minilm: Multilingual MiniLM (384 dim, 50+ languages, fast)
 """
