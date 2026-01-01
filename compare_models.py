@@ -42,7 +42,7 @@ Examples:
     parser.add_argument(
         "--models", 
         nargs="+", 
-        default=["qwen2.5-0.5b", "qwen3-0.6b"], 
+        default=["deepseek-r1-1.5b", "qwen3-0.6b"],
         help="List of models to compare (names from config.py)"
     )
     parser.add_argument(
