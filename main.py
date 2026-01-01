@@ -162,6 +162,16 @@ Examples:
         default=None,
         help="Theme for thematic steering (e.g., 'mercy', 'justice')",
     )
+    parser.add_argument(
+        "--init-db",
+        action="store_true",
+        help="Initialize/Build the Knowledge Base index",
+    )
+    parser.add_argument(
+        "--mra",
+        action="store_true",
+        help="Enable Multi-Resolution Analysis & Reasoning",
+    )
 
     return parser.parse_args()
 
@@ -226,7 +236,7 @@ def run_interactive(steerer: QuranSteerer, args):
         # Generate response
         if compare_mode:
             print("\n--- Steered Output ---")
-            steered = steerer.generate(prompt, max_new_tokens=args.max_tokens)
+            steered = steerer.generate(prompt, max_new_tokens=args.max_tokens, mra_mode=args.mra)
             print(steered)
 
             print("\n--- Baseline Output ---")
@@ -234,7 +244,7 @@ def run_interactive(steerer: QuranSteerer, args):
             print(baseline)
         else:
             print("\n--- Output ---")
-            output = steerer.generate(prompt, max_new_tokens=args.max_tokens)
+            output = steerer.generate(prompt, max_new_tokens=args.max_tokens, mra_mode=args.mra)
             print(output)
 
 
@@ -299,6 +309,7 @@ def main():
     print(f"  Coefficient: {config.custom_coefficient or config.get_preset().coefficient}")
     print(f"  Device: {config.device or 'auto'}")
     print(f"  Quantization: {config.quantization or 'none'}")
+    print(f"  MRA Mode: {'ON' if args.mra else 'OFF'}")
     print()
 
     # Initialize steerer
@@ -310,6 +321,11 @@ def main():
         device=config.device,
         llm_quantization=config.quantization,
     )
+
+    if args.init_db:
+        steerer.initialize_knowledge_base()
+        steerer.knowledge_base.build_index(args.quran_path)
+        return
 
     # Load models
     print("Loading models (this may take a while)...")
@@ -344,11 +360,26 @@ def main():
     elif args.compare:
         run_comparison(steerer, args)
     elif args.prompt:
-        run_single_prompt(steerer, args.prompt, args)
+        # Note: run_single_prompt uses compare which calls compare_outputs which loops generate
+        # We need to update run_single_prompt to pass mra_mode if we want it there
+        # But for now, let's just make sure compare handles kwargs
+        # steerer.compare calls llm.compare_outputs which calls generate(..., **kwargs)
+        # So passing mra_mode=args.mra should work if we pass it to compare
+        steered, baseline = steerer.compare(args.prompt, max_new_tokens=args.max_tokens, mra_mode=args.mra)
+        print("STEERED OUTPUT:")
+        print(steered)
+        print()
+        print("BASELINE OUTPUT:")
+        print(baseline)
     else:
         # Default: run a demo prompt
         demo_prompt = "What is the meaning of life and how should we live?"
-        run_single_prompt(steerer, demo_prompt, args)
+        # run_single_prompt(steerer, demo_prompt, args) 
+        # Inline run_single_prompt logic to pass mra_mode easily:
+        print(f"\nPrompt: {demo_prompt}\n")
+        steered, baseline = steerer.compare(demo_prompt, max_new_tokens=args.max_tokens, mra_mode=args.mra)
+        print("STEERED OUTPUT:")
+        print(steered)
 
         print("\n" + "=" * 60)
         print("Try other modes:")

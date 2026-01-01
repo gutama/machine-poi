@@ -13,7 +13,9 @@ from dataclasses import dataclass
 
 from .quran_embeddings import QuranEmbeddings
 from .steering_vectors import SteeringVectorExtractor, ContrastiveSteeringExtractor
+from .steering_vectors import SteeringVectorExtractor, ContrastiveSteeringExtractor
 from .llm_wrapper import SteeredLLM
+from .knowledge_base import QuranKnowledgeBase
 
 
 @dataclass
@@ -89,7 +91,10 @@ class QuranSteerer:
         # Components (loaded lazily)
         self.embedder: Optional[QuranEmbeddings] = None
         self.llm: Optional[SteeredLLM] = None
+        self.embedder: Optional[QuranEmbeddings] = None
+        self.llm: Optional[SteeredLLM] = None
         self.vector_extractor: Optional[SteeringVectorExtractor] = None
+        self.knowledge_base: Optional[QuranKnowledgeBase] = None
 
         # Cached data
         self.quran_embeddings: Optional[Dict] = None
@@ -125,6 +130,15 @@ class QuranSteerer:
             # Initialize vector extractor with correct dimensions
             # Note: embedding dim may differ from LLM hidden dim
             # We'll handle this when we have both models loaded
+
+    def initialize_knowledge_base(self, persist_dir: str = "quran_db"):
+        """Initialize the knowledge base."""
+        print("Initializing Knowledge Base...")
+        self.knowledge_base = QuranKnowledgeBase(
+            persist_dir=persist_dir,
+            embedding_model_name=self.embedding_model_name,
+            device=self.device,
+        )
 
     def prepare_quran_steering(
         self,
@@ -323,6 +337,7 @@ class QuranSteerer:
         prompt: str,
         max_new_tokens: int = 100,
         temperature: float = 0.7,
+        mra_mode: bool = False,
         **kwargs,
     ) -> str:
         """
@@ -332,15 +347,48 @@ class QuranSteerer:
             prompt: Input prompt
             max_new_tokens: Maximum tokens to generate
             temperature: Sampling temperature
-
-        Returns:
-            Generated text
+            mra_mode: Whether to use Multi-Resolution Analysis reasoning
         """
         if self.llm is None:
             raise ValueError("Models not loaded. Call load_models() first.")
 
+        final_prompt = prompt
+
+        if mra_mode:
+            if self.knowledge_base is None:
+                self.initialize_knowledge_base()
+            
+            # 1. Retrieve Multi-Resolution Context
+            results = self.knowledge_base.query_multiresolution(prompt, n_results=3)
+            
+            # 2. Construct MRA Prompt
+            limit = 600 # Char limit per section to avoid context overflow
+            
+            verses_txt = "\\n".join([f"- {r['content'][:limit]}" for r in results['verse']])
+            passages_txt = "\\n".join([f"- {r['content'][:limit]}" for r in results['passage']])
+            surahs_txt = "\\n".join([f"- {r['content'][:limit]}" for r in results['surah']])
+
+            # Dynamic Steering (Optional: Steer towards retrieved verses)
+            # For now, we rely on the prompt context + global steering
+            
+            final_prompt = (
+                f"### Quranic Multi-Resolution Context\\n"
+                f"**Micro (Verses):**\\n{verses_txt}\\n\\n"
+                f"**Meso (Passages):**\\n{passages_txt}\\n\\n"
+                f"**Macro (Surahs):**\\n{surahs_txt}\\n\\n"
+                f"### Task\\n{prompt}\\n\\n"
+                f"### Instruction\\n"
+                f"Perform a Multi-Resolution Analysis (MRA) and Multidomain Analogy:\\n"
+                f"1. **Micro Analysis**: How do the specific verses relate?\\n"
+                f"2. **Theme Analysis**: How do the broader passage themes apply?\\n"
+                f"3. **Multidomain Analogy**: Draw an analogy between these Quranic principles and the user's specific domain context.\\n"
+                f"4. **Synthesis**: Provide a clear answer based on this deep thinking.\\n\\n"
+                f"### Response\\n"
+            )
+            print("--- MRA Context Injected ---")
+
         return self.llm.generate(
-            prompt=prompt,
+            prompt=final_prompt,
             max_new_tokens=max_new_tokens,
             temperature=temperature,
             **kwargs,
