@@ -235,7 +235,7 @@ class SteeredLLM:
 
     def __init__(
         self,
-        model_name: str = "qwen3-0.6b",
+        model_name: str = "deepseek-r1-1.5b",
         device: Optional[str] = None,
         load_in_8bit: bool = False,
         load_in_4bit: bool = False,

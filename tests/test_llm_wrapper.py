@@ -304,7 +304,7 @@ class TestSteeredLLMInit:
         
         llm = SteeredLLM()
         
-        assert llm.model_name == "qwen3-0.6b"
+        assert llm.model_name == "deepseek-r1-1.5b"
         assert llm.model is None  # Not loaded yet
         assert llm.hooks == {}
 
