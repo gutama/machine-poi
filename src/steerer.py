@@ -644,6 +644,7 @@ class QuranSteerer:
         use_domain_bridges: bool = True,
         use_dynamic_steering: bool = True,
         dynamic_blend_ratio: float = 0.5,
+        reasoning_mode: bool = False,
         **kwargs,
     ) -> str:
         """
@@ -657,6 +658,7 @@ class QuranSteerer:
             use_domain_bridges: Whether to generate domain bridges for better retrieval
             use_dynamic_steering: Whether to dynamically steer based on retrieved content
             dynamic_blend_ratio: Blend ratio between dynamic and global steering (0-1)
+            reasoning_mode: Whether to enable reasoning optimizations
         """
         if self.llm is None:
             raise ValueError("Models not loaded. Call load_models() first.")
@@ -728,6 +730,7 @@ class QuranSteerer:
             prompt=final_prompt,
             max_new_tokens=max_new_tokens,
             temperature=temperature,
+            reasoning_mode=reasoning_mode,
             **kwargs,
         )
 

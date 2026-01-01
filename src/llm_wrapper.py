@@ -389,6 +389,7 @@ class SteeredLLM:
         temperature: float = 0.7,
         top_p: float = 0.9,
         do_sample: bool = True,
+        reasoning_mode: bool = False,
         **kwargs,
     ) -> str:
         """
@@ -400,12 +401,24 @@ class SteeredLLM:
             temperature: Sampling temperature
             top_p: Nucleus sampling probability
             do_sample: Whether to sample (vs greedy)
+            reasoning_mode: Whether to enable reasoning optimizations
 
         Returns:
             Generated text
         """
         if self.model is None:
             self.load_model()
+
+        # Adjust parameters for reasoning mode
+        if reasoning_mode:
+            # Lower temperature for more deterministic reasoning
+            temperature = min(temperature, 0.6)
+            # Ensure sampling is on but conservative
+            do_sample = True
+            
+            # Append reasoning trigger if not present
+            if "step by step" not in prompt.lower() and "<think>" not in prompt:
+                prompt += "\nLet's think step by step:\n"
 
         inputs = self.tokenizer(prompt, return_tensors="pt")
         inputs = {k: v.to(self.model.device) for k, v in inputs.items()}

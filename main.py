@@ -178,6 +178,11 @@ Examples:
         help="Enable Multi-Resolution Analysis & Reasoning",
     )
     parser.add_argument(
+        "--reasoning",
+        action="store_true",
+        help="Enable reasoning mode (lower temp, step-by-step prompting)",
+    )
+    parser.add_argument(
         "--quran-persona",
         action="store_true",
         help="Enable Quran Persona steering (aggregates all resolutions)",
@@ -246,15 +251,29 @@ def run_interactive(steerer: QuranSteerer, args):
         # Generate response
         if compare_mode:
             print("\n--- Steered Output ---")
-            steered = steerer.generate(prompt, max_new_tokens=args.max_tokens, mra_mode=args.mra)
+            steered = steerer.generate(
+                prompt, 
+                max_new_tokens=args.max_tokens, 
+                mra_mode=args.mra,
+                reasoning_mode=args.reasoning
+            )
             print(steered)
 
             print("\n--- Baseline Output ---")
-            baseline = steerer.generate_unsteered(prompt, max_new_tokens=args.max_tokens)
+            baseline = steerer.generate_unsteered(
+                prompt, 
+                max_new_tokens=args.max_tokens,
+                reasoning_mode=args.reasoning
+            )
             print(baseline)
         else:
             print("\n--- Output ---")
-            output = steerer.generate(prompt, max_new_tokens=args.max_tokens, mra_mode=args.mra)
+            output = steerer.generate(
+                prompt, 
+                max_new_tokens=args.max_tokens, 
+                mra_mode=args.mra,
+                reasoning_mode=args.reasoning
+            )
             print(output)
 
 
@@ -266,7 +285,11 @@ def run_comparison(steerer: QuranSteerer, args):
         print(f"[{i}/{len(TEST_PROMPTS)}] {prompt}")
         print("-" * 60)
 
-        steered, baseline = steerer.compare(prompt, max_new_tokens=args.max_tokens)
+        steered, baseline = steerer.compare(
+            prompt, 
+            max_new_tokens=args.max_tokens,
+            reasoning_mode=args.reasoning
+        )
 
         print("STEERED:")
         print(steered[:300] + "..." if len(steered) > 300 else steered)
@@ -383,7 +406,12 @@ def main():
         # But for now, let's just make sure compare handles kwargs
         # steerer.compare calls llm.compare_outputs which calls generate(..., **kwargs)
         # So passing mra_mode=args.mra should work if we pass it to compare
-        steered, baseline = steerer.compare(args.prompt, max_new_tokens=args.max_tokens, mra_mode=args.mra)
+        steered, baseline = steerer.compare(
+            args.prompt, 
+            max_new_tokens=args.max_tokens, 
+            mra_mode=args.mra,
+            reasoning_mode=args.reasoning
+        )
         print("STEERED OUTPUT:")
         print(steered)
         print()
@@ -395,7 +423,12 @@ def main():
         # run_single_prompt(steerer, demo_prompt, args) 
         # Inline run_single_prompt logic to pass mra_mode easily:
         print(f"\nPrompt: {demo_prompt}\n")
-        steered, baseline = steerer.compare(demo_prompt, max_new_tokens=args.max_tokens, mra_mode=args.mra)
+        steered, baseline = steerer.compare(
+            demo_prompt, 
+            max_new_tokens=args.max_tokens, 
+            mra_mode=args.mra,
+            reasoning_mode=args.reasoning
+        )
         print("STEERED OUTPUT:")
         print(steered)
 
