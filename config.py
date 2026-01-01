@@ -18,6 +18,10 @@ LLM_MODELS = {
         "num_layers": 28,
         "recommended_layers": list(range(10, 20)),
         "recommended_coefficient": 0.4,
+        # Native reasoning mode: uses <think>...</think> blocks
+        "reasoning_mode": "deepseek",
+        "reasoning_temperature": 0.6,
+        "reasoning_top_p": 0.95,
     },
     "phi4-mini": {
         "hf_path": "microsoft/Phi-4-mini-reasoning",
@@ -25,6 +29,10 @@ LLM_MODELS = {
         "num_layers": 32,
         "recommended_layers": list(range(12, 24)),
         "recommended_coefficient": 0.3,
+        # Built for math reasoning, no special tokens
+        "reasoning_mode": "phi",
+        "reasoning_temperature": 0.8,
+        "reasoning_top_p": 0.95,
     },
     "qwen3-0.6b": {
         "hf_path": "Qwen/Qwen3-0.6B",
@@ -32,6 +40,11 @@ LLM_MODELS = {
         "num_layers": 28,
         "recommended_layers": list(range(10, 20)),
         "recommended_coefficient": 0.5,
+        # Native thinking mode: uses enable_thinking=True in chat template
+        "reasoning_mode": "qwen3",
+        "reasoning_temperature": 0.6,
+        "reasoning_top_p": 0.95,
+        "reasoning_top_k": 20,
     },
     "smollm3": {
         "hf_path": "HuggingFaceTB/SmolLM3-3B",
@@ -39,6 +52,7 @@ LLM_MODELS = {
         "num_layers": 32,
         "recommended_layers": list(range(12, 24)),
         "recommended_coefficient": 0.35,
+        "reasoning_mode": None,  # No native reasoning
     },
     "gemma-270m": {
         "hf_path": "google/gemma-3-270m-it",
@@ -46,6 +60,7 @@ LLM_MODELS = {
         "num_layers": 18,
         "recommended_layers": list(range(6, 14)),
         "recommended_coefficient": 0.5,
+        "reasoning_mode": None,  # No native reasoning
     },
     # Fallback models (more widely available)
     "qwen2.5-0.5b": {
@@ -54,6 +69,7 @@ LLM_MODELS = {
         "num_layers": 24,
         "recommended_layers": list(range(8, 18)),
         "recommended_coefficient": 0.5,
+        "reasoning_mode": None,  # Standard instruct model
     },
     "smollm2-135m": {
         "hf_path": "HuggingFaceTB/SmolLM2-135M-Instruct",

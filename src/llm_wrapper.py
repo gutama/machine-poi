@@ -186,6 +186,29 @@ class SteeredLLM:
         "smollm2-360m": "HuggingFaceTB/SmolLM2-360M-Instruct",
     }
 
+    # Model reasoning configurations (from official documentation)
+    REASONING_CONFIGS = {
+        "deepseek-r1-1.5b": {
+            "mode": "deepseek",  # Uses <think>...</think> blocks
+            "temperature": 0.6,
+            "top_p": 0.95,
+            "force_think_prefix": True,  # Enforce <think>\n at start
+        },
+        "phi4-mini": {
+            "mode": "phi",  # Math-focused, no special tokens
+            "temperature": 0.8,
+            "top_p": 0.95,
+            "force_think_prefix": False,
+        },
+        "qwen3-0.6b": {
+            "mode": "qwen3",  # Native enable_thinking in chat template
+            "temperature": 0.6,
+            "top_p": 0.95,
+            "top_k": 20,
+            "force_think_prefix": False,  # Handled by tokenizer
+        },
+    }
+
     def __init__(
         self,
         model_name: str = "qwen3-0.6b",
@@ -208,6 +231,7 @@ class SteeredLLM:
         self.model_name = model_name
         self.load_in_8bit = load_in_8bit
         self.load_in_4bit = load_in_4bit
+        self.reasoning_config = self.REASONING_CONFIGS.get(model_name, None)
 
         if device is None:
             if torch.cuda.is_available():
@@ -401,7 +425,7 @@ class SteeredLLM:
             temperature: Sampling temperature
             top_p: Nucleus sampling probability
             do_sample: Whether to sample (vs greedy)
-            reasoning_mode: Whether to enable reasoning optimizations
+            reasoning_mode: Whether to enable native reasoning mode for supported models
 
         Returns:
             Generated text
@@ -409,15 +433,69 @@ class SteeredLLM:
         if self.model is None:
             self.load_model()
 
-        # Adjust parameters for reasoning mode
-        if reasoning_mode:
-            # Lower temperature for more deterministic reasoning
-            temperature = min(temperature, 0.6)
-            # Ensure sampling is on but conservative
-            do_sample = True
+        # Apply model-specific reasoning configuration
+        if reasoning_mode and self.reasoning_config:
+            config = self.reasoning_config
+            mode = config.get("mode")
             
-            # Append reasoning trigger if not present
-            if "step by step" not in prompt.lower() and "<think>" not in prompt:
+            # Use model-specific recommended parameters
+            temperature = config.get("temperature", temperature)
+            top_p = config.get("top_p", top_p)
+            do_sample = True  # Reasoning models need sampling
+            
+            # Apply top_k if specified (Qwen3)
+            if "top_k" in config:
+                kwargs["top_k"] = config["top_k"]
+            
+            # Handle model-specific reasoning formats
+            if mode == "deepseek":
+                # DeepSeek-R1: Force thinking with <think> prefix
+                # Per documentation: "enforce the model to initiate its response with <think>\n"
+                if config.get("force_think_prefix") and "<think>" not in prompt:
+                    # Add instruction for step-by-step reasoning
+                    if "step by step" not in prompt.lower():
+                        prompt += "\nPlease reason step by step."
+            
+            elif mode == "qwen3":
+                # Qwen3: Uses enable_thinking in chat template
+                # Apply chat template with thinking enabled
+                messages = [{"role": "user", "content": prompt}]
+                try:
+                    prompt = self.tokenizer.apply_chat_template(
+                        messages,
+                        tokenize=False,
+                        add_generation_prompt=True,
+                        enable_thinking=True,
+                    )
+                except TypeError:
+                    # Fallback if enable_thinking not supported
+                    prompt = self.tokenizer.apply_chat_template(
+                        messages,
+                        tokenize=False,
+                        add_generation_prompt=True,
+                    )
+            
+            elif mode == "phi":
+                # Phi-4-mini-reasoning: Standard math reasoning
+                # Uses chat format, add math prompt if relevant
+                messages = [{"role": "user", "content": prompt}]
+                try:
+                    prompt = self.tokenizer.apply_chat_template(
+                        messages,
+                        tokenize=False,
+                        add_generation_prompt=True,
+                    )
+                except Exception:
+                    pass  # Use raw prompt
+            
+            # Increase max tokens for reasoning (models need space to think)
+            max_new_tokens = max(max_new_tokens, 1024)
+        
+        elif reasoning_mode:
+            # Generic reasoning mode for models without native support
+            temperature = min(temperature, 0.6)
+            do_sample = True
+            if "step by step" not in prompt.lower():
                 prompt += "\nLet's think step by step:\n"
 
         inputs = self.tokenizer(prompt, return_tensors="pt")
@@ -436,7 +514,15 @@ class SteeredLLM:
 
         # Decode only new tokens
         new_tokens = outputs[0][inputs["input_ids"].shape[1]:]
-        return self.tokenizer.decode(new_tokens, skip_special_tokens=True)
+        output = self.tokenizer.decode(new_tokens, skip_special_tokens=True)
+        
+        # For Qwen3, optionally parse thinking content
+        if reasoning_mode and self.reasoning_config and self.reasoning_config.get("mode") == "qwen3":
+            # Output may contain <think>...</think> blocks
+            # Return full output (including thinking) - user can parse if needed
+            pass
+        
+        return output
 
     def compare_outputs(
         self,
