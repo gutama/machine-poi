@@ -187,6 +187,38 @@ Machine-POI demonstrates that activation engineering provides a powerful, flexib
 
 ---
 
+## Appendix A: Reproducing Experiments
+
+All experiments in this paper can be reproduced using the provided script:
+
+```bash
+# Clone the repository
+git clone https://github.com/gutama/machine-poi.git
+cd machine-poi
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run all experiments
+python experiments/reproduce_paper.py --model qwen3-0.6b
+
+# Run specific sections
+python experiments/reproduce_paper.py --section 5.1  # Qualitative comparison
+python experiments/reproduce_paper.py --section 5.2  # Thematic analysis
+python experiments/reproduce_paper.py --section 5.3  # Coefficient sensitivity
+python experiments/reproduce_paper.py --section mra  # MRA mode demo
+
+# Quick test (fewer prompts)
+python experiments/reproduce_paper.py --quick
+```
+
+**Hardware Requirements**:
+- GPU: NVIDIA GPU with ≥8GB VRAM (recommended)
+- CPU-only: Supported but significantly slower
+- RAM: ≥16GB
+
+---
+
 ## References
 
 Chroma Team. (2023). *Chroma: The open source embedding database*. https://www.trychroma.com/
