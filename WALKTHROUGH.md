@@ -8,6 +8,8 @@ We have implemented a **Quran Persona** mode that aggregates embeddings from the
     - Computes a global mean "Persona Embedding".
     - Projects this into a steering vector.
 - **Modified `main.py`**: Added `--quran-persona` CLI flag.
+- **Modified `src/llm_wrapper.py`**: Added `clamp` injection mode for more stable steering.
+- **Modified `main.py`**: Added `--injection-mode` CLI flag to select injection strategy.
 
 ## How to Use
 
@@ -16,6 +18,16 @@ Run the following command to activate the Quran Persona:
 ```bash
 python3 main.py --quran-persona --interactive
 ```
+
+### Recommended: Use Clamp Injection Mode
+
+For stronger, more stable steering, use the `clamp` injection mode:
+
+```bash
+python3 main.py --quran-persona --injection-mode clamp --interactive
+```
+
+The `clamp` mode removes the existing projection along the steering direction before adding the controlled amount, which prevents over-biasing and improves fluency.
 
 This will:
 1.  Load the LLM and Embedding models.

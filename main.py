@@ -86,6 +86,13 @@ Examples:
         help="Override steering coefficient (0.0-1.0)",
     )
     parser.add_argument(
+        "--injection-mode",
+        type=str,
+        default=None,
+        choices=["add", "blend", "replace", "clamp"],
+        help="How to inject steering into activations (default: from preset)",
+    )
+    parser.add_argument(
         "--chunk-by",
         type=str,
         default="verse",
@@ -310,6 +317,7 @@ def main():
     print(f"  Embedding Model: {config.embedding_model}")
     print(f"  Preset: {config.preset}")
     print(f"  Coefficient: {config.custom_coefficient or config.get_preset().coefficient}")
+    print(f"  Injection Mode: {args.injection_mode or config.get_preset().injection_mode}")
     print(f"  Device: {config.device or 'auto'}")
     print(f"  Quantization: {config.quantization or 'none'}")
     print(f"  MRA Mode: {'ON' if args.mra else 'OFF'}")
@@ -341,6 +349,11 @@ def main():
     # Apply custom coefficient if specified
     if config.custom_coefficient:
         steerer.config.coefficient = config.custom_coefficient
+    else:
+        steerer.config.coefficient = config.get_preset().coefficient
+
+    # Apply injection mode (CLI overrides preset)
+    steerer.config.injection_mode = args.injection_mode or config.get_preset().injection_mode
 
     if args.theme:
         # First create base embeddings, then apply thematic

@@ -64,6 +64,9 @@ python main.py --llm qwen3-0.6b --preset strong --coefficient 0.7
 
 # Thematic steering
 python main.py --theme mercy --prompt "How should we treat others?"
+
+# Use clamp injection mode (recommended for strong steering)
+python main.py --injection-mode clamp --coefficient 0.8
 ```
 
 ## Supported Models
@@ -118,16 +121,27 @@ steering_vector = extractor.project_embedding(mean_embedding)
 
 ### 3. Activation Injection
 
-During inference, the steering vector is added to intermediate layer activations:
+During inference, the steering vector is injected into intermediate layer activations:
 
 ```python
 llm.register_steering_hook(
     layer_idx=12,
     steering_vector=steering_vector,
     coefficient=0.5,
-    injection_mode="add"
+    injection_mode="clamp"  # or "add", "blend", "replace"
 )
 ```
+
+### Injection Modes
+
+| Mode | Description | Best For |
+|------|-------------|----------|
+| `add` | Add steering vector to activations | Gentle steering |
+| `blend` | Interpolate between original and steering | Balanced control |
+| `replace` | Replace activations entirely | Maximum effect |
+| `clamp` | Remove existing projection, then add controlled amount | **Recommended for strong steering** |
+
+> **Tip**: The `clamp` mode (inspired by [Eiffel Tower LLaMA](https://github.com/scienceetonnante/eiffel-tower-llama)) often produces more stable outputs than `add` when using higher coefficients, as it prevents over-biasing the model.
 
 ## Steering Presets
 
@@ -171,7 +185,7 @@ steerer.prepare_contrastive_steering(
 ```python
 steerer.config.target_layers = [10, 11, 12, 13, 14]  # Specific layers
 steerer.config.coefficient = 0.6
-steerer.config.injection_mode = "add"
+steerer.config.injection_mode = "clamp"  # "add", "blend", "replace", "clamp"
 ```
 
 ## Project Structure

@@ -71,7 +71,7 @@ class SteeringConfig:
     # Which layers to steer (None = auto-select middle layers)
     target_layers: Optional[List[int]] = None
 
-    # Injection mode: "add", "blend", "replace"
+    # Injection mode: "add", "blend", "replace", "clamp"
     injection_mode: str = "add"
 
     # How to distribute steering across layers

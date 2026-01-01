@@ -84,7 +84,7 @@ class ActivationHook:
         layer_idx: int,
         steering_vector: Optional[torch.Tensor] = None,
         coefficient: float = 1.0,
-        injection_mode: str = "add",  # "add", "replace", "blend"
+        injection_mode: str = "add",  # "add", "replace", "blend", "clamp"
     ):
         self.layer_idx = layer_idx
         self.steering_vector = steering_vector
@@ -129,6 +129,17 @@ class ActivationHook:
             # Blend original and steering
             alpha = self.coefficient
             modified = (1 - alpha) * hidden_states + alpha * steering.unsqueeze(0).unsqueeze(0).expand_as(hidden_states)
+        elif self.injection_mode == "clamp":
+            # Clamp the activation along the steering direction.
+            #
+            # Intuition: remove the current projection on the direction, then add back a controlled amount.
+            # This can be more stable than naive addition when steering is strong.
+            v = steering
+            v = v / (v.norm() + 1e-8)
+            # projection of each token hidden state onto v: shape [batch, seq_len]
+            proj_coeff = torch.einsum("bsh,h->bs", hidden_states, v)
+            proj = proj_coeff.unsqueeze(-1) * v
+            modified = hidden_states - proj + (self.coefficient * v)
         else:
             modified = hidden_states
 
