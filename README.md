@@ -13,6 +13,8 @@ Machine-POI uses text embeddings from Quran verses to create semantic steering v
 - **Thematic Steering**: Steer toward specific themes (mercy, justice, patience, etc.)
 - **Multiple Injection Modes**: `add`, `blend`, `replace`, and `clamp` (recommended for stability)
 - **Comparison Mode**: Side-by-side comparison of steered vs baseline outputs
+- **Model Comparison Tool**: Compare multiple models with the same prompt
+- **Native Reasoning Modes**: DeepSeek-R1, Qwen3, Phi-4 reasoning support
 - **8 Supported LLMs**: From 135M to 3.8B parameters
 
 ### Based On
@@ -89,6 +91,13 @@ python main.py --mra --interactive
 
 # Initialize ChromaDB knowledge base (required for MRA mode)
 python main.py --init-db
+
+# Enable native reasoning mode (uses model-specific config)
+python main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is wisdom?"
+
+# Compare multiple models with the same prompt
+./compare_models.py --models qwen3-0.6b deepseek-r1-1.5b --reasoning
+./compare_models.py --list-models
 ```
 
 ## CLI Reference
@@ -108,6 +117,7 @@ python main.py --init-db
 | `--compare` | Run comparison on test prompts |
 | `--prompt TEXT` | Test a single prompt |
 | `--init-db` | Initialize ChromaDB knowledge base |
+| `--reasoning` | Enable native reasoning mode (model-specific) |
 | `--device DEVICE` | Force device: `cuda`, `cpu`, `mps` |
 | `--quantize MODE` | Quantization: `4bit`, `8bit` |
 
@@ -115,16 +125,16 @@ python main.py --init-db
 
 ### LLMs
 
-| Model | Size | HuggingFace Path |
-|-------|------|------------------|
-| `qwen2.5-0.5b` | 0.5B | `Qwen/Qwen2.5-0.5B-Instruct` |
-| `qwen3-0.6b` | 0.6B | `Qwen/Qwen3-0.6B` |
-| `smollm2-135m` | 135M | `HuggingFaceTB/SmolLM2-135M-Instruct` |
-| `smollm2-360m` | 360M | `HuggingFaceTB/SmolLM2-360M-Instruct` |
-| `smollm3` | 3B | `HuggingFaceTB/SmolLM3-3B` |
-| `gemma-270m` | 270M | `google/gemma-3-270m-it` |
-| `deepseek-r1-1.5b` | 1.5B | `deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B` |
-| `phi4-mini` | 3.8B | `microsoft/Phi-4-mini-reasoning` |
+| Model | Size | HuggingFace Path | Reasoning |
+|-------|------|------------------|----------|
+| `qwen2.5-0.5b` | 0.5B | `Qwen/Qwen2.5-0.5B-Instruct` | — |
+| `qwen3-0.6b` | 0.6B | `Qwen/Qwen3-0.6B` | ✅ `enable_thinking` |
+| `smollm2-135m` | 135M | `HuggingFaceTB/SmolLM2-135M-Instruct` | — |
+| `smollm2-360m` | 360M | `HuggingFaceTB/SmolLM2-360M-Instruct` | — |
+| `smollm3` | 3B | `HuggingFaceTB/SmolLM3-3B` | — |
+| `gemma-270m` | 270M | `google/gemma-3-270m-it` | — |
+| `deepseek-r1-1.5b` | 1.5B | `deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B` | ✅ `<think>` blocks |
+| `phi4-mini` | 3.8B | `microsoft/Phi-4-mini-reasoning` | ✅ Math reasoning |
 
 ### Embedding Models
 
@@ -268,12 +278,33 @@ steerer.config.injection_mode = "clamp"
 steerer.config.layer_distribution = "bell"  # or "uniform", "focused"
 ```
 
+### Native Reasoning Mode
+
+Models with native reasoning support use model-specific configurations:
+
+| Model | Mode | Description |
+|-------|------|-------------|
+| `deepseek-r1-1.5b` | `<think>...</think>` | Forces think prefix, temp=0.6 |
+| `qwen3-0.6b` | `enable_thinking` | Native chat template support, temp=0.6 |
+| `phi4-mini` | Math reasoning | Optimized for mathematical reasoning, temp=0.8 |
+
+```bash
+# Enable reasoning with --reasoning flag
+python main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is justice?"
+
+# Compare reasoning models
+./compare_models.py --models deepseek-r1-1.5b qwen3-0.6b --reasoning
+```
+
+For models without native reasoning, a generic step-by-step prompting fallback is used.
+
 ## Project Structure
 
 ```
 machine-poi/
 ├── main.py                   # CLI entry point
-├── config.py                 # Model configs, presets, test prompts
+├── compare_models.py         # Model comparison tool
+├── config.py                 # Model configs, presets, reasoning params
 ├── al-quran.txt              # Quran text (Arabic)
 ├── requirements.txt          # Python dependencies
 ├── src/
