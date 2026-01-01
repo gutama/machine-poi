@@ -7,11 +7,30 @@ Manages multi-resolution indexing of the Quran:
 3. Macro: Surahs (Chapters)
 """
 
+import logging
 from pathlib import Path
-from typing import List, Dict, Optional, Union
+from typing import List, Dict, Optional, Union, Any
 import chromadb
 
 from .quran_embeddings import QuranEmbeddings
+
+# Import config
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import STEERING_DEFAULTS, MultiResolutionResults, RetrievalResult
+
+# Setup logger
+logger = logging.getLogger("machine_poi.knowledge_base")
+
+
+class KnowledgeBaseError(Exception):
+    """Base exception for knowledge base errors."""
+    pass
+
+
+class EmptyCollectionError(KnowledgeBaseError):
+    """Raised when querying an empty collection."""
+    pass
 
 
 class QuranKnowledgeBase:
@@ -56,36 +75,36 @@ class QuranKnowledgeBase:
             ),
         }
 
-    def build_index(self, quran_path: Union[str, Path] = "al-quran.txt"):
+    def build_index(self, quran_path: Union[str, Path] = "al-quran.txt") -> None:
         """
         Build or rebuild the index from source text.
         """
-        print("Building Knowledge Base Index...")
+        logger.info("Building Knowledge Base Index...")
         
         # 1. Index Verses (Micro)
         verses = self.embedder.load_quran_text(quran_path, chunk_by="verse")
-        self._index_collection("verse", verses, batch_size=64)
+        self._index_collection("verse", verses, batch_size=STEERING_DEFAULTS.verse_index_batch_size)
 
         # 2. Index Passages (Meso)
         passages = self.embedder.load_quran_text(quran_path, chunk_by="paragraph")
-        self._index_collection("passage", passages, batch_size=32)
+        self._index_collection("passage", passages, batch_size=STEERING_DEFAULTS.passage_index_batch_size)
 
         # 3. Index Surahs (Macro)
         surahs = self.embedder.load_quran_text(quran_path, chunk_by="surah")
-        self._index_collection("surah", surahs, batch_size=8)
+        self._index_collection("surah", surahs, batch_size=STEERING_DEFAULTS.surah_index_batch_size)
         
-        print("Indexing complete!")
+        logger.info("Indexing complete!")
 
-    def _index_collection(self, resolution: str, texts: List[str], batch_size: int):
+    def _index_collection(self, resolution: str, texts: List[str], batch_size: int) -> None:
         """Helper to index a specific resolution."""
         collection = self.collections[resolution]
         
         # Check if already populated
         if collection.count() > 0:
-            print(f"Collection {resolution} already has {collection.count()} items. Skipping.")
+            logger.info(f"Collection {resolution} already has {collection.count()} items. Skipping.")
             return
 
-        print(f"Indexing {len(texts)} {resolution}s...")
+        logger.info(f"Indexing {len(texts)} {resolution}s...")
         
         # Generate embeddings in batches
         embeddings = self.embedder.create_embeddings(texts, batch_size=batch_size)

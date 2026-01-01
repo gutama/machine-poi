@@ -7,6 +7,7 @@ Steer language model outputs using semantic embeddings derived from Quranic text
 Machine-POI uses text embeddings from Quran verses to create semantic steering vectors that influence LLM behavior without fine-tuning. The steering is applied at inference time by modifying intermediate layer activations.
 
 ### Key Logic: Activation Steering
+
 Unlike simple embedding projection (which can be random), this project uses **Mean Activation Steering**. We run representative samples of Quranic text through the LLM itself to capture the "Quranic Mindset" as a set of activation vectors. This ensures the steering is mathematically consistent with the model's internal representation.
 
 ### Key Features
@@ -25,6 +26,37 @@ Unlike simple embedding projection (which can be random), this project uses **Me
 - [Activation Addition (ActAdd)](https://arxiv.org/abs/2308.10248)
 - [Contrastive Activation Addition (CAA)](https://arxiv.org/abs/2312.06681)
 - [Eiffel Tower LLaMA](https://github.com/scienceetonnante/eiffel-tower-llama) — clamp injection mode inspired by this work
+
+## Architecture
+
+```
+machine-poi/
+├── main.py                   # CLI entry point (450 lines)
+├── compare_models.py         # Model comparison tool
+├── config.py                 # Model configs, presets, reasoning params
+├── al-quran.txt              # Quran text (Arabic, ~739KB)
+├── requirements.txt          # Dependencies
+├── Makefile                  # Test commands
+├── src/                      # Core library (5 modules)
+│   ├── steerer.py            # High-level QuranSteerer API (722 lines)
+│   ├── llm_wrapper.py        # LLM hooks and steering injection (594 lines)
+│   ├── quran_embeddings.py   # Text embedding & chunking (304 lines)
+│   ├── steering_vectors.py   # Vector projection utilities (279 lines)
+│   └── knowledge_base.py     # ChromaDB for MRA mode (225 lines)
+├── tests/                    # Comprehensive test suite (7 files, 100 tests)
+├── vectors/                  # Cached steering vectors
+└── quran_db/                 # ChromaDB storage for MRA
+```
+
+### Component Overview
+
+| Component | Purpose |
+|-----------|---------|
+| `QuranSteerer` | High-level API orchestrating all components |
+| `SteeredLLM` | Wraps HuggingFace models with activation hooks |
+| `QuranEmbeddings` | Creates embeddings using BGE-M3 or similar |
+| `SteeringVectorExtractor` | Projects embeddings → LLM hidden dimensions |
+| `QuranKnowledgeBase` | Multi-resolution ChromaDB for MRA retrieval |
 
 ## Installation
 
@@ -152,17 +184,21 @@ python main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is wisdom?"
 ## How It Works
 
 ### 1. Data Preparation
+
 The Quran text is loaded and correctly chunked into verses, paragraphs, and Surahs (using standard 114 Surah verse counts). Embeddings are generated for retrieval purposes.
 
 ### 2. Steering Vector Calculation (Mean Activation)
+
 To steer the model, we do not simply project embeddings. Instead, we:
 1. Sample a representative set of Quran verses.
 2. Feed these verses into the LLM.
 3. Extract the internal hidden states (activations) at each layer.
 4. Compute the **mean activation vector** for each layer.
+
 This vector represents the "direction" of Quranic content in the model's own latents.
 
 ### 3. Activation Injection
+
 During inference, this mean activation vector is added (or clamped) to the model's current activations, "nudging" the generation towards the Quranic style and semantic space.
 
 ```python
@@ -175,7 +211,12 @@ llm.register_steering_hook(
 ```
 
 ### 4. Quran Persona Mode
+
 Aggregates mean activations from Verse, Paragraph, and Surah levels to create a comprehensive steering profile.
+
+### 5. Domain Bridging
+
+Maps user concepts (e.g., "bug", "deadline", "stress") to Quranic themes for better retrieval in MRA mode. This enables the system to find relevant Quranic guidance even for modern/technical topics.
 
 ## Injection Modes
 
@@ -197,25 +238,36 @@ The `clamp` mode is inspired by [Eiffel Tower LLaMA](https://github.com/sciencee
 | `strong` | 0.8 | add | Strong influence |
 | `focused` | 0.6 | add | Concentrated on middle layers |
 
-## Project Structure
+## Testing
 
+The project includes a comprehensive test suite with 100 tests covering all modules:
+
+```bash
+# Run fast tests (excludes slow/integration)
+make test
+
+# Run all tests including slow ones
+make test-all
+
+# Run with coverage report
+make test-cov
+
+# Run specific test file
+make test-file FILE=tests/test_steerer.py
+
+# Run tests matching a pattern
+make test-match MATCH="injection"
 ```
-machine-poi/
-├── main.py                   # CLI entry point
-├── compare_models.py         # Model comparison tool
-├── config.py                 # Model configs, presets, reasoning params
-├── al-quran.txt              # Quran text (Arabic)
-├── requirements.txt          # Python dependencies
-├── src/
-│   ├── __init__.py           # Package exports
-│   ├── quran_embeddings.py   # Text embedding extraction & chunking
-│   ├── steering_vectors.py   # Vector projection utilities
-│   ├── llm_wrapper.py        # LLM hooks and steering injection
-│   ├── steerer.py            # High-level QuranSteerer interface
-│   └── knowledge_base.py     # ChromaDB for MRA mode
-├── vectors/                  # Cached vectors
-└── quran_db/                 # ChromaDB storage (for MRA mode)
-```
+
+### Test Coverage
+
+| Module | Tests |
+|--------|-------|
+| `test_knowledge_base.py` | ChromaDB indexing/querying |
+| `test_llm_wrapper.py` | Activation hooks, injection modes |
+| `test_quran_embeddings.py` | Text chunking, embedding creation |
+| `test_steerer.py` | End-to-end steering workflows |
+| `test_steering_vectors.py` | Vector projection, contrastive methods |
 
 ## Dependencies
 

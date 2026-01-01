@@ -6,10 +6,60 @@ Creates semantic embeddings from Quranic verses using models like:
 - BGE-M3 (BAAI/bge-m3)
 """
 
+import gc
+import logging
+from collections import OrderedDict
 from pathlib import Path
-from typing import Optional, Union, List, Dict, Literal
+from typing import Optional, Union, List, Dict, Literal, Any
 import numpy as np
 import torch
+
+# Import config
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import STEERING_DEFAULTS
+
+# Setup module logger
+logger = logging.getLogger("machine_poi.quran_embeddings")
+
+
+class EmbeddingError(Exception):
+    """Base exception for embedding-related errors."""
+    pass
+
+
+class QuranFileError(EmbeddingError):
+    """Raised when Quran file is invalid or missing."""
+    pass
+
+
+class LRUCache:
+    """Simple LRU cache for embeddings."""
+    
+    def __init__(self, max_size: int = 1000):
+        self.cache: OrderedDict[str, np.ndarray] = OrderedDict()
+        self.max_size = max_size
+    
+    def get(self, key: str) -> Optional[np.ndarray]:
+        if key in self.cache:
+            self.cache.move_to_end(key)
+            return self.cache[key]
+        return None
+    
+    def put(self, key: str, value: np.ndarray) -> None:
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        else:
+            if len(self.cache) >= self.max_size:
+                self.cache.popitem(last=False)
+            self.cache[key] = value
+    
+    def clear(self) -> None:
+        self.cache.clear()
+    
+    def __len__(self) -> int:
+        return len(self.cache)
+
 
 
 class QuranEmbeddings:
@@ -77,14 +127,14 @@ class QuranEmbeddings:
 
         self.model = None
         self.tokenizer = None
-        self._embeddings_cache: Dict[str, np.ndarray] = {}
+        self._embeddings_cache = LRUCache(max_size=STEERING_DEFAULTS.max_embedding_cache_size)
 
-    def load_model(self):
+    def load_model(self) -> None:
         """Load the embedding model."""
         from sentence_transformers import SentenceTransformer
 
         model_path = self.SUPPORTED_MODELS.get(self.model_name, self.model_name)
-        print(f"Loading embedding model: {model_path}")
+        logger.info(f"Loading embedding model: {model_path}")
 
         # For larger models, use specific loading strategies
         if "qwen" in model_path.lower() or "7b" in model_path.lower():
@@ -102,13 +152,13 @@ class QuranEmbeddings:
         if self.use_fp16 and self.device != "cpu":
             self.model = self.model.half()
 
-        print(f"Model loaded on {self.device}")
+        logger.info(f"Model loaded on {self.device}")
 
     def load_quran_text(
         self,
         file_path: Union[str, Path] = "al-quran.txt",
         chunk_by: Literal["verse", "surah", "paragraph"] = "verse",
-        min_length: int = 10,
+        min_length: Optional[int] = None,
     ) -> List[str]:
         """
         Load and chunk the Quran text.
@@ -116,19 +166,34 @@ class QuranEmbeddings:
         Args:
             file_path: Path to the Quran text file
             chunk_by: How to split the text (verse, surah, paragraph)
-            min_length: Minimum character length for a chunk
+            min_length: Minimum character length for a chunk (default from config)
 
         Returns:
             List of text chunks
+            
+        Raises:
+            QuranFileError: If the file cannot be found or read
         """
+        if min_length is None:
+            min_length = STEERING_DEFAULTS.min_chunk_length
+            
         file_path = Path(file_path)
         if not file_path.exists():
             # Try relative to module
             module_dir = Path(__file__).parent.parent
             file_path = module_dir / "al-quran.txt"
+            
+        if not file_path.exists():
+            raise QuranFileError(f"Quran text file not found: {file_path}")
 
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+        except IOError as e:
+            raise QuranFileError(f"Failed to read Quran file: {e}")
+            
+        if not content.strip():
+            raise QuranFileError(f"Quran file is empty: {file_path}")
 
         lines = [line.strip() for line in content.split("\n") if line.strip()]
 
@@ -138,7 +203,7 @@ class QuranEmbeddings:
         
         elif chunk_by == "paragraph":
             # Group every N verses together
-            n = 5
+            n = STEERING_DEFAULTS.paragraph_verse_count
             chunks = []
             for i in range(0, len(lines), n):
                 chunk = " ".join(lines[i:i+n])
@@ -166,7 +231,7 @@ class QuranEmbeddings:
         else:
             chunks = lines
 
-        print(f"Loaded {len(chunks)} text chunks from Quran")
+        logger.info(f"Loaded {len(chunks)} text chunks from Quran ({chunk_by} mode)")
         return chunks
 
     def create_embeddings(
@@ -248,7 +313,7 @@ class QuranEmbeddings:
             # Save texts separately (numpy doesn't handle variable-length strings well)
             with open(save_path.with_suffix(".texts.txt"), "w", encoding="utf-8") as f:
                 f.write("\n".join(texts))
-            print(f"Saved embeddings to {save_path}")
+            logger.info(f"Saved embeddings to {save_path}")
 
         return result
 

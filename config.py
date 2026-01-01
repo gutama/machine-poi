@@ -4,9 +4,98 @@ Configuration for Machine-POI LLM Steering
 Contains model configurations, hyperparameters, and presets.
 """
 
+import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, TypedDict
 from pathlib import Path
+
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+
+def setup_logging(
+    level: int = logging.INFO,
+    format_string: Optional[str] = None,
+) -> logging.Logger:
+    """Configure logging for Machine-POI.
+    
+    Args:
+        level: Logging level (e.g., logging.INFO, logging.DEBUG)
+        format_string: Custom format string, or None for default
+    
+    Returns:
+        Root logger for the package
+    """
+    if format_string is None:
+        format_string = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    
+    logging.basicConfig(
+        level=level,
+        format=format_string,
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    
+    # Get the package logger
+    logger = logging.getLogger("machine_poi")
+    logger.setLevel(level)
+    
+    return logger
+
+
+# Create default logger
+logger = logging.getLogger("machine_poi")
+
+
+# =============================================================================
+# Type Definitions
+# =============================================================================
+
+class LLMModelConfig(TypedDict, total=False):
+    """Type definition for LLM model configuration."""
+    hf_path: str
+    hidden_size: int
+    num_layers: int
+    recommended_layers: List[int]
+    recommended_coefficient: float
+    reasoning_mode: Optional[str]
+    reasoning_temperature: float
+    reasoning_top_p: float
+    reasoning_top_k: int
+
+
+class EmbeddingModelConfig(TypedDict):
+    """Type definition for embedding model configuration."""
+    hf_path: str
+    embedding_dim: int
+    max_length: int
+    supports_arabic: bool
+    memory_gb: float
+
+
+class RetrievalResult(TypedDict, total=False):
+    """Type definition for retrieval results."""
+    content: str
+    metadata: Dict[str, Any]
+    distance: float
+    score: float
+    embedding: Optional[List[float]]
+
+
+class MultiResolutionResults(TypedDict):
+    """Type definition for multi-resolution query results."""
+    verse: List[RetrievalResult]
+    passage: List[RetrievalResult]
+    surah: List[RetrievalResult]
+
+
+class QuranEmbeddingsResult(TypedDict):
+    """Type definition for Quran embeddings result."""
+    embeddings: Any  # np.ndarray
+    texts: List[str]
+    mean_embedding: Any  # np.ndarray
+    model_name: str
+    chunk_by: str
 
 
 # Supported LLM models with their configurations
@@ -118,6 +207,61 @@ EMBEDDING_MODELS = {
         "memory_gb": 1.5,
     },
 }
+
+
+# =============================================================================
+# Steering Defaults (previously hardcoded values)
+# =============================================================================
+
+@dataclass
+class SteeringDefaults:
+    """Default values for steering operations.
+    
+    These were previously hardcoded throughout the codebase.
+    Centralizing them here makes configuration easier.
+    """
+    
+    # Sample size for computing mean activations
+    activation_sample_size: int = 50
+    
+    # Sample size for Quran Persona (larger for comprehensive coverage)
+    persona_sample_size: int = 100
+    
+    # Number of verses to group into a paragraph
+    paragraph_verse_count: int = 5
+    
+    # Resolution weights for multi-resolution analysis
+    resolution_weights: Dict[str, float] = field(default_factory=lambda: {
+        "verse": 0.5,
+        "passage": 0.35,
+        "surah": 0.15,
+    })
+    
+    # Default blend ratio for dynamic steering
+    dynamic_blend_ratio: float = 0.5
+    
+    # Maximum domain bridges to generate
+    max_domain_bridges: int = 3
+    
+    # Minimum chunk length for text processing
+    min_chunk_length: int = 10
+    
+    # Random seed for reproducibility
+    random_seed: int = 42
+    
+    # Batch sizes for different operations
+    embedding_batch_size: int = 32
+    verse_index_batch_size: int = 64
+    passage_index_batch_size: int = 32
+    surah_index_batch_size: int = 8
+    
+    # Cache settings
+    max_embedding_cache_size: int = 1000
+
+
+# Global defaults instance
+STEERING_DEFAULTS = SteeringDefaults()
+
 
 
 @dataclass

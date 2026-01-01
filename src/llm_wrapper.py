@@ -5,9 +5,11 @@ Provides hooks into transformer layers to enable activation steering
 during inference without modifying model weights.
 """
 
+import gc
+import logging
 import torch
 import torch.nn as nn
-from typing import Optional, Dict, List, Union, Tuple
+from typing import Optional, Dict, List, Union, Tuple, Any
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
@@ -15,6 +17,11 @@ from transformers import (
     PreTrainedTokenizer,
 )
 from contextlib import contextmanager
+
+
+# Setup module logger
+logger = logging.getLogger("machine_poi.llm_wrapper")
+
 
 
 # Model configurations for supported architectures
@@ -64,7 +71,23 @@ MODEL_CONFIGS = {
 }
 
 
-def get_model_config(model_name: str) -> Dict:
+
+class LLMWrapperError(Exception):
+    """Base exception for LLM wrapper errors."""
+    pass
+
+
+class LayerIndexError(LLMWrapperError):
+    """Raised when an invalid layer index is specified."""
+    pass
+
+
+class ModelNotLoadedError(LLMWrapperError):
+    """Raised when model is not loaded but required."""
+    pass
+
+
+def get_model_config(model_name: str) -> Dict[str, Any]:
     """Get configuration for a model architecture."""
     model_name_lower = model_name.lower()
 
@@ -74,6 +97,7 @@ def get_model_config(model_name: str) -> Dict:
 
     # Default to llama-like architecture
     return MODEL_CONFIGS["llama"]
+
 
 
 class ActivationHook:
@@ -253,9 +277,9 @@ class SteeredLLM:
         self.hooks: Dict[int, ActivationHook] = {}
         self.hook_handles: List = []
 
-    def load_model(self):
+    def load_model(self) -> None:
         """Load the model and tokenizer."""
-        print(f"Loading model: {self.model_path}")
+        logger.info(f"Loading model: {self.model_path}")
 
         # Prepare loading arguments
         load_kwargs = {
@@ -290,7 +314,7 @@ class SteeredLLM:
         # Get model config
         self.config = get_model_config(self.model_path)
 
-        print(f"Model loaded. Hidden size: {self.hidden_size}, Layers: {self.num_layers}")
+        logger.info(f"Model loaded. Hidden size: {self.hidden_size}, Layers: {self.num_layers}")
 
     @property
     def hidden_size(self) -> int:
