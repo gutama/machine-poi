@@ -28,6 +28,9 @@ import time
 from src import QuranSteerer
 from config import LLM_MODELS, EMBEDDING_MODELS
 
+# Epsilon value to prevent division by zero in cosine similarity calculations
+EPSILON = 1e-8
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Compare models with Quran Steering",
@@ -205,9 +208,9 @@ def compare_embeddings(args):
             chunks = embedder.load_quran_text(args.quran_file, chunk_by="verse")
             print(f"  Loaded {len(chunks)} Quran verses")
 
-            # Determine how many verses to embed (configurable via CLI if available)
-            num_verses = getattr(args, "num_verses", 100)
-            if num_verses is None or num_verses <= 0:
+            # Determine how many verses to embed (configurable via CLI)
+            num_verses = args.num_verses
+            if num_verses <= 0:
                 num_verses = 100
             num_verses = min(num_verses, len(chunks))
 
@@ -240,7 +243,7 @@ def compare_embeddings(args):
                 else:
                     denom = emb_norms * query_norm
                     # Avoid division by zero for any zero-norm embeddings
-                    denom[denom == 0] = 1e-8
+                    denom[denom == 0] = EPSILON
                     similarities = np.dot(embeddings, query_embedding) / denom
                 top_indices = np.argsort(similarities)[-3:][::-1]
 
