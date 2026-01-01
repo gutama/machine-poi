@@ -10,3 +10,8 @@ huggingface-hub>=0.23.0
 bitsandbytes>=0.43.0
 scipy>=1.11.0
 chromadb>=0.4.0
+
+# Testing
+pytest>=8.0.0
+pytest-cov>=4.1.0
+pytest-xdist>=3.5.0
