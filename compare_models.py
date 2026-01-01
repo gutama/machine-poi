@@ -107,6 +107,18 @@ Examples:
         default=["mercy and compassion", "justice and fairness", "patience in hardship"],
         help="Queries to test embedding similarity"
     )
+    parser.add_argument(
+        "--num-verses",
+        type=int,
+        default=100,
+        help="Number of verses to use for embedding comparison (default: 100)"
+    )
+    parser.add_argument(
+        "--quran-file",
+        type=str,
+        default="al-quran.txt",
+        help="Path to the Quran text file (default: al-quran.txt)"
+    )
     return parser.parse_args()
 
 
@@ -156,7 +168,6 @@ def list_models():
 def compare_embeddings(args):
     """Compare embedding models on query-to-Quran retrieval."""
     from src.quran_embeddings import QuranEmbeddings
-    from src.knowledge_base import QuranKnowledgeBase
     import numpy as np
 
     print(f"\n{'='*70}")
@@ -182,7 +193,6 @@ def compare_embeddings(args):
         print(f"{'='*60}")
 
         embedder = None
-        kb = None
         try:
             # Initialize and load embedding model
             start_time = time.time()
@@ -192,14 +202,20 @@ def compare_embeddings(args):
             print(f"  Model load time: {load_time:.2f}s")
 
             # Load Quran text
-            chunks = embedder.load_quran_text("al-quran.txt", chunking="verse")
+            chunks = embedder.load_quran_text(args.quran_file, chunk_by="verse")
             print(f"  Loaded {len(chunks)} Quran verses")
+
+            # Determine how many verses to embed (configurable via CLI if available)
+            num_verses = getattr(args, "num_verses", 100)
+            if num_verses is None or num_verses <= 0:
+                num_verses = 100
+            num_verses = min(num_verses, len(chunks))
 
             # Create embeddings
             start_time = time.time()
-            embeddings = embedder.create_embeddings(chunks[:100])  # First 100 for speed
+            embeddings = embedder.create_embeddings(chunks[:num_verses])
             embed_time = time.time() - start_time
-            print(f"  Embedding time (100 verses): {embed_time:.2f}s")
+            print(f"  Embedding time ({num_verses} verses): {embed_time:.2f}s")
             print(f"  Embedding shape: {embeddings.shape}")
 
             # Test query similarity
@@ -215,10 +231,17 @@ def compare_embeddings(args):
                 query_embedding = embedder.create_embeddings([query])[0]
                 query_time = time.time() - start_time
 
-                # Compute cosine similarities
-                similarities = np.dot(embeddings, query_embedding) / (
-                    np.linalg.norm(embeddings, axis=1) * np.linalg.norm(query_embedding)
-                )
+                # Compute cosine similarities with protection against zero norms
+                emb_norms = np.linalg.norm(embeddings, axis=1)
+                query_norm = np.linalg.norm(query_embedding)
+                if query_norm == 0:
+                    # If the query embedding has zero norm, define all similarities as 0
+                    similarities = np.zeros(embeddings.shape[0], dtype=float)
+                else:
+                    denom = emb_norms * query_norm
+                    # Avoid division by zero for any zero-norm embeddings
+                    denom[denom == 0] = 1e-8
+                    similarities = np.dot(embeddings, query_embedding) / denom
                 top_indices = np.argsort(similarities)[-3:][::-1]
 
                 print(f"\n  Query: '{query}'")
@@ -247,8 +270,6 @@ def compare_embeddings(args):
                 del embedder.model
             if embedder:
                 del embedder
-            if kb:
-                del kb
             gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
