@@ -190,6 +190,41 @@ class TestDomainBridging:
         # Should have unique bridges
         assert len(bridges) == len(set(bridges))
 
+    def test_generate_domain_bridges_without_auto_bridge(self):
+        """Test that auto-bridge fallback can be disabled."""
+        from src.steerer import QuranSteerer
+        
+        steerer = QuranSteerer()
+        
+        # Novel query with no static match, auto-bridge disabled
+        bridges = steerer.generate_domain_bridges(
+            "impostor syndrome makes me doubt myself",
+            max_bridges=3,
+            use_auto_bridge=False
+        )
+        
+        # Should return empty since no static match and auto-bridge is disabled
+        assert bridges == []
+
+
+class TestQuranicThemes:
+    """Test QURANIC_THEMES constant."""
+
+    def test_quranic_themes_exists(self):
+        """Test that QURANIC_THEMES list exists."""
+        from src.steerer import QURANIC_THEMES
+        
+        assert isinstance(QURANIC_THEMES, list)
+        assert len(QURANIC_THEMES) > 30  # Should have at least 30 themes
+
+    def test_quranic_themes_are_strings(self):
+        """Test that all themes are non-empty strings."""
+        from src.steerer import QURANIC_THEMES
+        
+        for theme in QURANIC_THEMES:
+            assert isinstance(theme, str)
+            assert len(theme) > 0
+
 
 class TestComputeDynamicSteering:
     """Test dynamic steering computation from retrieved results."""

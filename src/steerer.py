@@ -78,6 +78,63 @@ DOMAIN_BRIDGE_MAP: Dict[str, List[str]] = {
 }
 
 
+# Curated Quranic themes for embedding-based auto-bridge generation
+QURANIC_THEMES: List[str] = [
+    # Core spiritual concepts
+    "patience and perseverance (sabr)",
+    "gratitude and thankfulness (shukr)",
+    "trust and reliance on Allah (tawakkul)",
+    "repentance and seeking forgiveness (tawbah)",
+    "remembrance of Allah (dhikr)",
+    "spiritual purification (tazkiyah)",
+    "excellence in worship (ihsan)",
+    "consciousness of Allah (taqwa)",
+    
+    # Moral virtues
+    "honesty and truthfulness",
+    "justice and fairness",
+    "mercy and compassion",
+    "humility and modesty",
+    "generosity and charity",
+    "kindness to parents and family",
+    "fulfilling promises and trusts",
+    "forgiving others",
+    
+    # Life guidance
+    "dealing with hardship and trials",
+    "hope and never despairing",
+    "balance and moderation",
+    "seeking knowledge and wisdom",
+    "reflection and contemplation (tadabbur)",
+    "taking responsibility",
+    "preparing for the hereafter",
+    "purpose and meaning of life",
+    
+    # Social relations
+    "brotherhood and unity",
+    "consultation and cooperation (shura)",
+    "reconciliation and peace-making",
+    "respectful dialogue",
+    "supporting one another",
+    "community (ummah)",
+    
+    # Work and action
+    "striving with effort (jihad al-nafs)",
+    "excellence in work",
+    "fulfilling duties and obligations",
+    "taking action after preparation",
+    "persisting despite difficulties",
+    "learning from mistakes",
+    
+    # Inner states
+    "peace and tranquility of heart",
+    "contentment and inner satisfaction",
+    "overcoming fear and anxiety",
+    "building confidence through faith",
+    "finding strength in adversity",
+]
+
+
 class SteeringError(Exception):
     """Base exception for steering-related errors."""
     pass
@@ -204,6 +261,7 @@ class QuranSteerer:
         # Cached data
         self.quran_embeddings: Optional[Dict[str, Any]] = None
         self.steering_vectors: Optional[Dict[int, torch.Tensor]] = None
+        self._theme_embeddings: Optional[np.ndarray] = None  # For auto domain bridges
         self.config = SteeringConfig()
         
         logger.debug(f"Initialized QuranSteerer with model={llm_model}, device={self.device}")
@@ -272,20 +330,89 @@ class QuranSteerer:
             torch.cuda.empty_cache()
         logger.debug("Memory cleanup completed")
 
+    def _build_theme_index(self) -> np.ndarray:
+        """
+        Build embedding index for QURANIC_THEMES.
+        
+        Returns:
+            Numpy array of shape (num_themes, embedding_dim) with normalized embeddings.
+        """
+        if self._theme_embeddings is not None:
+            return self._theme_embeddings
+            
+        self._ensure_embedder_loaded()
+        
+        logger.info("Building theme embedding index for auto-bridge generation...")
+        embeddings = self.embedder.create_embeddings(QURANIC_THEMES)
+        
+        # Normalize for cosine similarity
+        norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
+        self._theme_embeddings = embeddings / (norms + 1e-8)
+        
+        logger.info(f"Theme index built with {len(QURANIC_THEMES)} themes")
+        return self._theme_embeddings
+
+    def _auto_bridge_via_embeddings(
+        self, 
+        query: str, 
+        top_k: int = 3,
+        min_similarity: float = 0.3
+    ) -> List[str]:
+        """
+        Generate domain bridges using embedding similarity when static lookup fails.
+        
+        Args:
+            query: User's input query
+            top_k: Maximum number of bridges to return
+            min_similarity: Minimum cosine similarity threshold
+            
+        Returns:
+            List of semantically similar Quranic themes
+        """
+        self._ensure_embedder_loaded()
+        
+        # Build theme index if not already built
+        theme_embeddings = self._build_theme_index()
+        
+        # Embed the query
+        query_embedding = self.embedder.create_embedding(query)
+        query_norm = np.linalg.norm(query_embedding)
+        if query_norm > 0:
+            query_embedding = query_embedding / query_norm
+        
+        # Compute cosine similarities
+        similarities = np.dot(theme_embeddings, query_embedding)
+        
+        # Get top-k indices above threshold
+        sorted_indices = np.argsort(similarities)[::-1]
+        
+        bridges = []
+        for idx in sorted_indices[:top_k]:
+            if similarities[idx] >= min_similarity:
+                bridges.append(QURANIC_THEMES[idx])
+        
+        if bridges:
+            logger.info(f"Auto-generated bridges via embeddings: {bridges}")
+        
+        return bridges
+
     def generate_domain_bridges(
         self, 
         query: str, 
-        max_bridges: Optional[int] = None
+        max_bridges: Optional[int] = None,
+        use_auto_bridge: bool = True
     ) -> List[str]:
         """
         Generate domain bridge queries from user input.
 
-        Maps concepts in the user's query to Quranic themes using
-        the DOMAIN_BRIDGE_MAP heuristic.
+        Maps concepts in the user's query to Quranic themes using:
+        1. Static DOMAIN_BRIDGE_MAP heuristic (fast lookup)
+        2. Embedding similarity fallback (when static fails)
         
         Args:
             query: User's input query
             max_bridges: Maximum number of bridges to return (default from config)
+            use_auto_bridge: Whether to use embedding-based fallback
             
         Returns:
             List of bridge query strings
@@ -296,10 +423,9 @@ class QuranSteerer:
         query_lower = query.lower()
         bridges: List[str] = []
 
-        # Find matching keywords in the query
+        # 1. Try static DOMAIN_BRIDGE_MAP first (fast lookup)
         for keyword, themes in DOMAIN_BRIDGE_MAP.items():
             if keyword in query_lower:
-                # Add the first theme as a bridge
                 bridges.extend(themes[:2])
 
         # Remove duplicates while preserving order
@@ -310,8 +436,11 @@ class QuranSteerer:
                 seen.add(b)
                 unique_bridges.append(b)
 
-        # Limit to max_bridges
         bridge_queries = unique_bridges[:max_bridges]
+
+        # 2. Fallback to embedding-based auto-bridge if no static bridges found
+        if not bridge_queries and use_auto_bridge and self.embedder is not None:
+            bridge_queries = self._auto_bridge_via_embeddings(query, top_k=max_bridges)
 
         if bridge_queries:
             logger.info(f"Domain bridges: {bridge_queries}")
