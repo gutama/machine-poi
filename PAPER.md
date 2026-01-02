@@ -63,8 +63,9 @@ $$\vec{v}_{persona} = w_{verse} \cdot \vec{v}_{verse} + w_{passage} \cdot \vec{v
 where default weights are $w_{verse} = 0.5$, $w_{passage} = 0.35$, $w_{surah} = 0.15$.
 
 ### 3.2 Domain Bridging
-To facilitate interaction between modern user queries and classical texts, we implement a **Domain Bridge Map**. This heuristic aligns contemporary concepts with Quranic themes:
+To facilitate interaction between modern user queries and classical texts, we implement a **two-tier Domain Bridging** system:
 
+**Tier 1: Static Keyword Lookup** (fast path)
 | User Domain | Quranic Themes |
 |-------------|----------------|
 | debugging | patience, careful examination, seeking truth |
@@ -72,6 +73,9 @@ To facilitate interaction between modern user queries and classical texts, we im
 | teamwork | unity, brotherhood, cooperation, ummah |
 | failure | perseverance, learning, hope, never despair |
 | leadership | responsibility, trust, justice, consultation |
+
+**Tier 2: Embedding Similarity Fallback** (for novel queries)
+When no static keyword match is found, the system embeds the user query and computes cosine similarity against 50 curated Quranic themes. The top-k most similar themes are used as bridges. This enables handling of queries like "impostor syndrome" or "burnout" that aren't in the static map.
 
 ### 3.3 Vector Extraction and Injection
 The steering vector $\vec{v}_l$ for layer $l$ is computed as the mean normalized activation:
@@ -167,15 +171,15 @@ We tested steering effectiveness across 10 prompts with the "mercy" theme:
 
 ### 6.2 Limitations
 1. **Language dependency**: Current implementation focuses on Arabic Quranic text; translation quality may affect results.
-2. **Static domain bridges**: The keyword map is manually curated; future work could learn bridges from data.
-3. **Coefficient tuning**: Optimal steering strength varies by model and task.
+2. **Coefficient tuning**: Optimal steering strength varies by model and task.
+3. **Cache management**: Switching between models requires cache invalidation (now automated).
 
 ---
 
 ## 7. Future Work
 
 1. **Dynamic Layer Selection**: Automatically identifying optimal intervention points based on query complexity.
-2. **Learned Domain Bridges**: Using embedding similarity to generate bridges automatically.
+2. ~~**Learned Domain Bridges**: Using embedding similarity to generate bridges automatically.~~ ✅ *Implemented*
 3. **Multi-cultural Extension**: Applying the framework to other religious or philosophical texts.
 4. **Quantitative Evaluation**: Developing standardized benchmarks for semantic steering.
 
