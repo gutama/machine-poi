@@ -232,7 +232,7 @@ def activation_hook(sample_steering_vector):
         layer_idx=12,
         steering_vector=sample_steering_vector,
         coefficient=0.5,
-        injection_mode="add",
+        injection_mode="clamp",
     )
 
 

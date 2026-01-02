@@ -1,6 +1,22 @@
-# Machine-POI: LLM Steering with Quran Text Embeddings
+# Machine-POI: LLM Steering with Quranic Semantic Embeddings
 
 Steer language model outputs using semantic embeddings derived from Quranic text. This project implements **activation engineering** techniques to inject Quran-derived "steering vectors" into LLM hidden states during inference.
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║                           Machine-POI                                  ║
+║          LLM Steering with Quranic Semantic Embeddings                 ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  Features:                                                             ║
+║    • Multi-Resolution Analysis (Verse/Passage/Surah)                   ║
+║    • Domain Bridging for Cross-Domain Analogies                        ║
+║    • Quran Persona Steering                                            ║
+║    • Contrastive Activation Addition (CAA)                             ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  Based on: https://arxiv.org/abs/2308.10248 (ActAdd)                   ║
+║            https://arxiv.org/abs/2312.06681 (CAA)                      ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
 
 ## Overview
 
@@ -13,11 +29,15 @@ Unlike simple embedding projection (which can be random), this project uses **Me
 ### Key Features
 
 - **Quran Persona Mode**: Aggregate activations from all resolutions (verse, paragraph, surah) into a unified steering vector
-- **Multi-Resolution Analysis (MRA)**: Dynamic context retrieval using ChromaDB knowledge base with accurate Surah chunking
+- **Multi-Resolution Analysis (MRA)**: Dynamic context retrieval using ChromaDB knowledge base
+  - **Verse (Micro)**: Individual ayat (~6,236 verses)
+  - **Passage (Meso)**: Groups of 19 consecutive verses
+  - **Surah (Macro)**: Complete chapters (114 surahs)
+- **Domain Bridging**: Maps modern concepts (e.g., "debugging", "stress") to Quranic themes
+- **Contrastive Activation Addition (CAA)**: Difference-based steering vectors
 - **Thematic Steering**: Steer toward specific themes (mercy, justice, patience, etc.)
 - **Multiple Injection Modes**: `add`, `blend`, `replace`, and `clamp` (recommended for stability)
 - **Comparison Mode**: Side-by-side comparison of steered vs baseline outputs
-- **Model Comparison Tool**: Compare multiple models with the same prompt
 - **Native Reasoning Modes**: DeepSeek-R1, Qwen3, Phi-4 reasoning support
 - **8 Supported LLMs**: From 135M to 3.8B parameters
 
@@ -31,19 +51,22 @@ Unlike simple embedding projection (which can be random), this project uses **Me
 
 ```
 machine-poi/
-├── main.py                   # CLI entry point (450 lines)
+├── main.py                   # CLI entry point
 ├── compare_models.py         # Model comparison tool
-├── config.py                 # Model configs, presets, reasoning params
+├── config.py                 # Model configs, presets, SteeringDefaults
 ├── al-quran.txt              # Quran text (Arabic, ~739KB)
+├── PAPER.md                  # Academic paper describing the methodology
 ├── requirements.txt          # Dependencies
 ├── Makefile                  # Test commands
 ├── src/                      # Core library (5 modules)
-│   ├── steerer.py            # High-level QuranSteerer API (722 lines)
-│   ├── llm_wrapper.py        # LLM hooks and steering injection (594 lines)
-│   ├── quran_embeddings.py   # Text embedding & chunking (304 lines)
-│   ├── steering_vectors.py   # Vector projection utilities (279 lines)
-│   └── knowledge_base.py     # ChromaDB for MRA mode (225 lines)
-├── tests/                    # Comprehensive test suite (7 files, 100 tests)
+│   ├── steerer.py            # High-level QuranSteerer API
+│   ├── llm_wrapper.py        # LLM hooks and steering injection
+│   ├── quran_embeddings.py   # Text embedding & chunking
+│   ├── steering_vectors.py   # Vector projection utilities
+│   └── knowledge_base.py     # ChromaDB for MRA mode
+├── experiments/              # Paper reproduction scripts
+│   └── reproduce_paper.py    # Reproduces paper experiments
+├── tests/                    # Comprehensive test suite (100 tests)
 ├── vectors/                  # Cached steering vectors
 └── quran_db/                 # ChromaDB storage for MRA
 ```
@@ -53,8 +76,9 @@ machine-poi/
 | Component | Purpose |
 |-----------|---------|
 | `QuranSteerer` | High-level API orchestrating all components |
+| `ContrastiveQuranSteerer` | CAA-based steering with positive/negative examples |
 | `SteeredLLM` | Wraps HuggingFace models with activation hooks |
-| `QuranEmbeddings` | Creates embeddings using BGE-M3 or similar |
+| `QuranEmbeddings` | Creates embeddings with LRU cache |
 | `SteeringVectorExtractor` | Projects embeddings → LLM hidden dimensions |
 | `QuranKnowledgeBase` | Multi-resolution ChromaDB for MRA retrieval |
 
@@ -76,19 +100,18 @@ pip install -r requirements.txt
 ### Python API
 
 ```python
-from src import QuranSteerer
+from src import QuranSteerer, ContrastiveQuranSteerer
 
 # Initialize
 steerer = QuranSteerer(
-    llm_model="qwen2.5-0.5b",
-    embedding_model="bge-m3",
+    llm_model="deepseek-r1-1.5b",
+    embedding_model="paraphrase-minilm",  # lightweight default
 )
 
 # Load models
 steerer.load_models()
 
 # Option 1: Standard Quran steering (uses Mean Activation)
-# This will sample verses and compute the steering vector
 steerer.prepare_quran_steering(chunk_by="verse")
 
 # Option 2: Quran Persona (aggregates all resolutions - recommended)
@@ -102,34 +125,37 @@ print(output)
 steered, baseline = steerer.compare("Tell me about mercy and compassion")
 print("Steered:", steered)
 print("Baseline:", baseline)
+
+# Contrastive steering (CAA)
+caa_steerer = ContrastiveQuranSteerer(llm_model="deepseek-r1-1.5b")
+caa_steerer.load_models()
+caa_steerer.prepare_quran_contrastive()  # Quran vs neutral text
 ```
 
 ### Command Line
 
 ```bash
-# Basic usage (uses qwen2.5-0.5b by default)
-python main.py --interactive
+# Basic usage (uses deepseek-r1-1.5b by default)
+python3 main.py --interactive
 
 # With Quran Persona mode (recommended)
-python main.py --quran-persona --interactive
+python3 main.py --quran-persona --interactive
 
 # Use clamp injection for more stable steering at higher coefficients
-python main.py --quran-persona --injection-mode clamp --coefficient 0.8 --interactive
+python3 main.py --quran-persona --injection-mode clamp --coefficient 0.8 --interactive
 
 # Compare steered vs baseline on test prompts
-python main.py --compare
+python3 main.py --compare
 
 # Thematic steering toward specific concepts
-python main.py --theme mercy --prompt "How should we treat others?"
+python3 main.py --theme mercy --prompt "How should we treat others?"
 
-# Multi-Resolution Analysis mode (uses MRA with full context injection)
-python main.py --mra --interactive
-
-# Initialize ChromaDB knowledge base (required for MRA mode)
-python main.py --init-db
+# Multi-Resolution Analysis mode (requires --init-db first)
+python3 main.py --init-db          # Build ChromaDB knowledge base
+python3 main.py --mra --prompt "How should I deal with stress?"
 
 # Enable native reasoning mode (uses model-specific config)
-python main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is wisdom?"
+python3 main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is wisdom?"
 
 # Compare multiple models with the same prompt
 ./compare_models.py --models qwen3-0.6b deepseek-r1-1.5b --reasoning
@@ -140,8 +166,8 @@ python main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is wisdom?"
 
 | Flag | Description |
 |------|-------------|
-| `--llm MODEL` | LLM to steer (default: `qwen2.5-0.5b`) |
-| `--embedding MODEL` | Embedding model for Quran text (default: `bge-m3`) |
+| `--llm MODEL` | LLM to steer (default: `deepseek-r1-1.5b`) |
+| `--embedding MODEL` | Embedding model (default: `paraphrase-minilm`) |
 | `--preset PRESET` | Steering preset: `gentle`, `moderate`, `strong`, `focused` |
 | `--coefficient FLOAT` | Steering strength (0.0–1.0, default: 0.5) |
 | `--injection-mode MODE` | How to inject: `add`, `blend`, `replace`, `clamp` |
@@ -163,29 +189,32 @@ python main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is wisdom?"
 
 | Model | Size | HuggingFace Path | Reasoning |
 |-------|------|------------------|----------|
-| `qwen2.5-0.5b` | 0.5B | `Qwen/Qwen2.5-0.5B-Instruct` | — |
+| `deepseek-r1-1.5b` | 1.5B | `deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B` | ✅ `<think>` blocks |
 | `qwen3-0.6b` | 0.6B | `Qwen/Qwen3-0.6B` | ✅ `enable_thinking` |
+| `qwen2.5-0.5b` | 0.5B | `Qwen/Qwen2.5-0.5B-Instruct` | — |
 | `smollm2-135m` | 135M | `HuggingFaceTB/SmolLM2-135M-Instruct` | — |
 | `smollm2-360m` | 360M | `HuggingFaceTB/SmolLM2-360M-Instruct` | — |
 | `smollm3` | 3B | `HuggingFaceTB/SmolLM3-3B` | — |
 | `gemma-270m` | 270M | `google/gemma-3-270m-it` | — |
-| `deepseek-r1-1.5b` | 1.5B | `deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B` | ✅ `<think>` blocks |
 | `phi4-mini` | 3.8B | `microsoft/Phi-4-mini-reasoning` | ✅ Math reasoning |
 
 ### Embedding Models
 
 | Model | Dim | Arabic Support | Memory |
 |-------|-----|----------------|--------|
+| `paraphrase-minilm` | 384 | ✅ | ~0.5 GB |
 | `bge-m3` | 1024 | ✅ | ~2.5 GB |
 | `multilingual-e5` | 1024 | ✅ | ~2.0 GB |
 | `qwen-embedding` | 3584 | ✅ | ~15 GB |
-| `bge-large-zh` | 1024 | ✅ | ~1.3 GB |
 
 ## How It Works
 
 ### 1. Data Preparation
 
-The Quran text is loaded and correctly chunked into verses, paragraphs, and Surahs (using standard 114 Surah verse counts). Embeddings are generated for retrieval purposes.
+The Quran text is loaded and chunked at three resolutions:
+- **Verse**: Individual ayat (~6,236 verses)
+- **Passage**: Groups of 19 consecutive verses
+- **Surah**: Complete chapters using standard 114 Surah verse counts
 
 ### 2. Steering Vector Calculation (Mean Activation)
 
@@ -212,11 +241,21 @@ llm.register_steering_hook(
 
 ### 4. Quran Persona Mode
 
-Aggregates mean activations from Verse, Paragraph, and Surah levels to create a comprehensive steering profile.
+Aggregates mean activations from Verse, Paragraph, and Surah levels with configurable weights:
+- Verse: 50% (precise semantic signals)
+- Paragraph: 35% (thematic context)
+- Surah: 15% (foundational principles)
 
 ### 5. Domain Bridging
 
 Maps user concepts (e.g., "bug", "deadline", "stress") to Quranic themes for better retrieval in MRA mode. This enables the system to find relevant Quranic guidance even for modern/technical topics.
+
+| User Domain | Quranic Themes |
+|-------------|----------------|
+| debugging | patience, careful examination, seeking truth |
+| stress | sabr, trust in Allah, peace of heart |
+| teamwork | unity, brotherhood, cooperation, ummah |
+| leadership | responsibility, trust, justice, consultation |
 
 ## Injection Modes
 
@@ -229,14 +268,22 @@ Maps user concepts (e.g., "bug", "deadline", "stress") to Quranic themes for bet
 
 The `clamp` mode is inspired by [Eiffel Tower LLaMA](https://github.com/scienceetonnante/eiffel-tower-llama). It first removes the existing projection of activations onto the steering direction, then adds a controlled amount. This prevents over-biasing and produces more fluent outputs at higher coefficients.
 
-## Steering Presets
+## Reproducing Paper Experiments
 
-| Preset | Coefficient | Injection | Description |
-|--------|-------------|-----------|-------------|
-| `gentle` | 0.2 | add | Subtle influence |
-| `moderate` | 0.5 | add | Balanced effect |
-| `strong` | 0.8 | add | Strong influence |
-| `focused` | 0.6 | add | Concentrated on middle layers |
+See [PAPER.md](PAPER.md) for the full academic paper. To reproduce experiments:
+
+```bash
+# Run all paper experiments
+python3 experiments/reproduce_paper.py
+
+# Run specific sections
+python3 experiments/reproduce_paper.py --section 5.1  # Qualitative comparison
+python3 experiments/reproduce_paper.py --section 5.2  # Thematic analysis
+python3 experiments/reproduce_paper.py --section 5.3  # Coefficient sensitivity
+
+# Quick test with fewer prompts
+python3 experiments/reproduce_paper.py --quick
+```
 
 ## Testing
 

@@ -108,7 +108,7 @@ class ActivationHook:
         layer_idx: int,
         steering_vector: Optional[torch.Tensor] = None,
         coefficient: float = 1.0,
-        injection_mode: str = "add",  # "add", "replace", "blend", "clamp"
+        injection_mode: str = "clamp",  # "add", "replace", "blend", "clamp"
     ):
         self.layer_idx = layer_idx
         self.steering_vector = steering_vector
@@ -349,7 +349,7 @@ class SteeredLLM:
         layer_idx: int,
         steering_vector: Optional[torch.Tensor] = None,
         coefficient: float = 1.0,
-        injection_mode: str = "add",
+        injection_mode: str = "clamp",
     ) -> ActivationHook:
         """
         Register a steering hook at a specific layer.

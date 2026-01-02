@@ -108,7 +108,7 @@ class SteeringConfig:
     target_layers: Optional[List[int]] = None
 
     # Injection mode: "add", "blend", "replace", "clamp"
-    injection_mode: str = "add"
+    injection_mode: str = "clamp"
 
     # How to distribute steering across layers
     layer_distribution: Literal["uniform", "bell", "focused"] = "bell"
