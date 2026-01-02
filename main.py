@@ -12,6 +12,7 @@ Based on:
 """
 
 import argparse
+import asyncio
 import sys
 from pathlib import Path
 
@@ -188,6 +189,31 @@ Examples:
         help="Enable Quran Persona steering (aggregates all resolutions)",
     )
 
+    # LightRAG Knowledge Graph options
+    parser.add_argument(
+        "--graph-kb",
+        action="store_true",
+        help="Enable LightRAG knowledge graph for enhanced retrieval",
+    )
+    parser.add_argument(
+        "--llm-provider",
+        type=str,
+        default="openai",
+        choices=["openai", "gemini", "ollama"],
+        help="LLM provider for graph entity extraction (default: openai)",
+    )
+    parser.add_argument(
+        "--llm-api-model",
+        type=str,
+        default=None,
+        help="Model name for LLM API (e.g., gpt-5.2, gemini-3.0-pro, qwen2.5:7b)",
+    )
+    parser.add_argument(
+        "--build-graph",
+        action="store_true",
+        help="Build LightRAG graph index (use with --init-db)",
+    )
+
     return parser.parse_args()
 
 
@@ -200,6 +226,7 @@ def print_banner():
 ╠═══════════════════════════════════════════════════════════════════════╣
 ║  Features:                                                            ║
 ║    • Multi-Resolution Analysis (Verse/Passage/Surah)                  ║
+║    • LightRAG Knowledge Graph (--graph-kb)                            ║
 ║    • Domain Bridging for Cross-Domain Analogies                       ║
 ║    • Quran Persona Steering                                           ║
 ║    • Contrastive Activation Addition (CAA)                            ║
@@ -355,7 +382,29 @@ def main():
     print(f"  Device: {config.device or 'auto'}")
     print(f"  Quantization: {config.quantization or 'none'}")
     print(f"  MRA Mode: {'ON' if args.mra else 'OFF'}")
+    print(f"  Graph KB: {'ON' if args.graph_kb else 'OFF'}")
+    if args.graph_kb:
+        print(f"  LLM Provider: {args.llm_provider}")
+        print(f"  API Model: {args.llm_api_model or 'default'}")
     print()
+
+    # Create LLM function for graph KB entity extraction
+    llm_func = None
+    if args.graph_kb:
+        from src.llm_adapters import (
+            create_openai_adapter,
+            create_gemini_adapter,
+            create_ollama_adapter,
+        )
+        if args.llm_provider == "openai":
+            model = args.llm_api_model or "gpt-4o-mini"
+            llm_func = create_openai_adapter(model_name=model)
+        elif args.llm_provider == "gemini":
+            model = args.llm_api_model or "gemini-2.0-flash"
+            llm_func = create_gemini_adapter(model_name=model)
+        elif args.llm_provider == "ollama":
+            model = args.llm_api_model or "qwen2.5:7b"
+            llm_func = create_ollama_adapter(model_name=model)
 
     # Initialize steerer
     print("Initializing QuranSteerer...")
@@ -365,11 +414,18 @@ def main():
         quran_path=args.quran_path,
         device=config.device,
         llm_quantization=config.quantization,
+        use_graph_kb=args.graph_kb,
+        llm_func=llm_func,
     )
 
     if args.init_db:
         steerer.initialize_knowledge_base()
         steerer.knowledge_base.build_index(args.quran_path)
+        if args.build_graph and args.graph_kb:
+            print("Building LightRAG graph index (this may take a while)...")
+            asyncio.run(steerer.initialize_hybrid_knowledge_base())
+            asyncio.run(steerer.hybrid_kb.build_index(args.quran_path, build_graph=True))
+            print("Graph index built successfully!")
         return
 
     # Load models

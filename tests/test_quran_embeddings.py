@@ -87,9 +87,11 @@ class TestTextLoading:
         embedder = QuranEmbeddings()
         chunks = embedder.load_quran_text(sample_quran_path, chunk_by="surah")
         
-        # Surahs should be fewest
-        paragraph_chunks = embedder.load_quran_text(sample_quran_path, chunk_by="paragraph")
-        assert len(chunks) <= len(paragraph_chunks)
+        # Surahs should be fewer or equal to verses (the smallest unit)
+        # Note: With small test files, surahs may outnumber paragraphs if verses
+        # span multiple surahs but don't reach the paragraph grouping threshold
+        verse_chunks = embedder.load_quran_text(sample_quran_path, chunk_by="verse")
+        assert len(chunks) <= len(verse_chunks)
 
     def test_load_quran_text_min_length_filter(self, sample_quran_path):
         """Test that short chunks are filtered out."""

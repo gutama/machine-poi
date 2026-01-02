@@ -19,6 +19,8 @@ from .quran_embeddings import QuranEmbeddings
 from .steering_vectors import SteeringVectorExtractor, ContrastiveSteeringExtractor
 from .llm_wrapper import SteeredLLM
 from .knowledge_base import QuranKnowledgeBase
+from .hybrid_knowledge_base import HybridQuranKnowledgeBase, HybridQueryResult
+from .graph_bridge import GraphBridgeGenerator, BridgeResult
 
 # Import config types and defaults
 import sys
@@ -212,6 +214,8 @@ class QuranSteerer:
         quran_path: Union[str, Path] = "al-quran.txt",
         device: Optional[str] = None,
         llm_quantization: Optional[str] = None,  # "4bit", "8bit", or None
+        use_graph_kb: bool = False,  # Enable graph-based knowledge base
+        llm_func: Optional[callable] = None,  # LLM function for LightRAG
     ):
         """
         Initialize the Quran steerer.
@@ -222,6 +226,8 @@ class QuranSteerer:
             quran_path: Path to Quran text file
             device: Device for computation
             llm_quantization: Optional quantization for LLM
+            use_graph_kb: Whether to enable graph-based knowledge base
+            llm_func: LLM function for LightRAG entity extraction
 
         Raises:
             FileNotFoundError: If quran_path doesn't exist
@@ -252,11 +258,17 @@ class QuranSteerer:
 
         self.llm_quantization = llm_quantization
 
+        # Graph-based knowledge base settings
+        self.use_graph_kb = use_graph_kb
+        self._llm_func = llm_func
+
         # Components (loaded lazily)
         self.embedder: Optional[QuranEmbeddings] = None
         self.llm: Optional[SteeredLLM] = None
         self.vector_extractor: Optional[SteeringVectorExtractor] = None
         self.knowledge_base: Optional[QuranKnowledgeBase] = None
+        self.hybrid_kb: Optional[HybridQuranKnowledgeBase] = None
+        self.graph_bridge_generator: Optional[GraphBridgeGenerator] = None
 
         # Cached data
         self.quran_embeddings: Optional[Dict[str, Any]] = None
@@ -300,6 +312,33 @@ class QuranSteerer:
             embedding_model_name=self.embedding_model_name,
             device=self.device,
         )
+
+    async def initialize_hybrid_knowledge_base(
+        self,
+        vector_persist_dir: str = "quran_db",
+        graph_working_dir: str = "quran_lightrag",
+    ) -> None:
+        """
+        Initialize hybrid knowledge base with graph support.
+        
+        Args:
+            vector_persist_dir: Directory for ChromaDB vector storage
+            graph_working_dir: Directory for LightRAG graph storage
+        """
+        logger.info("Initializing Hybrid Knowledge Base...")
+
+        self.hybrid_kb = HybridQuranKnowledgeBase(
+            vector_persist_dir=vector_persist_dir,
+            graph_working_dir=graph_working_dir,
+            embedding_model_name=self.embedding_model_name,
+            device=self.device,
+            llm_func=self._llm_func,
+        )
+        await self.hybrid_kb.initialize()
+
+        # Set up graph-based bridge generator
+        self.graph_bridge_generator = self.hybrid_kb._bridge_generator
+        logger.info("Hybrid Knowledge Base initialized")
 
     def _ensure_llm_loaded(self) -> None:
         """Ensure LLM is loaded, raise error if not."""
@@ -400,30 +439,36 @@ class QuranSteerer:
         self, 
         query: str, 
         max_bridges: Optional[int] = None,
-        use_auto_bridge: bool = True
+        use_auto_bridge: bool = True,
+        use_graph: bool = None,  # Enable graph-based bridges
     ) -> List[str]:
         """
         Generate domain bridge queries from user input.
 
-        Maps concepts in the user's query to Quranic themes using:
+        ENHANCED: Three-tier bridging approach:
         1. Static DOMAIN_BRIDGE_MAP heuristic (fast lookup)
-        2. Embedding similarity fallback (when static fails)
+        2. Graph-based entity traversal (relationship-aware)
+        3. Embedding similarity fallback (when others fail)
         
         Args:
             query: User's input query
             max_bridges: Maximum number of bridges to return (default from config)
             use_auto_bridge: Whether to use embedding-based fallback
+            use_graph: Whether to use graph-based bridging (auto-detected if None)
             
         Returns:
             List of bridge query strings
         """
+        if use_graph is None:
+            use_graph = self.use_graph_kb and self.graph_bridge_generator is not None
+
         if max_bridges is None:
             max_bridges = STEERING_DEFAULTS.max_domain_bridges
             
         query_lower = query.lower()
         bridges: List[str] = []
 
-        # 1. Try static DOMAIN_BRIDGE_MAP first (fast lookup)
+        # Tier 1: Try static DOMAIN_BRIDGE_MAP first (fast lookup)
         for keyword, themes in DOMAIN_BRIDGE_MAP.items():
             if keyword in query_lower:
                 bridges.extend(themes[:2])
@@ -438,7 +483,20 @@ class QuranSteerer:
 
         bridge_queries = unique_bridges[:max_bridges]
 
-        # 2. Fallback to embedding-based auto-bridge if no static bridges found
+        # Tier 2: Graph-based traversal (NEW)
+        if not bridge_queries and use_graph and self.graph_bridge_generator:
+            try:
+                result = self.graph_bridge_generator.generate_bridges_sync(
+                    query=query,
+                    max_bridges=max_bridges,
+                )
+                bridge_queries = result.bridges
+                if bridge_queries:
+                    logger.info(f"Graph-based bridges: {bridge_queries}")
+            except Exception as e:
+                logger.warning(f"Graph bridge generation failed: {e}")
+
+        # Tier 3: Fallback to embedding-based auto-bridge if no bridges found
         if not bridge_queries and use_auto_bridge and self.embedder is not None:
             bridge_queries = self._auto_bridge_via_embeddings(query, top_k=max_bridges)
 
@@ -446,6 +504,87 @@ class QuranSteerer:
             logger.info(f"Domain bridges: {bridge_queries}")
 
         return bridge_queries
+
+    async def generate_with_graph(
+        self,
+        prompt: str,
+        max_new_tokens: int = 100,
+        temperature: float = 0.7,
+        query_mode: str = "hybrid",
+        use_dynamic_steering: bool = True,
+        **kwargs,
+    ) -> str:
+        """
+        Generate with graph-enhanced MRA mode.
+
+        Uses hybrid knowledge base for comprehensive retrieval
+        combining vector similarity and graph traversal.
+        
+        Args:
+            prompt: User prompt
+            max_new_tokens: Maximum tokens to generate
+            temperature: Sampling temperature
+            query_mode: Query mode ("vector", "graph", "hybrid", "auto")
+            use_dynamic_steering: Whether to apply dynamic steering from results
+            **kwargs: Additional generation arguments
+            
+        Returns:
+            Generated text response
+        """
+        self._ensure_llm_loaded()
+
+        if self.hybrid_kb is None:
+            await self.initialize_hybrid_knowledge_base()
+
+        # Query hybrid knowledge base
+        result = await self.hybrid_kb.query(
+            query=prompt,
+            mode=query_mode,
+            use_bridges=True,
+        )
+
+        # Apply dynamic steering from vector results
+        if use_dynamic_steering and result.vector_results:
+            dynamic_vectors = self.compute_dynamic_steering(result.vector_results)
+            if dynamic_vectors:
+                self.apply_dynamic_steering(dynamic_vectors)
+
+        # Build enhanced prompt with graph context
+        context_parts = []
+
+        # Graph answer provides high-level reasoning
+        if result.graph_answer:
+            context_parts.append(f"**Graph Analysis**:\n{result.graph_answer}")
+
+        # Vector results provide specific verses
+        if result.vector_results:
+            verses = result.vector_results.get('verse', [])
+            if verses:
+                verses_txt = "\n".join([f"- {r['content']}" for r in verses[:3]])
+                context_parts.append(f"**Relevant Verses**:\n{verses_txt}")
+
+        # Bridges show the conceptual mapping
+        if result.bridges:
+            context_parts.append(f"**Thematic Bridges**: {', '.join(result.bridges)}")
+
+        # Construct final prompt
+        context = "\n\n".join(context_parts)
+
+        final_prompt = (
+            f"### Quranic Knowledge Context\n"
+            f"{context}\n\n"
+            f"### Task\n{prompt}\n\n"
+            f"### Response\n"
+        )
+
+        output = self.llm.generate(
+            prompt=final_prompt,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            **kwargs,
+        )
+
+        return output
 
     def compute_dynamic_steering(
         self,

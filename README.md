@@ -4,17 +4,18 @@ Steer language model outputs using semantic embeddings derived from Quranic text
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════╗
-║                           Machine-POI                                  ║
-║          LLM Steering with Quranic Semantic Embeddings                 ║
+║                           Machine-POI                                 ║
+║          LLM Steering with Quranic Semantic Embeddings                ║
 ╠═══════════════════════════════════════════════════════════════════════╣
-║  Features:                                                             ║
-║    • Multi-Resolution Analysis (Verse/Passage/Surah)                   ║
-║    • Domain Bridging for Cross-Domain Analogies                        ║
-║    • Quran Persona Steering                                            ║
-║    • Contrastive Activation Addition (CAA)                             ║
+║  Features:                                                            ║
+║    • Multi-Resolution Analysis (Verse/Passage/Surah)                  ║
+║    • LightRAG Knowledge Graph Integration (NEW)                       ║
+║    • Domain Bridging for Cross-Domain Analogies                       ║
+║    • Quran Persona Steering                                           ║
+║    • Contrastive Activation Addition (CAA)                            ║
 ╠═══════════════════════════════════════════════════════════════════════╣
-║  Based on: https://arxiv.org/abs/2308.10248 (ActAdd)                   ║
-║            https://arxiv.org/abs/2312.06681 (CAA)                      ║
+║  Based on: https://arxiv.org/abs/2308.10248 (ActAdd)                  ║
+║            https://arxiv.org/abs/2312.06681 (CAA)                     ║
 ╚═══════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -33,7 +34,12 @@ Unlike simple embedding projection (which can be random), this project uses **Me
   - **Verse (Micro)**: Individual ayat (~6,236 verses)
   - **Passage (Meso)**: Groups of 19 consecutive verses
   - **Surah (Macro)**: Complete chapters (114 surahs)
+- **LightRAG Knowledge Graph** *(NEW)*: Entity-relationship extraction for Quranic concepts
+  - Graph-based retrieval for multi-hop reasoning
+  - Hybrid query modes (vector, graph, hybrid, auto)
+  - Supports OpenAI (GPT-5.2), Gemini (3.0 Pro), Ollama, local LLMs
 - **Domain Bridging**: Maps modern concepts (e.g., "debugging", "stress") to Quranic themes
+  - Three-tier bridging: Static lookup → Graph traversal → Embedding similarity
 - **Contrastive Activation Addition (CAA)**: Difference-based steering vectors
 - **Thematic Steering**: Steer toward specific themes (mercy, justice, patience, etc.)
 - **Multiple Injection Modes**: `add`, `blend`, `replace`, and `clamp` (recommended for stability)
@@ -58,17 +64,23 @@ machine-poi/
 ├── PAPER.md                  # Academic paper describing the methodology
 ├── requirements.txt          # Dependencies
 ├── Makefile                  # Test commands
-├── src/                      # Core library (5 modules)
+├── src/                      # Core library (10 modules)
 │   ├── steerer.py            # High-level QuranSteerer API
 │   ├── llm_wrapper.py        # LLM hooks and steering injection
 │   ├── quran_embeddings.py   # Text embedding & chunking
 │   ├── steering_vectors.py   # Vector projection utilities
-│   └── knowledge_base.py     # ChromaDB for MRA mode
+│   ├── knowledge_base.py     # ChromaDB for MRA mode
+│   ├── lightrag_adapter.py   # LightRAG knowledge graph wrapper
+│   ├── hybrid_knowledge_base.py  # Combined vector + graph KB
+│   ├── graph_bridge.py       # Graph-based domain bridging
+│   ├── llm_adapters.py       # Adapters for OpenAI, Gemini, Ollama
+│   └── prompts/              # Entity extraction prompts
 ├── experiments/              # Paper reproduction scripts
 │   └── reproduce_paper.py    # Reproduces paper experiments
-├── tests/                    # Comprehensive test suite (100 tests)
+├── tests/                    # Comprehensive test suite (100+ tests)
 ├── vectors/                  # Cached steering vectors
-└── quran_db/                 # ChromaDB storage for MRA
+├── quran_db/                 # ChromaDB storage for MRA
+└── quran_lightrag/           # LightRAG graph storage
 ```
 
 ### Component Overview
@@ -81,6 +93,9 @@ machine-poi/
 | `QuranEmbeddings` | Creates embeddings with LRU cache |
 | `SteeringVectorExtractor` | Projects embeddings → LLM hidden dimensions |
 | `QuranKnowledgeBase` | Multi-resolution ChromaDB for MRA retrieval |
+| `HybridQuranKnowledgeBase` | Combined vector + graph retrieval |
+| `QuranLightRAG` | LightRAG wrapper for Quranic knowledge graph |
+| `GraphBridgeGenerator` | Three-tier domain bridging with graph traversal |
 
 ## Installation
 
@@ -132,6 +147,43 @@ caa_steerer.load_models()
 caa_steerer.prepare_quran_contrastive()  # Quran vs neutral text
 ```
 
+### LightRAG Knowledge Graph (NEW)
+
+```python
+import asyncio
+from src.steerer import QuranSteerer
+from src.llm_adapters import create_openai_adapter, create_gemini_adapter
+
+# Option 1: Use OpenAI (GPT-5.2)
+llm_func = create_openai_adapter(model_name="gpt-5.2")
+
+# Option 2: Use Gemini (3.0 Pro)
+# llm_func = create_gemini_adapter(model_name="gemini-3.0-pro")
+
+# Initialize with graph KB support
+steerer = QuranSteerer(
+    llm_model="deepseek-r1-1.5b",
+    use_graph_kb=True,
+    llm_func=llm_func,
+)
+steerer.load_models()
+
+async def main():
+    # Initialize hybrid knowledge base
+    await steerer.initialize_hybrid_knowledge_base()
+    
+    # Build graph index (one-time)
+    await steerer.hybrid_kb.build_index("al-quran.txt", build_graph=True)
+    
+    # Generate with graph-enhanced retrieval
+    result = await steerer.generate_with_graph(
+        prompt="How should I handle team conflicts?",
+        query_mode="hybrid",  # vector, graph, hybrid, auto
+    )
+    print(result)
+
+asyncio.run(main())
+
 ### Command Line
 
 ```bash
@@ -153,6 +205,15 @@ python3 main.py --theme mercy --prompt "How should we treat others?"
 # Multi-Resolution Analysis mode (requires --init-db first)
 python3 main.py --init-db          # Build ChromaDB knowledge base
 python3 main.py --mra --prompt "How should I deal with stress?"
+
+# LightRAG Knowledge Graph mode (NEW)
+python3 main.py --init-db --graph-kb --build-graph  # Build graph index
+python3 main.py --graph-kb --prompt "How should I handle team conflicts?"
+
+# Use different LLM providers for graph entity extraction
+python3 main.py --graph-kb --llm-provider openai --llm-api-model gpt-5.2
+python3 main.py --graph-kb --llm-provider gemini --llm-api-model gemini-3.0-pro
+python3 main.py --graph-kb --llm-provider ollama --llm-api-model qwen2.5:7b
 
 # Enable native reasoning mode (uses model-specific config)
 python3 main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is wisdom?"
@@ -182,6 +243,10 @@ python3 main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is wisdom?"
 | `--reasoning` | Enable native reasoning mode (model-specific) |
 | `--device DEVICE` | Force device: `cuda`, `cpu`, `mps` |
 | `--quantize MODE` | Quantization: `4bit`, `8bit` |
+| `--graph-kb` | Enable LightRAG knowledge graph |
+| `--llm-provider PROV` | LLM for graph extraction: `openai`, `gemini`, `ollama` |
+| `--llm-api-model MODEL` | Model name for API (e.g., `gpt-5.2`, `gemini-3.0-pro`) |
+| `--build-graph` | Build graph index (use with `--init-db --graph-kb`) |
 
 ## Supported Models
 
@@ -322,6 +387,11 @@ make test-match MATCH="injection"
 - `transformers>=4.40.0` - HuggingFace model loading
 - `sentence-transformers` - Embedding models
 - `chromadb` - Vector database for MRA mode
+- `lightrag-hku` - Knowledge graph for entity extraction
+- `networkx` - Graph storage backend
+- `openai` - OpenAI API adapter (GPT-5.2, etc.)
+- `google-generativeai` - Gemini API adapter
+- `httpx` - Async HTTP for Ollama
 - `bitsandbytes` - Quantization support (optional)
 - `accelerate` - Model loading optimization
 

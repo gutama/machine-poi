@@ -10,6 +10,11 @@ huggingface-hub>=0.23.0
 bitsandbytes>=0.43.0
 scipy>=1.11.0
 chromadb>=0.4.0
+lightrag-hku>=0.1.0
+networkx>=3.0
+httpx>=0.25.0
+openai>=1.0.0
+google-generativeai>=0.8.0
 
 # Testing
 pytest>=8.0.0

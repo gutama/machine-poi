@@ -271,13 +271,38 @@ class SteeringDefaults:
     
     # Cache settings
     max_embedding_cache_size: int = 1000
+    
+    # LightRAG graph settings
+    graph_chunk_size: int = 500
+    graph_chunk_overlap: int = 50
+    graph_top_k: int = 10
+    graph_max_nodes: int = 500
+    graph_traversal_depth: int = 2
+    use_graph_bridges: bool = True
+    graph_bridge_confidence_threshold: float = 0.3
+    
+    # Hybrid query settings
+    hybrid_query_mode: str = "hybrid"  # "vector", "graph", "hybrid", "auto"
+    hybrid_fusion_strategy: str = "interleave"  # "interleave", "graph_first", "vector_first"
 
 
 # Global defaults instance
 STEERING_DEFAULTS = SteeringDefaults()
 
 
-
+# LightRAG storage backends for different deployment scenarios
+LIGHTRAG_STORAGE_BACKENDS = {
+    "default": {
+        "kv_storage": "JsonKVStorage",
+        "vector_storage": "NanoVectorDBStorage",
+        "graph_storage": "NetworkXStorage",
+    },
+    "production": {
+        "kv_storage": "PostgreSQLStorage",  # Requires postgres
+        "vector_storage": "MilvusVectorStorage",  # Requires milvus
+        "graph_storage": "Neo4jStorage",  # Requires neo4j
+    },
+}
 @dataclass
 class SteeringPreset:
     """Preset configurations for different steering behaviors."""
