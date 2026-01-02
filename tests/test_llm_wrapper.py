@@ -26,7 +26,7 @@ class TestActivationHookInit:
         assert hook.layer_idx == 12
         assert hook.steering_vector is None
         assert hook.coefficient == 1.0
-        assert hook.injection_mode == "clamp"
+        assert hook.injection_mode == "add"
         assert hook.enabled is True
 
     def test_init_with_steering_vector(self, sample_steering_vector):

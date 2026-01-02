@@ -27,7 +27,7 @@ class TestSteeringConfig:
         
         assert config.coefficient == 0.5
         assert config.target_layers is None
-        assert config.injection_mode == "clamp"
+        assert config.injection_mode == "add"
         assert config.layer_distribution == "bell"
         assert config.focus_layer == 0.5
 
