@@ -9,6 +9,7 @@ import gc
 import logging
 import torch
 import numpy as np
+import os
 from pathlib import Path
 from typing import Optional, Dict, List, Union, Tuple, Literal, Any
 from dataclasses import dataclass
@@ -543,6 +544,7 @@ class QuranSteerer:
 
         # Save if requested
         if cache_path:
+            os.makedirs(os.path.dirname(cache_path), exist_ok=True)
             save_dict = {str(k): v.cpu().numpy() for k, v in self.steering_vectors.items()}
             np.savez(cache_path, **save_dict)
             logger.info(f"Saved steering vectors to {cache_path}")
