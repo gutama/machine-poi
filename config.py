@@ -199,12 +199,26 @@ EMBEDDING_MODELS = {
         "supports_arabic": True,
         "memory_gb": 2.0,
     },
-    "bge-large-zh": {
-        "hf_path": "BAAI/bge-large-zh-v1.5",
+    "multilingual-e5-large": {
+        "hf_path": "intfloat/multilingual-e5-large",
         "embedding_dim": 1024,
         "max_length": 512,
-        "supports_arabic": False,  # Primarily Chinese
-        "memory_gb": 1.5,
+        "supports_arabic": True,
+        "memory_gb": 2.0,
+    },
+    "paraphrase-mpnet": {
+        "hf_path": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+        "embedding_dim": 768,
+        "max_length": 128,
+        "supports_arabic": True,  # 50+ languages
+        "memory_gb": 1.0,
+    },
+    "paraphrase-minilm": {
+        "hf_path": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        "embedding_dim": 384,
+        "max_length": 128,
+        "supports_arabic": True,  # 50+ languages
+        "memory_gb": 0.5,
     },
 }
 
