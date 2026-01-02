@@ -371,12 +371,60 @@ def main():
         print("Mode: MRA (Multi-Resolution Analysis)")
     print()
     
+    def extract_answer(text: str) -> str:
+        """Extract just the answer portion, stripping <think>...</think> blocks."""
+        import re
+        # Remove <think>...</think> blocks (deepseek-r1 style reasoning)
+        cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+        # Also handle unclosed <think> blocks (model cut off mid-reasoning)
+        cleaned = re.sub(r'<think>.*', '', cleaned, flags=re.DOTALL)
+        # Strip leading/trailing whitespace and collapse multiple newlines
+        cleaned = re.sub(r'\n{3,}', '\n\n', cleaned.strip())
+        return cleaned
+    
+    def smart_truncate(text: str, max_chars: int = 300) -> str:
+        """Truncate at sentence boundary if possible."""
+        if len(text) <= max_chars:
+            return text
+        # Try to find a sentence end near the limit
+        truncated = text[:max_chars]
+        # Look for last sentence-ending punctuation
+        for end in ['. ', '.\n', '? ', '?\n', '! ', '!\n']:
+            last_end = truncated.rfind(end)
+            if last_end > max_chars * 0.5:  # At least half the content
+                return truncated[:last_end + 1].strip() + " ..."
+        # Fallback: truncate at last space
+        last_space = truncated.rfind(' ')
+        if last_space > max_chars * 0.7:
+            return truncated[:last_space].strip() + " ..."
+        return truncated.strip() + " ..."
+    
+    # Summary table
+    print(f"{'Model':<25} {'Response Preview'}")
+    print("-" * 80)
+    
     for model, output in results.items():
-        print(f"--- Model: {model} ---")
-        print(output.strip()[:500])  # Truncate for readability
-        if len(output) > 500:
-            print("... (truncated)")
-        print("\n" + "-" * 40 + "\n")
+        if output.startswith("ERROR:"):
+            preview = output[:60]
+        else:
+            answer = extract_answer(output)
+            # Get first meaningful line/sentence as preview
+            preview = smart_truncate(answer, max_chars=55)
+            preview = preview.replace('\n', ' ')
+        print(f"{model:<25} {preview}")
+    
+    print("-" * 80)
+    print()
+    
+    # Detailed answers (cleaned, not raw)
+    for model, output in results.items():
+        print(f"--- {model} ---")
+        if output.startswith("ERROR:"):
+            print(output)
+        else:
+            answer = extract_answer(output)
+            print(smart_truncate(answer, max_chars=400))
+        print()
 
 if __name__ == "__main__":
     main()
