@@ -195,17 +195,17 @@ def print_banner():
     """Print welcome banner."""
     print("""
 ╔═══════════════════════════════════════════════════════════════════════╗
-║                           Machine-POI                                  ║
-║          LLM Steering with Quranic Semantic Embeddings                 ║
+║                           Machine-POI                                 ║
+║          LLM Steering with Quranic Semantic Embeddings                ║
 ╠═══════════════════════════════════════════════════════════════════════╣
-║  Features:                                                             ║
-║    • Multi-Resolution Analysis (Verse/Passage/Surah)                   ║
-║    • Domain Bridging for Cross-Domain Analogies                        ║
-║    • Quran Persona Steering                                            ║
-║    • Contrastive Activation Addition (CAA)                             ║
+║  Features:                                                            ║
+║    • Multi-Resolution Analysis (Verse/Passage/Surah)                  ║
+║    • Domain Bridging for Cross-Domain Analogies                       ║
+║    • Quran Persona Steering                                           ║
+║    • Contrastive Activation Addition (CAA)                            ║
 ╠═══════════════════════════════════════════════════════════════════════╣
-║  Based on: https://arxiv.org/abs/2308.10248 (ActAdd)                   ║
-║            https://arxiv.org/abs/2312.06681 (CAA)                      ║
+║  Based on: https://arxiv.org/abs/2308.10248 (ActAdd)                  ║
+║            https://arxiv.org/abs/2312.06681 (CAA)                     ║
 ╚═══════════════════════════════════════════════════════════════════════╝
     """)
 
