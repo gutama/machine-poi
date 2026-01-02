@@ -150,7 +150,7 @@ class QuranSteerer:
     def __init__(
         self,
         llm_model: str = "deepseek-r1-1.5b",
-        embedding_model: str = "bge-m3",
+        embedding_model: str = "paraphrase-minilm",
         quran_path: Union[str, Path] = "al-quran.txt",
         device: Optional[str] = None,
         llm_quantization: Optional[str] = None,  # "4bit", "8bit", or None

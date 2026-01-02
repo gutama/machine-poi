@@ -337,7 +337,7 @@ class ExperimentConfig:
 
     # Model selection
     llm_model: str = "qwen3-0.6b"
-    embedding_model: str = "bge-m3"
+    embedding_model: str = "paraphrase-minilm"
 
     # Paths
     quran_path: str = "al-quran.txt"
@@ -417,7 +417,7 @@ THEMATIC_TEST_PROMPTS = {
 
 def get_recommended_config(
     llm_model: str,
-    embedding_model: str = "bge-m3",
+    embedding_model: str = "paraphrase-minilm",
     intensity: str = "moderate",
 ) -> ExperimentConfig:
     """

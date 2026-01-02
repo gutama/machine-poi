@@ -66,7 +66,7 @@ Examples:
     parser.add_argument(
         "--embedding",
         type=str,
-        default="bge-m3",
+        default="paraphrase-minilm",
         choices=list(EMBEDDING_MODELS.keys()),
         help="Embedding model for Quran text",
     )
@@ -194,13 +194,19 @@ Examples:
 def print_banner():
     """Print welcome banner."""
     print("""
-╔══════════════════════════════════════════════════════════════════╗
-║                        Machine-POI                                ║
-║         LLM Steering with Quran Text Embeddings                   ║
-╠══════════════════════════════════════════════════════════════════╣
-║  Based on Activation Addition and Contrastive Activation Addition  ║
-║  Paper: https://arxiv.org/abs/2308.10248                           ║
-╚══════════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════════════╗
+║                           Machine-POI                                  ║
+║          LLM Steering with Quranic Semantic Embeddings                 ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  Features:                                                             ║
+║    • Multi-Resolution Analysis (Verse/Passage/Surah)                   ║
+║    • Domain Bridging for Cross-Domain Analogies                        ║
+║    • Quran Persona Steering                                            ║
+║    • Contrastive Activation Addition (CAA)                             ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  Based on: https://arxiv.org/abs/2308.10248 (ActAdd)                   ║
+║            https://arxiv.org/abs/2312.06681 (CAA)                      ║
+╚═══════════════════════════════════════════════════════════════════════╝
     """)
 
 

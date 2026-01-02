@@ -23,7 +23,7 @@ class TestQuranEmbeddingsInit:
         
         embedder = QuranEmbeddings()
         
-        assert embedder.model_name == "bge-m3"
+        assert embedder.model_name == "paraphrase-minilm"
         assert embedder.max_length == 512
         assert embedder.use_fp16 is True
         assert embedder.model is None  # Not loaded yet
@@ -48,7 +48,8 @@ class TestQuranEmbeddingsInit:
         """Test that supported models are correctly mapped."""
         from src.quran_embeddings import QuranEmbeddings
         
-        expected_models = ["bge-m3", "qwen-embedding", "bge-large-zh", "multilingual-e5"]
+        # Match current SUPPORTED_MODELS in quran_embeddings.py
+        expected_models = ["bge-m3", "qwen-embedding", "multilingual-e5", "paraphrase-mpnet"]
         
         for model in expected_models:
             assert model in QuranEmbeddings.SUPPORTED_MODELS

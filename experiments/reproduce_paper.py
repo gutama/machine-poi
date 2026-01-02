@@ -175,7 +175,7 @@ def run_coefficient_sensitivity(steerer: QuranSteerer, prompt: str, coefficients
 def main():
     parser = argparse.ArgumentParser(description="Reproduce Machine-POI paper experiments")
     parser.add_argument("--model", default="deepseek-r1-1.5b", help="LLM model to use")
-    parser.add_argument("--embedding", default="bge-m3", help="Embedding model to use")
+    parser.add_argument("--embedding", default="paraphrase-minilm", help="Embedding model to use")
     parser.add_argument("--quick", action="store_true", help="Run quick version with fewer prompts")
     parser.add_argument("--section", choices=["all", "5.1", "5.2", "5.3", "mra"], 
                         default="all", help="Which section to reproduce")

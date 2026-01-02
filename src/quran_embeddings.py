@@ -98,7 +98,7 @@ class QuranEmbeddings:
 
     def __init__(
         self,
-        model_name: str = "bge-m3",
+        model_name: str = "paraphrase-minilm",
         device: Optional[str] = None,
         use_fp16: bool = True,
         max_length: int = 512,

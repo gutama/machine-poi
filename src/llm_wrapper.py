@@ -284,7 +284,7 @@ class SteeredLLM:
         # Prepare loading arguments
         load_kwargs = {
             "trust_remote_code": True,
-            "torch_dtype": self.torch_dtype,
+            "dtype": self.torch_dtype,  # Was torch_dtype, deprecated
         }
 
         if self.load_in_8bit:

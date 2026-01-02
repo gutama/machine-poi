@@ -41,7 +41,7 @@ class QuranKnowledgeBase:
     def __init__(
         self,
         persist_dir: str = "quran_db",
-        embedding_model_name: str = "bge-m3",
+        embedding_model_name: str = "paraphrase-minilm",
         device: Optional[str] = None,
     ):
         """

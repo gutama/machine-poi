@@ -95,7 +95,7 @@ class TestQuranSteererInit:
         steerer = QuranSteerer()
         
         assert steerer.llm_model_name == "deepseek-r1-1.5b"
-        assert steerer.embedding_model_name == "bge-m3"
+        assert steerer.embedding_model_name == "paraphrase-minilm"
         assert steerer.quran_path == Path("al-quran.txt")
         assert steerer.embedder is None
         assert steerer.llm is None
