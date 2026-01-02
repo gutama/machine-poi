@@ -628,8 +628,22 @@ class QuranSteerer:
                             int(k): torch.tensor(v, device=self.device) 
                             for k, v in data.items()
                         }
-                    self._apply_steering()
-                    return self.steering_vectors
+                    
+                    # Validate dimensions match current LLM's hidden size
+                    if self.steering_vectors:
+                        sample_vec = next(iter(self.steering_vectors.values()))
+                        expected_dim = self.llm.hidden_size
+                        actual_dim = sample_vec.shape[-1]
+                        if actual_dim != expected_dim:
+                            logger.warning(
+                                f"Cached vector dimension ({actual_dim}) doesn't match "
+                                f"LLM hidden size ({expected_dim}). Invalidating cache..."
+                            )
+                            cache_path.unlink()  # Delete stale cache
+                            self.steering_vectors = None
+                        else:
+                            self._apply_steering()
+                            return self.steering_vectors
                 except Exception as e:
                     logger.warning(f"Failed to load cache: {e}. Recomputing...")
 
