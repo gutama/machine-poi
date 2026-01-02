@@ -53,7 +53,7 @@ A core contribution of Machine-POI is the hierarchical representation of semanti
 | Resolution | Granularity | Semantic Signal | Use Case |
 |------------|-------------|-----------------|----------|
 | **Micro (Verse)** | Individual ayat | Precise, specific concepts | Targeted thematic steering |
-| **Meso (Passage)** | 5 consecutive verses | Contextual themes | Balanced steering |
+| **Meso (Passage)** | 19 consecutive verses | Contextual themes | Balanced steering |
 | **Macro (Surah)** | Entire chapter | Foundational principles | Holistic persona |
 
 The final Quran Persona vector is computed as a weighted combination:
@@ -119,7 +119,7 @@ A vector database built on ChromaDB that maintains three collections (verse, pas
 
 ## 5. Experimental Results
 
-We evaluated Machine-POI using **Qwen3-0.6B** as the base model, with **BGE-M3** for embeddings. All experiments were conducted on a single NVIDIA RTX GPU.
+We evaluated Machine-POI using **DeepSeek-R1-1.5B** as the base model, with **paraphrase-minilm** for embeddings. All experiments were conducted on a single NVIDIA RTX GPU.
 
 ### 5.1 Qualitative Comparison
 
@@ -200,7 +200,7 @@ cd machine-poi
 pip install -r requirements.txt
 
 # Run all experiments
-python experiments/reproduce_paper.py --model qwen3-0.6b
+python3 experiments/reproduce_paper.py --llm deepseek-r1-1.5b
 
 # Run specific sections
 python experiments/reproduce_paper.py --section 5.1  # Qualitative comparison
