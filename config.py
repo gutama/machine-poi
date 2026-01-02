@@ -242,7 +242,7 @@ class SteeringDefaults:
     persona_sample_size: int = 100
     
     # Number of verses to group into a paragraph
-    paragraph_verse_count: int = 5
+    paragraph_verse_count: int = 19  # Groups of 19 consecutive verses
     
     # Resolution weights for multi-resolution analysis
     resolution_weights: Dict[str, float] = field(default_factory=lambda: {

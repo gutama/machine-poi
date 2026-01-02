@@ -524,6 +524,10 @@ class SteeredLLM:
         inputs = self.tokenizer(prompt, return_tensors="pt")
         inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
 
+        # Filter out custom kwargs that shouldn't go to model.generate()
+        custom_keys = ["mra_mode", "use_domain_bridges"]
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k not in custom_keys}
+
         with torch.no_grad():
             outputs = self.model.generate(
                 **inputs,
@@ -532,7 +536,7 @@ class SteeredLLM:
                 top_p=top_p,
                 do_sample=do_sample,
                 pad_token_id=self.tokenizer.pad_token_id,
-                **kwargs,
+                **filtered_kwargs,
             )
 
         # Decode only new tokens
