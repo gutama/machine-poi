@@ -47,6 +47,18 @@ class TestSteeringConfig:
         assert config.injection_mode == "clamp"
         assert config.layer_distribution == "uniform"
 
+    def test_workspace_distribution_is_valid(self):
+        """Test workspace-aware layer distribution validation."""
+        from src.steerer import SteeringConfig, select_target_layers, select_workspace_layers
+
+        config = SteeringConfig(layer_distribution="workspace")
+        config.validate()
+
+        assert select_workspace_layers(20) == [8, 9, 10, 11, 12, 13]
+        assert select_target_layers(20, "workspace") == [8, 9, 10, 11, 12, 13]
+        assert select_target_layers(20, "focused", focus_layer=0.5) == [8, 9, 10, 11, 12]
+        assert select_target_layers(20, "focused", focus_layer=1.0) == [17, 18, 19]
+
 
 class TestDomainBridgeMap:
     """Test domain bridge mapping."""

@@ -353,6 +353,15 @@ STEERING_PRESETS = {
         chunk_by="verse",
         layer_distribution="focused",
     ),
+    "workspace": SteeringPreset(
+        name="workspace",
+        description="Selective intermediate-layer steering inspired by global workspace interpretability",
+        coefficient=0.5,
+        target_layers=None,
+        injection_mode="clamp",
+        chunk_by="verse",
+        layer_distribution="workspace",
+    ),
 }
 
 

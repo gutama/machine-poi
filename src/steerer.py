@@ -171,7 +171,7 @@ class SteeringConfig:
     injection_mode: str = "add"  # Use "clamp" for higher coefficients
 
     # How to distribute steering across layers
-    layer_distribution: Literal["uniform", "bell", "focused"] = "bell"
+    layer_distribution: Literal["uniform", "bell", "focused", "workspace"] = "bell"
 
     # For "focused" distribution, which relative layer (0-1)
     focus_layer: float = 0.5
@@ -184,11 +184,60 @@ class SteeringConfig:
         if self.injection_mode not in ("add", "blend", "replace", "clamp"):
             raise InvalidConfigError(f"Invalid injection mode: {self.injection_mode}")
         
-        if self.layer_distribution not in ("uniform", "bell", "focused"):
+        if self.layer_distribution not in ("uniform", "bell", "focused", "workspace"):
             raise InvalidConfigError(f"Invalid layer distribution: {self.layer_distribution}")
         
         if not 0.0 <= self.focus_layer <= 1.0:
             raise InvalidConfigError(f"Focus layer must be between 0.0 and 1.0, got {self.focus_layer}")
+
+
+def select_workspace_layers(num_layers: int) -> List[int]:
+    """
+    Select likely workspace-like intervention layers.
+
+    Workspace-inspired steering emphasizes intermediate layers where model-native
+    representations are expected to be more reusable for downstream computation,
+    while avoiding very early parsing layers and late token-output layers.
+    """
+    if num_layers <= 0:
+        return []
+    start = int(np.floor(num_layers * 0.40))
+    end = int(np.ceil(num_layers * 0.70))
+    return list(range(max(0, start), min(num_layers, max(start + 1, end))))
+
+
+def select_target_layers(
+    num_layers: int,
+    distribution: str,
+    focus_layer: float = 0.5,
+) -> List[int]:
+    """Select default target layers for a steering distribution."""
+    if num_layers <= 0:
+        return []
+    if distribution == "focused":
+        center = int(round(focus_layer * (num_layers - 1)))
+        return list(range(max(0, center - 2), min(num_layers, center + 3)))
+    if distribution == "bell":
+        start = num_layers // 3
+        end = 2 * num_layers // 3
+        return list(range(start, max(start + 1, end)))
+    if distribution == "workspace":
+        return select_workspace_layers(num_layers)
+    return list(range(num_layers))
+
+
+def layer_distribution_scale(layer_idx: int, num_layers: int, distribution: str) -> float:
+    """Return the layer-specific steering scale for a distribution mode."""
+    if num_layers <= 0:
+        return 1.0
+    if distribution == "bell":
+        center = num_layers / 2
+        return float(np.exp(-0.5 * ((layer_idx - center) / (num_layers / 4)) ** 2))
+    if distribution == "workspace":
+        center = num_layers * 0.55
+        width = max(num_layers * 0.15, 1.0)
+        return float(np.exp(-0.5 * ((layer_idx - center) / width) ** 2))
+    return 1.0
 
 
 class QuranSteerer:
@@ -686,13 +735,11 @@ class QuranSteerer:
         # Determine target layers
         target_layers = self.config.target_layers
         if target_layers is None:
-            num_layers = self.llm.num_layers
-            if self.config.layer_distribution == "bell":
-                start = num_layers // 3
-                end = 2 * num_layers // 3
-                target_layers = list(range(start, end))
-            else:
-                target_layers = list(range(num_layers))
+            target_layers = select_target_layers(
+                self.llm.num_layers,
+                self.config.layer_distribution,
+                self.config.focus_layer,
+            )
 
         for layer_idx in target_layers:
             if layer_idx not in dynamic_vectors:
@@ -708,11 +755,9 @@ class QuranSteerer:
                 blended_vec = dynamic_vec
 
             # Apply layer-specific scaling
-            if self.config.layer_distribution == "bell":
-                center = self.llm.num_layers / 2
-                scale = np.exp(-0.5 * ((layer_idx - center) / (self.llm.num_layers / 4)) ** 2)
-            else:
-                scale = 1.0
+            scale = layer_distribution_scale(
+                layer_idx, self.llm.num_layers, self.config.layer_distribution
+            )
 
             scaled_vector = blended_vec * scale * self.config.coefficient
 
@@ -1052,16 +1097,11 @@ class QuranSteerer:
 
         target_layers = self.config.target_layers
         if target_layers is None:
-            num_layers = self.llm.num_layers
-            if self.config.layer_distribution == "focused":
-                center = int(self.config.focus_layer * num_layers)
-                target_layers = list(range(max(0, center - 2), min(num_layers, center + 3)))
-            elif self.config.layer_distribution == "bell":
-                start = num_layers // 3
-                end = 2 * num_layers // 3
-                target_layers = list(range(start, end))
-            else:
-                target_layers = list(range(num_layers))
+            target_layers = select_target_layers(
+                self.llm.num_layers,
+                self.config.layer_distribution,
+                self.config.focus_layer,
+            )
 
         for layer_idx in target_layers:
             if layer_idx not in self.steering_vectors:
@@ -1070,11 +1110,9 @@ class QuranSteerer:
             vector = self.steering_vectors[layer_idx]
 
             # Apply layer-specific scaling
-            if self.config.layer_distribution == "bell":
-                center = self.llm.num_layers / 2
-                scale = np.exp(-0.5 * ((layer_idx - center) / (self.llm.num_layers / 4)) ** 2)
-            else:
-                scale = 1.0
+            scale = layer_distribution_scale(
+                layer_idx, self.llm.num_layers, self.config.layer_distribution
+            )
 
             scaled_vector = vector * scale * self.config.coefficient
 

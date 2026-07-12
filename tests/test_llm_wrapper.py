@@ -12,6 +12,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from unittest.mock import Mock, MagicMock, patch
+from types import SimpleNamespace
 
 
 class TestActivationHookInit:
@@ -381,6 +382,30 @@ class TestSteeredLLMProperties:
         
         with pytest.raises(ValueError, match="Model not loaded"):
             _ = llm.hidden_size
+
+    def test_get_steering_diagnostics_filters_disabled_hooks(self):
+        """Test that diagnostics only include enabled steering hooks."""
+        from src.llm_wrapper import SteeredLLM
+
+        llm = SteeredLLM(model_name="qwen2.5-0.5b", device="cpu")
+        llm.hooks = {
+            0: SimpleNamespace(
+                enabled=True,
+                captured_activation=torch.ones(1, 1, 2),
+                steering_vector=torch.tensor([1.0, 0.0]),
+                coefficient=1.0,
+            ),
+            1: SimpleNamespace(
+                enabled=False,
+                captured_activation=torch.ones(1, 1, 2),
+                steering_vector=torch.tensor([0.0, 1.0]),
+                coefficient=1.0,
+            ),
+        }
+
+        diagnostics = llm.get_steering_diagnostics()
+
+        assert list(diagnostics) == [0]
 
 
 class TestSteeredLLMModelLoading:
