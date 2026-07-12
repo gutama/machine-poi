@@ -8,6 +8,7 @@ Provides shared fixtures for:
 """
 
 import pytest
+import asyncio
 import numpy as np
 import torch
 import tempfile
@@ -15,6 +16,15 @@ import os
 from pathlib import Path
 from unittest.mock import Mock, MagicMock, patch
 from typing import Dict, List
+
+
+@pytest.fixture(autouse=True)
+def ensure_default_event_loop():
+    """Provide a default event loop for tests that use asyncio.get_event_loop()."""
+    try:
+        asyncio.get_event_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
 
 
 # =============================================================================
