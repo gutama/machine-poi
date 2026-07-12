@@ -432,14 +432,19 @@ class SteeredLLM:
 
     def get_steering_diagnostics(self) -> Dict[int, Any]:
         """
-        Return workspace-inspired diagnostics for active steering hooks.
+        Return workspace-inspired diagnostics for enabled steering hooks.
 
         Diagnostics are available after at least one forward pass has captured
         activations for registered hooks.
         """
         from .workspace_diagnostics import summarize_steering_hooks
 
-        return summarize_steering_hooks(self.hooks)
+        enabled_hooks = {
+            layer_idx: hook
+            for layer_idx, hook in self.hooks.items()
+            if getattr(hook, "enabled", False)
+        }
+        return summarize_steering_hooks(enabled_hooks)
 
     def generate(
         self,

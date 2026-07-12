@@ -49,9 +49,9 @@ def summarize_layer_steering(
     perturbation = vector * coefficient
 
     flat_hidden = hidden.reshape(-1, hidden.shape[-1])
-    hidden_norms = flat_hidden.norm(dim=-1).clamp_min(eps)
-    vector_norm = vector.norm().clamp_min(eps)
-    unit_vector = vector / vector_norm
+    hidden_norms = flat_hidden.norm(dim=-1)
+    vector_norm = vector.norm()
+    unit_vector = vector / vector_norm.clamp_min(eps)
 
     cosine = torch.nn.functional.cosine_similarity(
         flat_hidden,

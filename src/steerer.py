@@ -215,7 +215,7 @@ def select_target_layers(
     if num_layers <= 0:
         return []
     if distribution == "focused":
-        center = int(focus_layer * num_layers)
+        center = int(round(focus_layer * (num_layers - 1)))
         return list(range(max(0, center - 2), min(num_layers, center + 3)))
     if distribution == "bell":
         start = num_layers // 3

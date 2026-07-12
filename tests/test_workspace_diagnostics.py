@@ -28,6 +28,21 @@ def test_summarize_layer_steering_validates_hidden_dimension():
         summarize_layer_steering(torch.zeros(1, 2, 3), torch.zeros(2))
 
 
+def test_summarize_layer_steering_reports_raw_zero_norms():
+    from src.workspace_diagnostics import summarize_layer_steering
+
+    diagnostics = summarize_layer_steering(
+        activation=torch.zeros(1, 2, 3),
+        steering_vector=torch.zeros(3),
+    )
+
+    assert diagnostics.activation_norm == pytest.approx(0.0)
+    assert diagnostics.steering_norm == pytest.approx(0.0)
+    assert diagnostics.mean_cosine_similarity == pytest.approx(0.0)
+    assert diagnostics.mean_projection_magnitude == pytest.approx(0.0)
+    assert diagnostics.relative_perturbation == pytest.approx(0.0)
+
+
 def test_summarize_steering_hooks_skips_incomplete_hooks():
     from src.workspace_diagnostics import summarize_steering_hooks
 
