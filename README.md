@@ -43,6 +43,8 @@ Unlike simple embedding projection (which can be random), this project uses **Me
 - **Contrastive Activation Addition (CAA)**: Difference-based steering vectors
 - **Thematic Steering**: Steer toward specific themes (mercy, justice, patience, etc.)
 - **Multiple Injection Modes**: `add`, `blend`, `replace`, and `clamp` (recommended for stability)
+- **Workspace-Aware Steering**: Optional intermediate-layer targeting inspired by global workspace interpretability research
+- **Workspace Diagnostics**: Tensor-level metrics for inspecting activation alignment and perturbation size
 - **Comparison Mode**: Side-by-side comparison of steered vs baseline outputs
 - **Native Reasoning Modes**: DeepSeek-R1, Qwen3, Phi-4 reasoning support
 - **8 Supported LLMs**: From 135M to 3.8B parameters
@@ -96,6 +98,28 @@ machine-poi/
 | `HybridQuranKnowledgeBase` | Combined vector + graph retrieval |
 | `QuranLightRAG` | LightRAG wrapper for Quranic knowledge graph |
 | `GraphBridgeGenerator` | Three-tier domain bridging with graph traversal |
+
+## Workspace-Inspired Interpretability Roadmap
+
+Machine-POI now includes an initial workspace-inspired steering path based on recent global workspace interpretability work. The goal is not to claim full mechanistic access to a model's internal workspace, but to make steering more selective, auditable, and concept-oriented.
+
+### Conceptual boundaries
+
+- **Retrieval grounding**: ChromaDB and LightRAG add relevant Quranic context to the prompt or query workflow.
+- **Activation steering**: Mean activation steering modifies hidden states without changing model weights.
+- **CAA**: Contrastive Activation Addition creates a direction from positive and negative examples.
+- **Workspace-aware steering**: The `workspace` layer distribution targets intermediate layers that are more likely to carry reusable internal representations.
+- **Diagnostics**: `src/workspace_diagnostics.py` measures activation norm, steering norm, cosine alignment, projection magnitude, and relative perturbation size; call `SteeredLLM.get_steering_diagnostics()` after a steered forward pass to inspect captured hooks.
+
+### Roadmap
+
+See [`docs/global_workspace_improvement_plan.md`](docs/global_workspace_improvement_plan.md) for the full plan. Completed initial steps include:
+
+1. `workspace` layer distribution support in the steering configuration.
+2. Reusable workspace layer selection and layer scaling helpers.
+3. Tensor-only diagnostics for steering hooks and captured activations.
+
+Planned follow-up work includes a CLI audit mode, structured Quranic concept vocabulary, counterfactual-reflection experiments, and explicit oversteering safeguards.
 
 ## Installation
 
@@ -196,6 +220,9 @@ python3 main.py --quran-persona --interactive
 # Use clamp injection for more stable steering at higher coefficients
 python3 main.py --quran-persona --injection-mode clamp --coefficient 0.8 --interactive
 
+# Target likely workspace-like intermediate layers
+python3 main.py --preset workspace --layer-distribution workspace --quran-persona --interactive
+
 # Compare steered vs baseline on test prompts
 python3 main.py --compare
 
@@ -229,9 +256,10 @@ python3 main.py --llm deepseek-r1-1.5b --reasoning --prompt "What is wisdom?"
 |------|-------------|
 | `--llm MODEL` | LLM to steer (default: `deepseek-r1-1.5b`) |
 | `--embedding MODEL` | Embedding model (default: `paraphrase-minilm`) |
-| `--preset PRESET` | Steering preset: `gentle`, `moderate`, `strong`, `focused` |
+| `--preset PRESET` | Steering preset: `gentle`, `moderate`, `strong`, `focused`, `workspace` |
 | `--coefficient FLOAT` | Steering strength (0.0–1.0, default: 0.5) |
 | `--injection-mode MODE` | How to inject: `add`, `blend`, `replace`, `clamp` |
+| `--layer-distribution MODE` | Layer targeting: `uniform`, `bell`, `focused`, `workspace` |
 | `--chunk-by TYPE` | Text chunking: `verse`, `paragraph`, `surah` |
 | `--quran-persona` | Enable Quran Persona mode (aggregates all resolutions) |
 | `--mra` | Enable Multi-Resolution Analysis with ChromaDB |
