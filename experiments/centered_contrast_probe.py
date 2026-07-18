@@ -58,6 +58,9 @@ NEUTRAL_SENTENCES = [
 
 def summarize(diag: dict) -> tuple:
     summary = transport_summary(diag)
+    if not summary:
+        print("  [warn] no diagnostics returned (attention weights unavailable?)")
+        return float("nan"), float("nan")
     rho = sum(v["rho"] for v in summary.values()) / len(summary)
     hol = sum(v["holonomy"] for v in summary.values()) / len(summary)
     return rho, hol
