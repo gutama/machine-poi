@@ -1,0 +1,222 @@
+{
+  "model": "google/gemma-4-E2B-it",
+  "coefficient": 4.0,
+  "injection_mode": "add",
+  "steering_layers": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "num_verses": 12,
+  "eta": 1.0,
+  "prompts": {
+    "What does it mean to live a just and merciful life?": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.22225050313773073,
+          "rho_steered": 0.22225050313773073,
+          "holonomy_baseline": 0.8953427883796394,
+          "holonomy_steered": 0.8953427883796394
+        },
+        "1": {
+          "rho_baseline": 0.2246240271910283,
+          "rho_steered": 0.2246240271910283,
+          "holonomy_baseline": 0.8053736694157123,
+          "holonomy_steered": 0.8053736694157123
+        },
+        "2": {
+          "rho_baseline": 0.23763093723748233,
+          "rho_steered": 0.23763093723748233,
+          "holonomy_baseline": 0.9316491754725575,
+          "holonomy_steered": 0.9316491754725575
+        },
+        "3": {
+          "rho_baseline": 0.25043547763667534,
+          "rho_steered": 0.25043547763667534,
+          "holonomy_baseline": 0.8533271361142396,
+          "holonomy_steered": 0.8533271361142396
+        },
+        "4": {
+          "rho_baseline": 0.25570599520868287,
+          "rho_steered": 0.25570599520868287,
+          "holonomy_baseline": 0.9777713445946575,
+          "holonomy_steered": 0.9777713445946575
+        },
+        "5": {
+          "rho_baseline": 0.2710615979118797,
+          "rho_steered": 0.2710615979118797,
+          "holonomy_baseline": 0.9287543250247835,
+          "holonomy_steered": 0.9287543250247835
+        },
+        "6": {
+          "rho_baseline": 0.2189940610450333,
+          "rho_steered": 0.2653739442856096,
+          "holonomy_baseline": 0.7654262783005835,
+          "holonomy_steered": 0.7474267361685634
+        },
+        "7": {
+          "rho_baseline": 0.24984294282065878,
+          "rho_steered": 0.2694712379721984,
+          "holonomy_baseline": 0.9284723352640868,
+          "holonomy_steered": 0.744880801718682
+        },
+        "8": {
+          "rho_baseline": 0.20231541668455655,
+          "rho_steered": 0.2777279593704218,
+          "holonomy_baseline": 0.7167065816931427,
+          "holonomy_steered": 0.607610280252993
+        },
+        "9": {
+          "rho_baseline": 0.3228621537760941,
+          "rho_steered": 0.1293677904642749,
+          "holonomy_baseline": 1.1373617634177207,
+          "holonomy_steered": 0.3209077349863947
+        },
+        "10": {
+          "rho_baseline": 0.2391669365671393,
+          "rho_steered": 0.2672041656717587,
+          "holonomy_baseline": 0.9046278098598123,
+          "holonomy_steered": 0.7231949209235609
+        },
+        "11": {
+          "rho_baseline": 0.26166478301601137,
+          "rho_steered": 0.27101427637775505,
+          "holonomy_baseline": 1.0070470664650204,
+          "holonomy_steered": 0.8225891206413507
+        },
+        "12": {
+          "rho_baseline": 0.28458665034182795,
+          "rho_steered": 0.25621487714267965,
+          "holonomy_baseline": 0.952166263014078,
+          "holonomy_steered": 0.687438793759793
+        },
+        "13": {
+          "rho_baseline": 0.23999984318720236,
+          "rho_steered": 0.25360453891210044,
+          "holonomy_baseline": 0.849585290811956,
+          "holonomy_steered": 0.6280234301462769
+        },
+        "14": {
+          "rho_baseline": 0.27665206728637304,
+          "rho_steered": 0.1391770612551298,
+          "holonomy_baseline": 0.9790171656757592,
+          "holonomy_steered": 0.25156859029084444
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.2505195595365584,
+        "rho_steered": 0.2393909593183605,
+        "holonomy_baseline": 0.9088419329002501,
+        "holonomy_steered": 0.7283905898593364
+      }
+    },
+    "The engineer debugged the program before the deadline.": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.21270518294989643,
+          "rho_steered": 0.21270518294989643,
+          "holonomy_baseline": 0.8099265284836292,
+          "holonomy_steered": 0.8099265284836292
+        },
+        "1": {
+          "rho_baseline": 0.22334269819955235,
+          "rho_steered": 0.22334269819955235,
+          "holonomy_baseline": 0.8751061230897903,
+          "holonomy_steered": 0.8751061230897903
+        },
+        "2": {
+          "rho_baseline": 0.20758692988878674,
+          "rho_steered": 0.20758692988878674,
+          "holonomy_baseline": 0.8565242244862019,
+          "holonomy_steered": 0.8565242244862019
+        },
+        "3": {
+          "rho_baseline": 0.2516332343117952,
+          "rho_steered": 0.2516332343117952,
+          "holonomy_baseline": 0.9214145020581782,
+          "holonomy_steered": 0.9214145020581782
+        },
+        "4": {
+          "rho_baseline": 0.25533094889524993,
+          "rho_steered": 0.25533094889524993,
+          "holonomy_baseline": 0.9825160497799514,
+          "holonomy_steered": 0.9825160497799514
+        },
+        "5": {
+          "rho_baseline": 0.2432184244564586,
+          "rho_steered": 0.2432184244564586,
+          "holonomy_baseline": 1.0720328360795974,
+          "holonomy_steered": 1.0720328360795974
+        },
+        "6": {
+          "rho_baseline": 0.21774114063890979,
+          "rho_steered": 0.24441596448897535,
+          "holonomy_baseline": 0.7870865831151606,
+          "holonomy_steered": 0.6881258244626224
+        },
+        "7": {
+          "rho_baseline": 0.24508270073170796,
+          "rho_steered": 0.2539527072899655,
+          "holonomy_baseline": 1.006469737738371,
+          "holonomy_steered": 0.6937110765837133
+        },
+        "8": {
+          "rho_baseline": 0.22097652471137114,
+          "rho_steered": 0.26121670313392553,
+          "holonomy_baseline": 0.8041996534913779,
+          "holonomy_steered": 0.5788362029474228
+        },
+        "9": {
+          "rho_baseline": 0.2901620476893301,
+          "rho_steered": 0.116175939864563,
+          "holonomy_baseline": 1.1049350768327713,
+          "holonomy_steered": 0.2711326028686017
+        },
+        "10": {
+          "rho_baseline": 0.26876607164190947,
+          "rho_steered": 0.25168785234297947,
+          "holonomy_baseline": 1.0728302132338285,
+          "holonomy_steered": 0.6756667353212834
+        },
+        "11": {
+          "rho_baseline": 0.25201534691414723,
+          "rho_steered": 0.2622933857405496,
+          "holonomy_baseline": 1.0242412488907575,
+          "holonomy_steered": 0.8637056335806846
+        },
+        "12": {
+          "rho_baseline": 0.26523051388671676,
+          "rho_steered": 0.26040131147922607,
+          "holonomy_baseline": 0.9247562050819398,
+          "holonomy_steered": 0.6401448405347766
+        },
+        "13": {
+          "rho_baseline": 0.20657396628980873,
+          "rho_steered": 0.2386566865461241,
+          "holonomy_baseline": 0.7578665018081665,
+          "holonomy_steered": 0.5723251128569246
+        },
+        "14": {
+          "rho_baseline": 0.24113884139794975,
+          "rho_steered": 0.12397747992118746,
+          "holonomy_baseline": 0.9448441110551358,
+          "holonomy_steered": 0.28496126309037206
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.24010030484023936,
+        "rho_steered": 0.2271063633006157,
+        "holonomy_baseline": 0.9296499730149904,
+        "holonomy_steered": 0.71907530374825
+      }
+    }
+  },
+  "generation": {
+    "baseline": "",
+    "steered": "何况บวนเขา한테はなくتى عاشوเขา한테성과 عاشovnoเขา한테 عاشوまりますเขา عاشو한테 عاشมายเขา عاشو한테 عاشเขา عاشو한테 عاشเขา عاشو عاشเขา عاشو عاش घेऊन عاشو عاشrowad عاشو عاشเขา عاشو عاش عاش.]: عاشو عاش"
+  }
+}

@@ -24,6 +24,8 @@ steered minus baseline):
 | SmolLM2-135M | 2.0  | 0.43-0.49 | -0.137 | -0.429 | `,,,,,,,,` (degenerate) |
 | SmolLM2-135M | 4.0  | 0.68-0.76 | -0.137 | -0.336 | `,,,,,,,,` (degenerate) |
 | Qwen3-0.6B   | 4.0  | 1.12-1.35 | -0.137 | -0.615 | `andandandand...` (degenerate) |
+| Gemma-4-E2B (band 14-24) | 4.0 | 1.24 | -0.000 | -0.001 | multilingual token salad (degenerate) |
+| Gemma-4-E2B (band 5-11)  | 4.0 | 1.32-1.35 | -0.012 | -0.196 | multilingual token salad (degenerate) |
 
 Qwen3-0.6B's *baseline* greedy generation is fluent, on-topic prose for the
 same prompt, so the degeneration is caused by the steering, not the setup.
@@ -87,6 +89,44 @@ generations show this is a collapse, not a routing shift.**
    answer needs the CAA-style contrast vectors the paper already describes
    (PAPER.md section 2.2) at perturbations <= ~0.1.
 
+## Gemma 4 (E2B) run
+
+`google/gemma-4-E2B-it` (35 text layers, hidden 1536, 8 query heads / 1 KV
+head, bf16 via the new `--dtype` flag; the multimodal composite config and
+`model.language_model.layers` path required the SteeredLLM fixes in this
+branch). The originally requested `yuxinlu1/gemma-4-12B-...-GGUF` cannot run
+this experiment at all: GGUF/llama.cpp exposes neither layer hooks for
+steering nor attention weights for the transport diagnostics, and the 12B
+does not fit in 15 GB RAM dequantized.
+
+Two runs, 2 prompts each, coefficient 4.0:
+
+1. **Default workspace band (layers 14-24): a null by construction.**
+   Gemma 4 E2B shares KV caches across its last 20 layers
+   (`num_kv_shared_layers = 20`; layers 15-34 have `q_proj` but no
+   `k_proj`/`v_proj`), so transport diagnostics only exist for layers 0-14
+   -- almost entirely *upstream* of the steered band. The measured
+   delta-rho of ~0 says nothing about routing; it confirms causality
+   (steering at layer L cannot affect attention before L). Do not read
+   this row as "translation-like steering".
+
+2. **Early band (layers 5-11): a real downstream measurement, and a new
+   pattern.** Unlike SmolLM2/Qwen3's uniform collapse, the effect splits
+   exactly along Gemma's attention-type alternation
+   (`layer_types`; full attention at layers 4, 9, 14, ..., sliding-window
+   512 elsewhere):
+   - **Full-attention layers 9 and 14 collapse hard**: delta-rho -0.12 to
+     -0.19, delta-holonomy -0.66 to -0.83 -- the same signature as the
+     other models.
+   - **Sliding-window layers 6-8, 10-13 hold or slightly increase rho**
+     (+0.01 to +0.08) with only moderate holonomy drops.
+   The raw-mean injection (rel. perturbation ~1.3, generation degenerates
+   into multilingual token salad) therefore selectively flattens the
+   *global* routing layers while local sliding-window routing survives --
+   consistent with the massive-activation/attention-sink account: sink-token
+   routing lives in the full-attention layers, and saturating the shared
+   component hits exactly those.
+
 ## Method caveats observed while running
 
 - **Baseline greedy generations are empty** for SmolLM2-135M-Instruct: the
@@ -106,6 +146,9 @@ generations show this is a collapse, not a routing shift.**
 - `smollm2-135m_coeff{0.25,1.0,4.0}.json` -- full per-prompt, per-layer
   tables for the dose-response (0.5 and 2.0 omitted; they interpolate).
 - `qwen3-0.6b_coeff4.0.json` -- Qwen3-0.6B run.
+- `gemma-4-E2B_coeff4.0_{workspace-band,early-band}.json` -- Gemma 4 E2B
+  runs (see the Gemma 4 section for why only the early band is
+  interpretable).
 - `smollm2-135m_centered_probe.json` -- vector geometry + centered-contrast
   conditions.
 
