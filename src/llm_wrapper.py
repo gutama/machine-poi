@@ -316,33 +316,54 @@ class SteeredLLM:
 
         logger.info(f"Model loaded. Hidden size: {self.hidden_size}, Layers: {self.num_layers}")
 
+    def _text_config_attr(self, name: str):
+        """
+        Read a text-model attribute from the config, falling back to the
+        nested text config for composite multimodal configs (e.g. Gemma 3/4
+        *ForConditionalGeneration) where attributes like hidden_size live on
+        config.text_config rather than the top level.
+        """
+        if self.model is None:
+            raise ValueError("Model not loaded")
+        config = self.model.config
+        if hasattr(config, name):
+            return getattr(config, name)
+        return getattr(config.get_text_config(), name)
+
     @property
     def hidden_size(self) -> int:
         """Get model hidden dimension."""
         if self.model is None:
             raise ValueError("Model not loaded")
-        return getattr(self.model.config, self.config["hidden_size_attr"])
+        return self._text_config_attr(self.config["hidden_size_attr"])
 
     @property
     def num_layers(self) -> int:
         """Get number of layers."""
         if self.model is None:
             raise ValueError("Model not loaded")
-        return getattr(self.model.config, self.config["num_layers_attr"])
+        return self._text_config_attr(self.config["num_layers_attr"])
 
     def _get_layer_module(self, layer_idx: int) -> nn.Module:
         """Get the module for a specific layer."""
-        layer_path = self.config["layer_name_pattern"].format(layer_idx=layer_idx)
-
-        # Navigate to the module
-        module = self.model
-        for part in layer_path.split("."):
-            if part.isdigit():
-                module = module[int(part)]
-            else:
-                module = getattr(module, part)
-
-        return module
+        # Configured pattern first, then decoder-layer paths used by
+        # multimodal wrappers (text tower nested under language_model).
+        candidates = [
+            self.config["layer_name_pattern"].format(layer_idx=layer_idx),
+            f"model.language_model.layers.{layer_idx}",
+            f"language_model.model.layers.{layer_idx}",
+        ]
+        for layer_path in candidates:
+            module = self.model
+            try:
+                for part in layer_path.split("."):
+                    module = module[int(part)] if part.isdigit() else getattr(module, part)
+            except (AttributeError, IndexError):
+                continue
+            return module
+        raise LayerIndexError(
+            f"Could not resolve layer {layer_idx}; tried paths: {candidates}"
+        )
 
     def register_steering_hook(
         self,
@@ -531,7 +552,7 @@ class SteeredLLM:
             )
             return {}
 
-        num_heads = self.model.config.num_attention_heads
+        num_heads = self._text_config_attr("num_attention_heads")
         diagnostics: Dict[int, Dict[int, Any]] = {}
         for layer_idx in hooked_layers:
             attn_weights = outputs.attentions[layer_idx][0].float().cpu()  # [heads, seq, seq]
