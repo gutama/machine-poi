@@ -142,26 +142,28 @@ def connection_bivectors(
     q = queries.detach().float()
     v = values.detach().float()
     dim = q.shape[-1]
+    device = q.device
 
-    omegas = torch.zeros(seq_len, dim, dim, dtype=torch.float32)
+    # Cumulative means give v̄_t for every prefix v[: t + 1] in one pass.
+    counts = torch.arange(1, seq_len + 1, dtype=torch.float32, device=device)
+    v_means = v.cumsum(dim=0) / counts.unsqueeze(-1)
+
+    omegas = torch.zeros(seq_len, dim, dim, dtype=torch.float32, device=device)
     for t in range(seq_len):
         q_norm = q[t].norm()
         if q_norm < eps:
             continue
         q_hat = q[t] / q_norm
-        v_mean = v[: t + 1].mean(dim=0)
-        omega = torch.zeros(dim, dim, dtype=torch.float32)
-        for s in range(t + 1):
-            if alpha[t, s] < eps:
-                continue
-            delta_v = v[s] - v_mean
-            delta_norm = delta_v.norm()
-            if delta_norm < eps:
-                continue
-            delta_hat = delta_v / delta_norm
-            wedge = torch.outer(q_hat, delta_hat) - torch.outer(delta_hat, q_hat)
-            omega = omega + alpha[t, s] * wedge
-        omegas[t] = omega
+        deltas = v[: t + 1] - v_means[t]
+        delta_norms = deltas.norm(dim=-1)
+        weights = alpha[t, : t + 1]
+        mask = (weights >= eps) & (delta_norms >= eps)
+        if not bool(mask.any()):
+            continue
+        delta_hats = deltas[mask] / delta_norms[mask].unsqueeze(-1)
+        # Wedge is bilinear: Σ_s α_s (q̂ ∧ δ̂_s) = q̂ ∧ (Σ_s α_s δ̂_s).
+        weighted_sum = (weights[mask].unsqueeze(-1) * delta_hats).sum(dim=0)
+        omegas[t] = torch.outer(q_hat, weighted_sum) - torch.outer(weighted_sum, q_hat)
     return omegas
 
 
@@ -222,7 +224,9 @@ def summarize_attention_transport(
     holonomies = []
     if seq_len >= 3:
         n_loop = min(seq_len, max(3, max_loop_positions))
-        loop_positions = torch.linspace(0, seq_len - 1, n_loop).round().long().unique()
+        loop_positions = (
+            torch.linspace(0, seq_len - 1, n_loop, device=omegas.device).round().long().unique()
+        )
         transports = torch.linalg.matrix_exp(-eta * omegas[loop_positions])
         for c in range(2, len(loop_positions)):
             for b in range(1, c):

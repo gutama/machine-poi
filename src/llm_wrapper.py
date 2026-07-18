@@ -539,11 +539,30 @@ class SteeredLLM:
             q = captured_q[layer_idx][0].float().cpu()  # [seq, num_heads * head_dim]
             v = captured_v[layer_idx][0].float().cpu()  # [seq, num_kv_heads * head_dim]
 
+            if q.shape[-1] % num_heads != 0:
+                logger.warning(
+                    f"Layer {layer_idx}: q_proj dim {q.shape[-1]} not divisible by "
+                    f"num_attention_heads {num_heads}; skipping transport diagnostics"
+                )
+                continue
             head_dim = q.shape[-1] // num_heads
-            q_heads = q.view(seq_len, num_heads, head_dim).transpose(0, 1)
+            if v.shape[-1] % head_dim != 0:
+                logger.warning(
+                    f"Layer {layer_idx}: v_proj dim {v.shape[-1]} not divisible by "
+                    f"head_dim {head_dim}; skipping transport diagnostics"
+                )
+                continue
             num_kv_heads = v.shape[-1] // head_dim
+            q_heads = q.view(seq_len, num_heads, head_dim).transpose(0, 1)
             v_heads = v.view(seq_len, num_kv_heads, head_dim).transpose(0, 1)
             if num_kv_heads != num_heads:
+                if num_kv_heads == 0 or num_heads % num_kv_heads != 0:
+                    logger.warning(
+                        f"Layer {layer_idx}: num_attention_heads {num_heads} not a "
+                        f"multiple of num_key_value_heads {num_kv_heads}; skipping "
+                        "transport diagnostics"
+                    )
+                    continue
                 # Grouped-query attention: each KV head serves several query heads
                 v_heads = v_heads.repeat_interleave(num_heads // num_kv_heads, dim=0)
 

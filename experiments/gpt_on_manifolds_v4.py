@@ -92,7 +92,8 @@ if not os.path.exists('input.txt'):
         with open('input.txt', 'w') as f:
             f.write('\n'.join(FALLBACK_NAMES))
 
-docs = [l.strip() for l in open('input.txt').read().strip().split('\n') if l.strip()]
+with open('input.txt') as f:
+    docs = [l.strip() for l in f.read().strip().split('\n') if l.strip()]
 random.shuffle(docs)
 
 # Paper §4.1: "a dataset of 30 English names (standard minimal-GPT benchmark)"
