@@ -30,6 +30,18 @@ Steering should expose lightweight metrics that make internal perturbations insp
 
 **Status:** Implemented as `src/workspace_diagnostics.py` with tensor-only unit tests. Runtime integrations can call `SteeredLLM.get_steering_diagnostics()` after generation has captured hook activations.
 
+### 2b. Add attention-transport (curvature) diagnostics
+
+Beyond pointwise perturbation metrics, steering should be auditable for whether it changes *how* the model routes context, not just where representations sit. Following the discrete Cartan curvature framework of "Is Attention Commutative?" (2026), each attention head's transport geometry is summarized by:
+
+- the non-abelian ratio ρ = Σ‖ω∧ω‖ / (Σ‖dω‖ + Σ‖ω∧ω‖), measuring how much of a head's curvature comes from non-commuting local transport generators (order sensitivity / path dependence),
+- holonomy angles from exact transport maps T_t = exp(−η ω_t) around triangular position loops (loop-induced rotation, the "angle of context"),
+- variation vs. commutator energy, distinguishing position-dependent-but-commutative heads from genuinely order-sensitive heads.
+
+Comparing these per-head profiles with steering enabled vs. disabled answers whether an intervention shifts representations pointwise or alters the model's context routing. A standalone testbed reproducing the paper's experiments lives in `experiments/gpt_on_manifolds_v4.py`.
+
+**Status:** Implemented as `connection_bivectors()`, `summarize_attention_transport()`, `summarize_attention_transport_heads()`, and `pooled_non_abelian_ratio()` in `src/workspace_diagnostics.py` with tensor-only unit tests. Runtime integration: `SteeredLLM.get_attention_transport_diagnostics(prompt)` captures per-head attention weights and query/value projections in one forward pass (grouped-query attention supported); wrap it in `steering_disabled()` to obtain the unsteered baseline.
+
 ### 3. Prefer activation-derived steering vectors
 
 The default Quran Persona and Quran steering paths should continue to rely on mean activations extracted from the steered LLM, rather than uncalibrated random projection from embedding space. Projection-based utilities should be treated as experimental unless calibrated.

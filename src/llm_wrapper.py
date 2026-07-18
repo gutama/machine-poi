@@ -446,6 +446,116 @@ class SteeredLLM:
         }
         return summarize_steering_hooks(enabled_hooks)
 
+    def get_attention_transport_diagnostics(
+        self,
+        prompt: str,
+        layers: Optional[List[int]] = None,
+        eta: float = 1.0,
+        max_loop_positions: int = 8,
+    ) -> Dict[int, Dict[int, Any]]:
+        """
+        Discrete Cartan curvature diagnostics (non-abelian ratio ρ and
+        holonomy) for attention heads on a single prompt.
+
+        Runs one forward pass with attention outputs enabled, capturing
+        per-head query/value projections, and summarizes each head's
+        transport geometry via
+        ``workspace_diagnostics.summarize_attention_transport_heads``.
+        ρ ≈ 0 means the head's local transport generators nearly commute
+        (weak path dependence); larger ρ and holonomy indicate
+        order-sensitive context routing.
+
+        Active steering hooks are left in place, so results reflect the
+        current steering state; wrap the call in ``steering_disabled()``
+        to measure the unsteered baseline.
+
+        Args:
+            prompt: Text to run the forward pass on.
+            layers: Layer indices to analyze (default: all layers).
+            eta: Transport step size η in T_t = exp(−η ω_t).
+            max_loop_positions: Cap on positions used for holonomy loops.
+
+        Returns:
+            Dict mapping layer index → head index →
+            AttentionTransportDiagnostics. Layers whose attention module
+            does not expose ``q_proj``/``v_proj`` are skipped.
+        """
+        from .workspace_diagnostics import summarize_attention_transport_heads
+
+        if self.model is None:
+            self.load_model()
+
+        layer_indices = list(layers) if layers is not None else list(range(self.num_layers))
+
+        captured_q: Dict[int, torch.Tensor] = {}
+        captured_v: Dict[int, torch.Tensor] = {}
+        handles = []
+
+        def _capture(store: Dict[int, torch.Tensor], layer_idx: int):
+            def hook(module: nn.Module, inputs: Tuple, output: torch.Tensor):
+                store[layer_idx] = output.detach()
+            return hook
+
+        hooked_layers = []
+        for layer_idx in layer_indices:
+            layer = self._get_layer_module(layer_idx)
+            attn = getattr(layer, "self_attn", None) or getattr(layer, "attention", None)
+            q_proj = getattr(attn, "q_proj", None)
+            v_proj = getattr(attn, "v_proj", None)
+            if q_proj is None or v_proj is None:
+                logger.warning(
+                    f"Layer {layer_idx}: attention module without q_proj/v_proj; "
+                    "skipping transport diagnostics for this layer"
+                )
+                continue
+            handles.append(q_proj.register_forward_hook(_capture(captured_q, layer_idx)))
+            handles.append(v_proj.register_forward_hook(_capture(captured_v, layer_idx)))
+            hooked_layers.append(layer_idx)
+
+        if not hooked_layers:
+            return {}
+
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        try:
+            with torch.no_grad():
+                outputs = self.model(**inputs, output_attentions=True)
+        finally:
+            for handle in handles:
+                handle.remove()
+
+        if outputs.attentions is None:
+            logger.warning(
+                "Model returned no attention weights (attention implementation "
+                "may not support output_attentions); try loading with "
+                "attn_implementation='eager'"
+            )
+            return {}
+
+        num_heads = self.model.config.num_attention_heads
+        diagnostics: Dict[int, Dict[int, Any]] = {}
+        for layer_idx in hooked_layers:
+            attn_weights = outputs.attentions[layer_idx][0].float().cpu()  # [heads, seq, seq]
+            seq_len = attn_weights.shape[-1]
+            q = captured_q[layer_idx][0].float().cpu()  # [seq, num_heads * head_dim]
+            v = captured_v[layer_idx][0].float().cpu()  # [seq, num_kv_heads * head_dim]
+
+            head_dim = q.shape[-1] // num_heads
+            q_heads = q.view(seq_len, num_heads, head_dim).transpose(0, 1)
+            num_kv_heads = v.shape[-1] // head_dim
+            v_heads = v.view(seq_len, num_kv_heads, head_dim).transpose(0, 1)
+            if num_kv_heads != num_heads:
+                # Grouped-query attention: each KV head serves several query heads
+                v_heads = v_heads.repeat_interleave(num_heads // num_kv_heads, dim=0)
+
+            diagnostics[layer_idx] = summarize_attention_transport_heads(
+                attn_weights,
+                q_heads,
+                v_heads,
+                eta=eta,
+                max_loop_positions=max_loop_positions,
+            )
+        return diagnostics
+
     def generate(
         self,
         prompt: str,
