@@ -44,7 +44,7 @@ Unlike simple embedding projection (which can be random), this project uses **Me
 - **Thematic Steering**: Steer toward specific themes (mercy, justice, patience, etc.)
 - **Multiple Injection Modes**: `add`, `blend`, `replace`, and `clamp` (recommended for stability)
 - **Workspace-Aware Steering**: Optional intermediate-layer targeting inspired by global workspace interpretability research
-- **Workspace Diagnostics**: Tensor-level metrics for inspecting activation alignment and perturbation size
+- **Workspace Diagnostics**: Tensor-level metrics for inspecting activation alignment and perturbation size, plus attention-transport geometry (non-abelian ratio ρ and holonomy) for auditing whether steering changes the model's context routing
 - **Comparison Mode**: Side-by-side comparison of steered vs baseline outputs
 - **Native Reasoning Modes**: DeepSeek-R1, Qwen3, Phi-4 reasoning support
 - **8 Supported LLMs**: From 135M to 3.8B parameters
