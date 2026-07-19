@@ -215,6 +215,28 @@ Two runs, 2 prompts each, coefficient 4.0:
    RAM but runs fine memory-mapped (transformers keeps matching-dtype
    safetensors file-backed; the page cache absorbs the overhang).
 
+6. **Prompt generality at n=4 on both Gemma models
+   (`gemma-4-E2B_centered_4prompts.json`,
+   `gemma-4-E4B_centered_4prompts.json`).** The calibrated centered
+   protocol over 2 moral + 2 neutral prompts per model, with per-prompt
+   baselines and calibration (c 0.415-0.502, rel. perturbation
+   0.078-0.083; produced with the pre-statistics multi-prompt probe, so
+   these JSONs use a per-prompt schema and carry no CI/p-values):
+   - **The register flip is fully prompt-general**: 8/8 runs generate
+     Arabic, including for neutral prompts (the E4B "engineer" run drifts
+     into religious exclamations -- persona overriding content, not just
+     language).
+   - **Pooled routing stays essentially unchanged in all 8 runs**
+     (|delta-rho| <= 0.02, |delta-holonomy| <= 0.20).
+   - **Full-attention flattening replicates**: 37 of 48 affected
+     full-attention layer observations are strictly negative (4 more
+     ~zero), across every prompt and both models.
+   - **The sliding-window increase is the less robust half**: consistent
+     on E4B (21-28 of 29 positive per prompt) but prompt-dependent on E2B
+     (22/23 positive on the original moral prompt, 4/23 on the patience
+     prompt). Treat "local routing gains path dependence" as a tendency;
+     the invariant is the full-attention flattening.
+
 ## n=16 statistically-tested re-run (2026-07-19)
 
 Re-ran the two CPU-feasible models with the expanded 16-prompt default set
@@ -256,12 +278,13 @@ n=1-4 point estimates:**
    is a straightforward follow-up, not a blocked one:
    `python experiments/centered_contrast_probe.py --model qwen3-0.6b
    --target-perturbation 0.1 --centered-coefficients 1.0`.
-4. Gemma-4-E2B (5.1B params, ~10GB in bf16) was not re-run at n=16 in this
-   environment (2 CPU cores, ~8GB RAM, ~6GB free disk was not enough headroom
-   to safely download and load it). Its headline "steering preserves
-   routing" result above is still based on 1-2 prompts and should be treated
-   as preliminary until repeated at n=16 with the same statistical testing
-   applied to SmolLM2 and Qwen3 here.
+4. Gemma-4-E2B (5.1B params, ~10GB in bf16) was not re-run at n=16 in the
+   environment that produced this section (2 CPU cores, ~8GB RAM). This gap
+   has since narrowed: item 6 above adds n=4 runs on BOTH Gemma models
+   (E2B and E4B) with per-prompt calibration, and the "steering preserves
+   pooled routing" result held in all 8 prompt x model runs. Still pending:
+   a Gemma re-run at n=16 through this section's paired CI/permutation
+   machinery (the n=4 JSONs predate src/transport_stats.py).
 
 **Files:** `smollm2-135m_coeff4.0_n16.json`, `smollm2-135m_centered_probe_n16.json`,
 `qwen3-0.6b_coeff4.0_n16.json`. Reproduce with (from the repo root, CPU-only
@@ -296,17 +319,22 @@ python experiments/steered_vs_baseline_transport.py --model qwen3-0.6b \
 - `smollm2-135m_coeff{0.25,1.0,4.0}.json` -- full per-prompt, per-layer
   tables for the dose-response (0.5 and 2.0 omitted; they interpolate).
 - `qwen3-0.6b_coeff4.0.json` -- Qwen3-0.6B run.
-- `gemma-4-E2B_coeff4.0_{workspace-band,early-band}.json` -- Gemma 4 E2B
-  runs (see the Gemma 4 section for why only the early band is
-  interpretable).
+- `gemma-4-E2B_coeff4.0_workspace-band.json`,
+  `gemma-4-E2B_coeff4.0_early-band.json` -- Gemma 4 E2B runs (see the
+  Gemma 4 section for why only the early band is interpretable).
 - `gemma-4-E2B_centered_target0.1.json` -- Gemma 4 E2B centered-contrast
   run at calibrated dose (per-layer geometry, deltas, and generations).
 - `gemma-4-E2B_centered_target0.1_fulldepth.json` -- same protocol after
   the KV-shared-layer diagnostics extension; all 35 layers measurable.
 - `gemma-4-E4B_centered_target0.1_fulldepth.json` -- scale replication on
   Gemma 4 E4B (band 6-13, all 42 layers measurable).
+- `gemma-4-E2B_centered_4prompts.json`, `gemma-4-E4B_centered_4prompts.json`
+  -- prompt-generality runs: the calibrated protocol over 2 moral + 2
+  neutral prompts per model with per-prompt baselines and calibration
+  (pre-statistics probe schema).
 - `smollm2-135m_centered_probe.json` -- vector geometry + centered-contrast
   conditions.
+- `*_n16.json` -- see the n=16 statistically-tested re-run section.
 
 ## Repro
 
