@@ -41,6 +41,7 @@ Usage:
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -49,7 +50,9 @@ import torch
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.llm_wrapper import SteeredLLM
+from src.transport_stats import paired_test
 from experiments.steered_vs_baseline_transport import (
+    DEFAULT_PROMPTS,
     NEUTRAL_SENTENCES,
     force_eager_attention,
     load_quran_verses,
@@ -74,9 +77,10 @@ def chat_prompt(llm: SteeredLLM, prompt: str) -> str:
     return prompt
 
 
-def run_condition(llm: SteeredLLM, label: str, vectors, coefficient: float,
-                  prompt: str, gen_prompt: str, eta: float,
-                  max_loop_positions: int) -> dict:
+def run_condition_one_prompt(llm: SteeredLLM, vectors, coefficient: float,
+                              prompt: str, gen_prompt: str, eta: float,
+                              max_loop_positions: int) -> dict:
+    """Run one (condition, prompt) pair; used by run_condition per prompt."""
     llm.clear_steering()
     if vectors is not None:
         for layer_idx, vector in vectors.items():
@@ -109,12 +113,69 @@ def run_condition(llm: SteeredLLM, label: str, vectors, coefficient: float,
         if pointwise else 0.0
     )
     text = llm.generate(gen_prompt, max_new_tokens=60, do_sample=False)
-    print(f"\n[{label}] coeff={coefficient:.4g}  rho={rho:.4f}  hol={hol:.4f}  "
-          f"rel_pert={rel_pert:.3f}")
-    print(f"  gen: {text[:220]!r}")
     return {"coefficient": coefficient, "rho": rho, "holonomy": hol,
             "relative_perturbation": rel_pert, "generation": text,
             "layers": layers, "steering": per_layer_steering}
+
+
+def run_condition(llm: SteeredLLM, label: str, vectors, coefficient: float,
+                  prompts: list, gen_prompts: list, eta: float,
+                  max_loop_positions: int) -> dict:
+    """
+    Run one condition (a fixed set of steering vectors + coefficient) across
+    every prompt in `prompts`. Returns per-prompt results plus prompt-pooled
+    means, so callers can pair per-prompt rho/holonomy against another
+    condition's per-prompt results for significance testing.
+    """
+    per_prompt = {}
+    for prompt, gen_prompt in zip(prompts, gen_prompts):
+        per_prompt[prompt] = run_condition_one_prompt(
+            llm, vectors, coefficient, prompt, gen_prompt, eta, max_loop_positions
+        )
+    rhos = [r["rho"] for r in per_prompt.values() if not math.isnan(r["rho"])]
+    hols = [r["holonomy"] for r in per_prompt.values() if not math.isnan(r["holonomy"])]
+    rel_perts = [r["relative_perturbation"] for r in per_prompt.values()]
+    mean_rho = sum(rhos) / len(rhos) if rhos else float("nan")
+    mean_hol = sum(hols) / len(hols) if hols else float("nan")
+    mean_rel_pert = sum(rel_perts) / len(rel_perts) if rel_perts else float("nan")
+    print(f"\n[{label}] coeff={coefficient:.4g}  n_prompts={len(prompts)}  "
+          f"mean rho={mean_rho:.4f}  mean hol={mean_hol:.4f}  "
+          f"mean rel_pert={mean_rel_pert:.3f}")
+    first = next(iter(per_prompt.values()))
+    print(f"  gen[0]: {first['generation'][:220]!r}")
+    return {
+        "coefficient": coefficient,
+        "mean_rho": mean_rho, "mean_holonomy": mean_hol,
+        "mean_relative_perturbation": mean_rel_pert,
+        "per_prompt": per_prompt,
+        # Backward-compatible single-prompt view (first prompt), so older
+        # tooling that reads condition["rho"]/["layers"]/["generation"]
+        # against a single prompt keeps working.
+        "rho": first["rho"], "holonomy": first["holonomy"],
+        "relative_perturbation": first["relative_perturbation"],
+        "generation": first["generation"],
+        "layers": first["layers"], "steering": first["steering"],
+    }
+
+
+def paired_condition_stats(baseline: dict, condition: dict,
+                           n_boot: int = 10000, n_perm: int = 20000) -> dict:
+    """
+    Paired significance test of condition vs baseline rho/holonomy across
+    the prompts both conditions share.
+    """
+    shared = [p for p in condition["per_prompt"] if p in baseline["per_prompt"]]
+    rho_diffs = [
+        condition["per_prompt"][p]["rho"] - baseline["per_prompt"][p]["rho"]
+        for p in shared
+    ]
+    hol_diffs = [
+        condition["per_prompt"][p]["holonomy"] - baseline["per_prompt"][p]["holonomy"]
+        for p in shared
+    ]
+    rho_stats = paired_test(rho_diffs, n_boot=n_boot, n_perm=n_perm)
+    hol_stats = paired_test(hol_diffs, n_boot=n_boot, n_perm=n_perm)
+    return {"rho": rho_stats.to_dict(), "holonomy": hol_stats.to_dict()}
 
 
 def print_layer_deltas(baseline: dict, condition: dict, label: str,
@@ -141,8 +202,16 @@ def main():
     parser.add_argument("--layers", type=int, nargs="*", default=None,
                         help="Steering layer indices (default: workspace band)")
     parser.add_argument("--num-verses", type=int, default=12)
-    parser.add_argument("--prompt",
-                        default="What does it mean to live a just and merciful life?")
+    parser.add_argument("--prompt", default=None,
+                        help="Single evaluation prompt (legacy; ignored if "
+                             "--prompts or --prompts-file is given)")
+    parser.add_argument("--prompts", nargs="*", default=None,
+                        help="Evaluation prompts (default: the 16-prompt set "
+                             "in experiments/steered_vs_baseline_transport.py, "
+                             "shared so both scripts test the same sample)")
+    parser.add_argument("--prompts-file", default=None,
+                        help="Path to a text file with one evaluation prompt "
+                             "per line; overrides --prompts and --prompt")
     parser.add_argument("--raw-coefficient", type=float, default=None,
                         help="Also run raw mean-activation steering at this "
                              "coefficient (omit to skip)")
@@ -154,8 +223,20 @@ def main():
                              "perturbation is at most this value")
     parser.add_argument("--eta", type=float, default=1.0)
     parser.add_argument("--max-loop-positions", type=int, default=8)
+    parser.add_argument("--n-boot", type=int, default=10000)
+    parser.add_argument("--n-perm", type=int, default=20000)
     parser.add_argument("--output", default=None)
     args = parser.parse_args()
+
+    if args.prompts_file:
+        with open(args.prompts_file, encoding="utf-8") as f:
+            prompts = [line.strip() for line in f if line.strip()]
+    elif args.prompts:
+        prompts = args.prompts
+    elif args.prompt:
+        prompts = [args.prompt]
+    else:
+        prompts = DEFAULT_PROMPTS
 
     quran_path = Path(__file__).parent.parent / "al-quran.txt"
 
@@ -184,14 +265,17 @@ def main():
                         "contrast_norm": c.norm().item(),
                         "cos_quran_neutral": cos}
 
-    gen_prompt = chat_prompt(llm, args.prompt)
-    common = dict(prompt=args.prompt, gen_prompt=gen_prompt, eta=args.eta,
+    gen_prompts = [chat_prompt(llm, p) for p in prompts]
+    common = dict(prompts=prompts, gen_prompts=gen_prompts, eta=args.eta,
                   max_loop_positions=args.max_loop_positions)
+    print(f"\nEvaluation prompts: n={len(prompts)}")
 
-    results = {"model": args.model, "prompt": args.prompt,
-               "generation_prompt": gen_prompt,
-               "layers": layers, "geometry": geometry, "conditions": {}}
+    results = {"model": args.model, "prompts": prompts,
+               "generation_prompts": gen_prompts,
+               "layers": layers, "geometry": geometry, "conditions": {},
+               "statistics": {}}
     conditions = results["conditions"]
+    statistics = results["statistics"]
 
     # Baseline with coefficient-0 hooks: identical forward pass to no
     # steering, but captures per-layer activation norms for calibration.
@@ -199,13 +283,19 @@ def main():
     conditions["baseline"] = baseline
 
     if args.raw_coefficient is not None:
-        conditions["raw"] = run_condition(
+        raw = run_condition(
             llm, f"B raw mean, c={args.raw_coefficient}", quran_vecs,
             args.raw_coefficient, **common)
+        conditions["raw"] = raw
+        statistics["raw"] = paired_condition_stats(
+            baseline, raw, n_boot=args.n_boot, n_perm=args.n_perm)
 
     for c in args.centered_coefficients:
-        conditions[f"centered_c{c}"] = run_condition(
-            llm, f"C centered, c={c}", centered, c, **common)
+        cond = run_condition(llm, f"C centered, c={c}", centered, c, **common)
+        key = f"centered_c{c}"
+        conditions[key] = cond
+        statistics[key] = paired_condition_stats(
+            baseline, cond, n_boot=args.n_boot, n_perm=args.n_perm)
 
     if args.target_perturbation is not None:
         ratios = [
@@ -220,7 +310,18 @@ def main():
                     f"(max rel_pert <= {args.target_perturbation})"
             condition = run_condition(llm, label, centered, c_target, **common)
             conditions["centered_target"] = condition
+            target_stats = paired_condition_stats(
+                baseline, condition, n_boot=args.n_boot, n_perm=args.n_perm)
+            statistics["centered_target"] = target_stats
             print_layer_deltas(baseline, condition, label, layers)
+            rho_s, hol_s = target_stats["rho"], target_stats["holonomy"]
+            print(f"\n  Paired stats vs baseline across n={rho_s['n']} prompts:")
+            print(f"    Δρ mean={rho_s['mean_diff']:+.4f}  "
+                  f"95% CI [{rho_s['ci_low']:+.4f}, {rho_s['ci_high']:+.4f}]  "
+                  f"p={rho_s['p_value']:.4f}")
+            print(f"    Δholonomy mean={hol_s['mean_diff']:+.4f}  "
+                  f"95% CI [{hol_s['ci_low']:+.4f}, {hol_s['ci_high']:+.4f}]  "
+                  f"p={hol_s['p_value']:.4f}")
 
     if args.output:
         with open(args.output, "w") as f:

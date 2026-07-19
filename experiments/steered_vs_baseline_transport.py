@@ -53,6 +53,7 @@ import torch
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.llm_wrapper import ActivationHook, SteeredLLM
+from src.transport_stats import paired_test
 from src.workspace_diagnostics import pooled_non_abelian_ratio
 
 try:
@@ -69,11 +70,32 @@ except ImportError:
         return list(range(start, min(num_layers, end)))
 
 
+# 16 prompts spanning several registers so the pooled Δρ/Δholonomy isn't
+# driven by one topic or sentence shape: Quran-adjacent moral/religious
+# themes (the intended steering target), secular moral reasoning, neutral
+# declarative sentences, questions, negation/contrast constructions, and
+# short technical/mundane statements. n=16 is still small for a paired
+# permutation test (2^16 = 65536 sign patterns, still enumerated exactly by
+# src/transport_stats.sign_permutation_test), but it is 4x the previous
+# default and lets bootstrap_ci produce a meaningful interval instead of a
+# near-point estimate.
 DEFAULT_PROMPTS = [
     "What does it mean to live a just and merciful life?",
     "Explain how patience helps a person deal with hardship.",
+    "Why is honesty considered a virtue in most ethical traditions?",
+    "Describe what forgiveness looks like after a serious betrayal.",
+    "What should someone do when they feel overwhelmed by guilt?",
+    "How can a person stay humble after achieving great success?",
+    "What is the relationship between gratitude and contentment?",
+    "Discuss the tension between individual freedom and communal duty.",
     "The engineer debugged the program before the deadline.",
     "Man bites dog is news, dog bites man is not.",
+    "The committee postponed the vote until next quarter's meeting.",
+    "Explain how photosynthesis converts light into chemical energy.",
+    "Is it ever acceptable to break a promise, and if so, when?",
+    "The train was delayed, but the passengers barely reacted.",
+    "What separates courage from recklessness in a crisis?",
+    "Summarize the plot of a mystery novel in three sentences.",
 ]
 
 # Neutral corpus for CAA-style centering: everyday English with no moral,
@@ -217,6 +239,15 @@ def main():
                         help="Position cap for holonomy loops")
     parser.add_argument("--prompts", nargs="*", default=None,
                         help="Evaluation prompts (default: built-in set)")
+    parser.add_argument("--prompts-file", default=None,
+                        help="Path to a text file with one evaluation prompt "
+                             "per line (non-empty lines only); overrides "
+                             "--prompts and the built-in default")
+    parser.add_argument("--n-boot", type=int, default=10000,
+                        help="Bootstrap resamples for the pooled Δρ/Δholonomy CI")
+    parser.add_argument("--n-perm", type=int, default=20000,
+                        help="Monte Carlo sign-permutations when n_prompts "
+                             "exceeds the exact-enumeration limit (20)")
     parser.add_argument("--generate", action="store_true",
                         help="Also sample steered vs baseline text for the first prompt")
     parser.add_argument("--output", default=None, help="Write results JSON here")
@@ -226,7 +257,13 @@ def main():
                              "larger model in RAM on CPU)")
     args = parser.parse_args()
 
-    prompts = args.prompts if args.prompts else DEFAULT_PROMPTS
+    if args.prompts_file:
+        with open(args.prompts_file, encoding="utf-8") as f:
+            prompts = [line.strip() for line in f if line.strip()]
+    elif args.prompts:
+        prompts = args.prompts
+    else:
+        prompts = DEFAULT_PROMPTS
     quran_path = Path(__file__).parent.parent / "al-quran.txt"
 
     print(f"Loading model: {args.model}")
@@ -326,18 +363,37 @@ def main():
     print(f"{'='*74}")
     all_means = [p["mean"] for p in results["prompts"].values()]
     if all_means:
-        d_rho = sum(m["rho_steered"] - m["rho_baseline"] for m in all_means) / len(all_means)
-        d_hol = sum(m["holonomy_steered"] - m["holonomy_baseline"] for m in all_means) / len(all_means)
-        print(f"  Mean Δρ across prompts:       {d_rho:+.4f}")
-        print(f"  Mean Δholonomy across prompts: {d_hol:+.4f} rad")
-        if abs(d_rho) < 5e-3 and abs(d_hol) < 5e-3:
-            print("  → Steering leaves context routing essentially unchanged:")
-            print("    the intervention shifts representations pointwise without")
-            print("    altering how attention composes context (a 'translation').")
+        rho_diffs = [m["rho_steered"] - m["rho_baseline"] for m in all_means]
+        hol_diffs = [m["holonomy_steered"] - m["holonomy_baseline"] for m in all_means]
+        rho_stats = paired_test(rho_diffs, n_boot=args.n_boot, n_perm=args.n_perm)
+        hol_stats = paired_test(hol_diffs, n_boot=args.n_boot, n_perm=args.n_perm)
+        d_rho, d_hol = rho_stats.mean_diff, hol_stats.mean_diff
+        exact_tag = "exact" if rho_stats.p_value_exact else "Monte Carlo"
+        print(f"  n = {rho_stats.n} prompts")
+        print(f"  Mean Δρ across prompts:       {d_rho:+.4f}  "
+              f"95% CI [{rho_stats.ci_low:+.4f}, {rho_stats.ci_high:+.4f}]  "
+              f"p={rho_stats.p_value:.4f} ({exact_tag} sign-permutation)")
+        print(f"  Mean Δholonomy across prompts: {d_hol:+.4f} rad  "
+              f"95% CI [{hol_stats.ci_low:+.4f}, {hol_stats.ci_high:+.4f}]  "
+              f"p={hol_stats.p_value:.4f} ({exact_tag} sign-permutation)")
+        rho_sig = rho_stats.p_value < 0.05 and not (rho_stats.ci_low < 0 < rho_stats.ci_high)
+        hol_sig = hol_stats.p_value < 0.05 and not (hol_stats.ci_low < 0 < hol_stats.ci_high)
+        if not rho_sig and not hol_sig:
+            print("  → Neither Δρ nor Δholonomy is distinguishable from zero at p<0.05")
+            print("    with a CI excluding zero: steering leaves context routing")
+            print("    statistically indistinguishable from baseline over these")
+            print("    prompts (a 'translation', not a routing change) -- or this")
+            print("    sample of prompts is simply underpowered to tell.")
         else:
-            print("  → Steering measurably changes context routing: the intervention")
-            print("    alters the order sensitivity / path dependence of attention,")
-            print("    not just the position of representations.")
+            print("  → At least one of Δρ/Δholonomy is significant at p<0.05 with a")
+            print("    CI excluding zero: steering measurably changes context routing")
+            print("    (order sensitivity / path dependence), not just representation")
+            print("    position. Inspect the per-prompt/per-layer breakdown before")
+            print("    trusting the direction -- see experiments/results/README.md")
+            print("    for known failure modes (raw-mean saturation, attention-type")
+            print("    splits) that can produce a 'significant' pooled number for the")
+            print("    wrong reason.")
+        results["statistics"] = {"rho": rho_stats.to_dict(), "holonomy": hol_stats.to_dict()}
 
     if args.generate:
         prompt = prompts[0]
