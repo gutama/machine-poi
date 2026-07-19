@@ -368,14 +368,18 @@ def main():
         rho_stats = paired_test(rho_diffs, n_boot=args.n_boot, n_perm=args.n_perm)
         hol_stats = paired_test(hol_diffs, n_boot=args.n_boot, n_perm=args.n_perm)
         d_rho, d_hol = rho_stats.mean_diff, hol_stats.mean_diff
-        exact_tag = "exact" if rho_stats.p_value_exact else "Monte Carlo"
-        print(f"  n = {rho_stats.n} prompts")
+        # NaN filtering happens per metric inside paired_test, so n and the
+        # exact-vs-Monte-Carlo path can differ between rho and holonomy.
+        rho_tag = "exact" if rho_stats.p_value_exact else "Monte Carlo"
+        hol_tag = "exact" if hol_stats.p_value_exact else "Monte Carlo"
         print(f"  Mean Δρ across prompts:       {d_rho:+.4f}  "
               f"95% CI [{rho_stats.ci_low:+.4f}, {rho_stats.ci_high:+.4f}]  "
-              f"p={rho_stats.p_value:.4f} ({exact_tag} sign-permutation)")
+              f"p={rho_stats.p_value:.4f} ({rho_tag} sign-permutation, "
+              f"n={rho_stats.n})")
         print(f"  Mean Δholonomy across prompts: {d_hol:+.4f} rad  "
               f"95% CI [{hol_stats.ci_low:+.4f}, {hol_stats.ci_high:+.4f}]  "
-              f"p={hol_stats.p_value:.4f} ({exact_tag} sign-permutation)")
+              f"p={hol_stats.p_value:.4f} ({hol_tag} sign-permutation, "
+              f"n={hol_stats.n})")
         rho_sig = rho_stats.p_value < 0.05 and not (rho_stats.ci_low < 0 < rho_stats.ci_high)
         hol_sig = hol_stats.p_value < 0.05 and not (hol_stats.ci_low < 0 < hol_stats.ci_high)
         if not rho_sig and not hol_sig:

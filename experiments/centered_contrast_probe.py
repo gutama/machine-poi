@@ -134,7 +134,8 @@ def run_condition(llm: SteeredLLM, label: str, vectors, coefficient: float,
         )
     rhos = [r["rho"] for r in per_prompt.values() if not math.isnan(r["rho"])]
     hols = [r["holonomy"] for r in per_prompt.values() if not math.isnan(r["holonomy"])]
-    rel_perts = [r["relative_perturbation"] for r in per_prompt.values()]
+    rel_perts = [r["relative_perturbation"] for r in per_prompt.values()
+                 if not math.isnan(r["relative_perturbation"])]
     mean_rho = sum(rhos) / len(rhos) if rhos else float("nan")
     mean_hol = sum(hols) / len(hols) if hols else float("nan")
     mean_rel_pert = sum(rel_perts) / len(rel_perts) if rel_perts else float("nan")

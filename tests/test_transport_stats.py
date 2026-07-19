@@ -1,10 +1,6 @@
 """Tests for src/transport_stats.py."""
 
 import math
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.transport_stats import bootstrap_ci, paired_test, sign_permutation_test
 
@@ -74,3 +70,29 @@ def test_paired_test_filters_nan_and_none():
     diffs = [0.1, float("nan"), 0.2, None, 0.15]
     result = paired_test(diffs, n_boot=500, n_perm=500, seed=0)
     assert result.n == 3
+
+
+def test_bootstrap_ci_rejects_invalid_inputs():
+    import pytest
+
+    with pytest.raises(ValueError):
+        bootstrap_ci([0.1, 0.2], n_boot=0)
+    with pytest.raises(ValueError):
+        bootstrap_ci([0.1, 0.2], ci=1.0)
+
+
+def test_sign_permutation_rejects_invalid_n_perm():
+    import pytest
+
+    diffs = [0.1] * 25  # forces the Monte Carlo path (n > exact_limit)
+    with pytest.raises(ValueError):
+        sign_permutation_test(diffs, n_perm=0)
+
+
+def test_monte_carlo_p_value_is_never_zero():
+    # A strong one-sided effect: without +1 smoothing the sampled count can
+    # be 0, which would misreport p=0.0 from a finite sample.
+    diffs = [1.0] * 25
+    p, exact = sign_permutation_test(diffs, n_perm=1000)
+    assert not exact
+    assert p > 0.0

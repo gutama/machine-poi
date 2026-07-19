@@ -64,6 +64,10 @@ def bootstrap_ci(
     a point (there is nothing to resample) -- callers should treat n=1 as
     "no interval available", not as a tight/confident result.
     """
+    if n_boot < 1:
+        raise ValueError(f"n_boot must be >= 1, got {n_boot}")
+    if not 0 < ci < 1:
+        raise ValueError(f"ci must be in (0, 1), got {ci}")
     diffs = list(diffs)
     n = len(diffs)
     mean = sum(diffs) / n if n else float("nan")
@@ -115,6 +119,8 @@ def sign_permutation_test(
                 count += 1
         return count / total, True
 
+    if n_perm < 1:
+        raise ValueError(f"n_perm must be >= 1, got {n_perm}")
     rng = random.Random(seed)
     count = 0
     for _ in range(n_perm):
@@ -123,7 +129,9 @@ def sign_permutation_test(
         )
         if stat >= observed - 1e-12:
             count += 1
-    return count / n_perm, False
+    # +1 smoothing: a Monte Carlo p-value can never legitimately be 0 --
+    # the observed statistic itself is always an admissible permutation.
+    return (count + 1) / (n_perm + 1), False
 
 
 def paired_test(
