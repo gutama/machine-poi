@@ -45,6 +45,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Optional
 
 import torch
 
@@ -129,6 +130,8 @@ def mean_activation_vectors(
     model and average the captured hidden states (token-mean, then
     text-mean).
     """
+    if not texts:
+        raise ValueError("mean_activation_vectors requires at least one text")
     capture_hooks = {}
     handles = []
     for layer_idx in layers:
@@ -154,7 +157,10 @@ def mean_activation_vectors(
 
 
 def build_steering_vectors(
-    llm: SteeredLLM, verses: list, layers: list, neutral_texts: list = NEUTRAL_SENTENCES
+    llm: SteeredLLM,
+    verses: list,
+    layers: list,
+    neutral_texts: Optional[list] = NEUTRAL_SENTENCES,
 ) -> dict:
     """
     CAA-style centered steering vectors (the default):

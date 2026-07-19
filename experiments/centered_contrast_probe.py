@@ -7,10 +7,11 @@ with the CAA-style centered contrast by default
 
     contrast_l = mean_l(quran verses) - mean_l(neutral sentences)
 
-(--uncentered restores the legacy raw mean). This probe dissects that
-vector: it separates the Quran-specific contrast direction from the generic
-mean-activation component, reports their geometry, and compares steering
-with each at controlled doses.
+(its --uncentered flag restores the legacy raw mean). This probe dissects
+that vector: it separates the Quran-specific contrast direction from the
+generic mean-activation component, reports their geometry, and compares
+steering with each at controlled doses — the raw-mean condition here is
+opt-in via --raw-coefficient.
 
 Reported per layer: |quran mean|, |neutral mean|, |contrast|, and
 cos(quran, neutral). Then, for one prompt, per-layer and pooled non-abelian
