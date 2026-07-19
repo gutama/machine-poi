@@ -446,3 +446,46 @@ class TestDeviceDetection:
         
         llm = SteeredLLM(device="cpu")
         assert llm.device == "cpu"
+
+
+class TestKvShareSourceMap:
+    """Test cross-layer KV-sharing source resolution (Gemma 4 style)."""
+
+    def test_no_shared_layers(self):
+        from src.llm_wrapper import kv_share_source_map
+
+        assert kv_share_source_map(["full_attention"] * 4, 4, 0) == {}
+
+    def test_all_layers_shared_is_degenerate(self):
+        from src.llm_wrapper import kv_share_source_map
+
+        # first_shared == 0: nothing can provide KV states
+        assert kv_share_source_map(["full_attention"] * 4, 4, 4) == {}
+
+    def test_gemma4_e2b_layout(self):
+        from src.llm_wrapper import kv_share_source_map
+
+        # 35 layers, full attention every 5th layer starting at 4,
+        # last 20 layers share KV (google/gemma-4-E2B-it).
+        layer_types = [
+            "full_attention" if i % 5 == 4 else "sliding_attention"
+            for i in range(35)
+        ]
+        sources = kv_share_source_map(layer_types, 35, 20)
+
+        assert set(sources) == set(range(15, 35))
+        # Shared full-attention layers reuse the last non-shared
+        # full-attention layer (14); sliding layers reuse layer 13.
+        for idx in (19, 24, 29, 34):
+            assert sources[idx] == 14
+        for idx in set(range(15, 35)) - {19, 24, 29, 34}:
+            assert sources[idx] == 13
+
+    def test_type_missing_from_prefix_is_skipped(self):
+        from src.llm_wrapper import kv_share_source_map
+
+        # A shared layer whose type never occurs before the share point
+        # has no source and is omitted.
+        layer_types = ["sliding_attention", "sliding_attention", "full_attention"]
+        sources = kv_share_source_map(layer_types, 3, 1)
+        assert sources == {}

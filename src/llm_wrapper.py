@@ -99,6 +99,33 @@ def get_model_config(model_name: str) -> Dict[str, Any]:
     return MODEL_CONFIGS["llama"]
 
 
+def kv_share_source_map(
+    layer_types: List[str], num_layers: int, num_kv_shared_layers: int
+) -> Dict[int, int]:
+    """
+    Map each KV-shared layer index to the layer whose key/value states it
+    reuses.
+
+    Architectures with cross-layer KV sharing (Gemma 4 / Gemma 3n) compute
+    no k/v projections in their last num_kv_shared_layers layers; each such
+    layer attends over the KV states produced by the LAST non-shared layer
+    of the same attention type (mirrors store_full_length_kv in the
+    transformers Gemma 4 implementation).
+
+    Returns an empty dict when the model has no shared layers.
+    """
+    first_shared = num_layers - num_kv_shared_layers
+    if num_kv_shared_layers <= 0 or first_shared <= 0:
+        return {}
+    prev_types = list(layer_types[:first_shared])
+    sources = {}
+    for layer_idx in range(first_shared, num_layers):
+        layer_type = layer_types[layer_idx]
+        if layer_type in prev_types:
+            sources[layer_idx] = first_shared - 1 - prev_types[::-1].index(layer_type)
+    return sources
+
+
 
 class ActivationHook:
     """Hook to capture and optionally modify activations."""
@@ -338,6 +365,20 @@ class SteeredLLM:
             "top level or on its text config"
         )
 
+    def _kv_share_sources(self) -> Dict[int, int]:
+        """
+        Per-layer KV-sharing source map for the loaded model (empty for
+        architectures without cross-layer KV sharing).
+        """
+        try:
+            layer_types = self._text_config_attr("layer_types")
+            num_shared = self._text_config_attr("num_kv_shared_layers")
+        except AttributeError:
+            return {}
+        if not layer_types or not num_shared:
+            return {}
+        return kv_share_source_map(layer_types, self.num_layers, num_shared)
+
     @property
     def hidden_size(self) -> int:
         """Get model hidden dimension."""
@@ -506,8 +547,10 @@ class SteeredLLM:
 
         Returns:
             Dict mapping layer index → head index →
-            AttentionTransportDiagnostics. Layers whose attention module
-            does not expose ``q_proj``/``v_proj`` are skipped.
+            AttentionTransportDiagnostics. KV-shared layers (cross-layer KV
+            sharing, e.g. Gemma 4) are diagnosed using the value projections
+            of the layer whose KV states they actually attend over; layers
+            with no usable ``q_proj``/``v_proj`` at all are skipped.
         """
         from .workspace_diagnostics import summarize_attention_transport_heads
 
@@ -525,20 +568,36 @@ class SteeredLLM:
                 store[layer_idx] = output.detach()
             return hook
 
-        hooked_layers = []
-        for layer_idx in layer_indices:
+        def _attn_module(layer_idx: int):
             layer = self._get_layer_module(layer_idx)
-            attn = getattr(layer, "self_attn", None) or getattr(layer, "attention", None)
+            return getattr(layer, "self_attn", None) or getattr(layer, "attention", None)
+
+        share_sources = self._kv_share_sources()
+        hooked_layers = []
+        v_source: Dict[int, int] = {}   # measured layer -> layer whose v_proj it uses
+        v_hooked: Dict[int, bool] = {}  # v_proj hooks already registered, by source layer
+        for layer_idx in layer_indices:
+            attn = _attn_module(layer_idx)
             q_proj = getattr(attn, "q_proj", None)
             v_proj = getattr(attn, "v_proj", None)
+            source_idx = layer_idx
+            if v_proj is None:
+                # Cross-layer KV sharing: use the value projections of the
+                # layer whose KV states this layer attends over.
+                source_idx = share_sources.get(layer_idx)
+                v_proj = getattr(_attn_module(source_idx), "v_proj", None) \
+                    if source_idx is not None else None
             if q_proj is None or v_proj is None:
                 logger.warning(
-                    f"Layer {layer_idx}: attention module without q_proj/v_proj; "
-                    "skipping transport diagnostics for this layer"
+                    f"Layer {layer_idx}: no usable q_proj/v_proj (and no KV-share "
+                    "source); skipping transport diagnostics for this layer"
                 )
                 continue
             handles.append(q_proj.register_forward_hook(_capture(captured_q, layer_idx)))
-            handles.append(v_proj.register_forward_hook(_capture(captured_v, layer_idx)))
+            if source_idx not in v_hooked:
+                handles.append(v_proj.register_forward_hook(_capture(captured_v, source_idx)))
+                v_hooked[source_idx] = True
+            v_source[layer_idx] = source_idx
             hooked_layers.append(layer_idx)
 
         if not hooked_layers:
@@ -566,7 +625,7 @@ class SteeredLLM:
             attn_weights = outputs.attentions[layer_idx][0].float().cpu()  # [heads, seq, seq]
             seq_len = attn_weights.shape[-1]
             q = captured_q[layer_idx][0].float().cpu()  # [seq, num_heads * head_dim]
-            v = captured_v[layer_idx][0].float().cpu()  # [seq, num_kv_heads * head_dim]
+            v = captured_v[v_source[layer_idx]][0].float().cpu()  # [seq, num_kv_heads * head_dim]
 
             if q.shape[-1] % num_heads != 0:
                 logger.warning(
