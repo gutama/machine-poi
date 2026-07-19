@@ -27,6 +27,7 @@ steered minus baseline):
 | Gemma-4-E2B (band 14-24) | 4.0 | 1.24 | -0.000 | -0.001 | multilingual token salad (degenerate) |
 | Gemma-4-E2B (band 5-11)  | 4.0 | 1.32-1.35 | -0.012 | -0.196 | multilingual token salad (degenerate) |
 | Gemma-4-E2B (band 5-11, centered contrast) | 0.419 (calibrated) | <= 0.078 | +0.008 | +0.031 | **fluent Arabic, on-topic** |
+| Gemma-4-E4B (band 6-13, centered contrast, full depth) | 0.503 (calibrated) | <= 0.082 | +0.013 | +0.026 | **fluent Arabic, on-topic** |
 
 Qwen3-0.6B's *baseline* greedy generation is fluent, on-topic prose for the
 same prompt, so the degeneration is caused by the steering, not the setup.
@@ -178,6 +179,27 @@ Two runs, 2 prompts each, coefficient 4.0:
      routing while slightly *flattening* every global (full-attention)
      layer.
 
+5. **Scale replication on Gemma 4 E4B (42 layers, hidden 2560, 18
+   KV-shared).** Same protocol at matched relative depth (steering band
+   6-13 ~ 14-31% of depth; c = 0.503 calibrated, max rel. perturbation
+   0.082; `gemma-4-E4B_centered_target0.1_fulldepth.json`):
+   - **Generation replicates**: baseline fluent English; steered fluent,
+     on-topic Arabic.
+   - **The layer-type dissociation replicates**: of the six affected
+     full-attention layers (11, 17, 23, 29, 35, 41), five show negative
+     delta-rho (to -0.029) and one is ~zero (35, +0.002), with holonomy
+     down at 17/29 by ~ -0.17 to -0.22; sliding-window layers are
+     overwhelmingly positive (24 of 28 affected, delta-rho up to +0.057,
+     delta-holonomy up to +0.29), with the effect attenuating toward the
+     deepest layers.
+   - Pooled deltas stay small (delta-rho +0.013, delta-holonomy +0.026),
+     matching E2B's translation-with-mild-modulation picture.
+   - Vector geometry matches too: contrast ~15-25% of the raw mean norm,
+     cos(quran, neutral) 0.97-0.99.
+   Practical note: the 16 GB bf16 checkpoint exceeds this machine's 15 GB
+   RAM but runs fine memory-mapped (transformers keeps matching-dtype
+   safetensors file-backed; the page cache absorbs the overhang).
+
 ## Method caveats observed while running
 
 - **Baseline greedy generations are empty** for SmolLM2-135M-Instruct: the
@@ -204,6 +226,8 @@ Two runs, 2 prompts each, coefficient 4.0:
   run at calibrated dose (per-layer geometry, deltas, and generations).
 - `gemma-4-E2B_centered_target0.1_fulldepth.json` -- same protocol after
   the KV-shared-layer diagnostics extension; all 35 layers measurable.
+- `gemma-4-E4B_centered_target0.1_fulldepth.json` -- scale replication on
+  Gemma 4 E4B (band 6-13, all 42 layers measurable).
 - `smollm2-135m_centered_probe.json` -- vector geometry + centered-contrast
   conditions.
 
