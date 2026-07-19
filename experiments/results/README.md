@@ -157,6 +157,27 @@ Two runs, 2 prompts each, coefficient 4.0:
    the raw-mean pathology, while still decisive at coefficient 4.0, is
    less extreme here.)
 
+4. **Full-depth follow-up (KV-shared layers now measurable).** After
+   extending the diagnostics to source value projections from each
+   KV-shared layer's actual KV provider (kv_share_source_map in
+   src/llm_wrapper.py), the calibrated centered run was repeated with all
+   35 layers visible (`gemma-4-E2B_centered_target0.1_fulldepth.json`;
+   c = 0.417, max rel. perturbation 0.078, generation again fluent
+   on-topic Arabic). The layer-type split now covers the whole depth and
+   is strikingly consistent:
+   - **All six downstream full-attention layers tick down**: delta-rho at
+     layers 9/14/19/24/29/34 is -0.033/-0.011/-0.005/-0.010/-0.031/-0.027,
+     with delta-holonomy -0.06 to -0.22.
+   - **Sliding-window layers tick up**, strongest in the KV-shared band
+     15-23 (delta-rho up to +0.087, delta-holonomy up to +0.39), fading
+     and mixing in the last few layers (30-33).
+   - Pooled over all 35 layers: delta-rho +0.019, delta-holonomy +0.066 --
+     still small, so the "translation with mild structured modulation"
+     reading stands, now over the full model depth: gentle Quran-persona
+     steering slightly *increases* path dependence in local (sliding)
+     routing while slightly *flattening* every global (full-attention)
+     layer.
+
 ## Method caveats observed while running
 
 - **Baseline greedy generations are empty** for SmolLM2-135M-Instruct: the
@@ -181,6 +202,8 @@ Two runs, 2 prompts each, coefficient 4.0:
   interpretable).
 - `gemma-4-E2B_centered_target0.1.json` -- Gemma 4 E2B centered-contrast
   run at calibrated dose (per-layer geometry, deltas, and generations).
+- `gemma-4-E2B_centered_target0.1_fulldepth.json` -- same protocol after
+  the KV-shared-layer diagnostics extension; all 35 layers measurable.
 - `smollm2-135m_centered_probe.json` -- vector geometry + centered-contrast
   conditions.
 
