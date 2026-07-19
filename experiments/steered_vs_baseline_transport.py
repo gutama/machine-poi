@@ -12,9 +12,13 @@ Cartan curvature diagnostics in src/workspace_diagnostics.py:
 
 Protocol:
   1. Load a small open model via SteeredLLM.
-  2. Build a mean-activation steering vector per target layer from Quranic
-     verses (al-quran.txt), the same activation-derived approach the
-     project uses for the Quran Persona.
+  2. Build a CAA-style centered steering vector per target layer:
+     mean activation of Quranic verses (al-quran.txt) MINUS mean activation
+     of neutral English sentences. Centering removes the large generic
+     component every hidden state shares (attention-sink / massive
+     activations), which otherwise saturates the residual stream and
+     collapses routing at any coefficient (see experiments/results/).
+     Pass --uncentered to reproduce the legacy raw-mean behavior.
   3. For each evaluation prompt, compute per-layer/per-head transport
      diagnostics twice: once with steering disabled (baseline) and once
      with steering enabled.
@@ -71,6 +75,23 @@ DEFAULT_PROMPTS = [
     "Man bites dog is news, dog bites man is not.",
 ]
 
+# Neutral corpus for CAA-style centering: everyday English with no moral,
+# religious, or Arabic content, roughly matching the verses in length.
+NEUTRAL_SENTENCES = [
+    "The train arrives at the station at nine in the morning.",
+    "She poured the coffee and opened her laptop to check email.",
+    "The recipe calls for two cups of flour and one egg.",
+    "Traffic on the highway was heavy during the evening commute.",
+    "The museum's new exhibit features photographs from the 1960s.",
+    "He fixed the leaking faucet with a wrench from the garage.",
+    "The quarterly report shows a modest increase in revenue.",
+    "Clouds gathered over the hills before the afternoon rain.",
+    "The students revised their essays before the deadline.",
+    "A gentle breeze moved through the open kitchen window.",
+    "The mechanic replaced the worn brake pads on the sedan.",
+    "They planted tomatoes and basil in the community garden.",
+]
+
 
 def load_quran_verses(path: Path, num_verses: int) -> list:
     """First num_verses non-empty lines of the Quran text corpus."""
@@ -100,14 +121,13 @@ def force_eager_attention(llm: SteeredLLM) -> None:
         print(f"  [warn] could not force eager attention: {exc}")
 
 
-def build_steering_vectors(
-    llm: SteeredLLM, verses: list, layers: list
+def mean_activation_vectors(
+    llm: SteeredLLM, texts: list, layers: list
 ) -> dict:
     """
-    Mean-activation steering vectors: run the verses through the model and
-    average the captured hidden states at each target layer (token-mean,
-    then verse-mean) — the activation-derived approach preferred by the
-    global workspace improvement plan.
+    Mean activation per target layer over texts: run each text through the
+    model and average the captured hidden states (token-mean, then
+    text-mean).
     """
     capture_hooks = {}
     handles = []
@@ -119,8 +139,8 @@ def build_steering_vectors(
 
     sums = {layer_idx: None for layer_idx in layers}
     try:
-        for verse in verses:
-            inputs = llm.tokenizer(verse, return_tensors="pt").to(llm.model.device)
+        for text in texts:
+            inputs = llm.tokenizer(text, return_tensors="pt").to(llm.model.device)
             with torch.no_grad():
                 llm.model(**inputs)
             for layer_idx, hook in capture_hooks.items():
@@ -130,7 +150,28 @@ def build_steering_vectors(
         for handle in handles:
             handle.remove()
 
-    return {layer_idx: total / len(verses) for layer_idx, total in sums.items()}
+    return {layer_idx: total / len(texts) for layer_idx, total in sums.items()}
+
+
+def build_steering_vectors(
+    llm: SteeredLLM, verses: list, layers: list, neutral_texts: list = NEUTRAL_SENTENCES
+) -> dict:
+    """
+    CAA-style centered steering vectors (the default):
+
+        vector_l = mean_l(verses) - mean_l(neutral_texts)
+
+    Subtracting a neutral-corpus mean removes the generic component shared
+    by all hidden states, leaving the verse-specific direction — the
+    contrastive approach of Rimsky et al. (2024) that src/steering_vectors.py
+    implements for the retrieval stack. Pass neutral_texts=None for the
+    legacy raw mean activation of the verses alone.
+    """
+    vectors = mean_activation_vectors(llm, verses, layers)
+    if neutral_texts is None:
+        return vectors
+    neutral = mean_activation_vectors(llm, neutral_texts, layers)
+    return {layer_idx: vectors[layer_idx] - neutral[layer_idx] for layer_idx in layers}
 
 
 def transport_summary(diagnostics: dict) -> dict:
@@ -159,6 +200,11 @@ def main():
                         help="Steering layer indices (default: workspace band)")
     parser.add_argument("--num-verses", type=int, default=12,
                         help="Quran verses used for the steering vector")
+    parser.add_argument("--uncentered", action="store_true",
+                        help="Use the legacy raw mean-activation vector "
+                             "instead of the CAA-style centered contrast "
+                             "(raw vectors carry the generic massive-"
+                             "activation component and saturate the stream)")
     parser.add_argument("--eta", type=float, default=1.0,
                         help="Transport step size in T_t = exp(-η ω_t)")
     parser.add_argument("--max-loop-positions", type=int, default=8,
@@ -188,8 +234,12 @@ def main():
     print(f"Steering layers (workspace band): {steer_layers}")
 
     verses = load_quran_verses(quran_path, args.num_verses)
-    print(f"Building mean-activation steering vectors from {len(verses)} Quran verses...")
-    vectors = build_steering_vectors(llm, verses, steer_layers)
+    kind = "raw mean-activation" if args.uncentered else "CAA-centered contrast"
+    print(f"Building {kind} steering vectors from {len(verses)} Quran verses...")
+    vectors = build_steering_vectors(
+        llm, verses, steer_layers,
+        neutral_texts=None if args.uncentered else NEUTRAL_SENTENCES,
+    )
 
     for layer_idx, vector in vectors.items():
         llm.register_steering_hook(
@@ -203,6 +253,7 @@ def main():
         "model": args.model,
         "coefficient": args.coefficient,
         "injection_mode": args.injection_mode,
+        "centered": not args.uncentered,
         "steering_layers": steer_layers,
         "num_verses": len(verses),
         "eta": args.eta,

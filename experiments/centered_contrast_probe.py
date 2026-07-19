@@ -2,12 +2,15 @@
 """
 Centered-Contrast Steering Probe
 
-Companion to steered_vs_baseline_transport.py. That experiment steers with a
-RAW mean activation of Quran verses; this probe measures how much of that
-vector is Quran-specific at all, by comparing it against the mean activation
-of neutral English sentences and steering with the centered contrast
+Companion to steered_vs_baseline_transport.py. That experiment now steers
+with the CAA-style centered contrast by default
 
     contrast_l = mean_l(quran verses) - mean_l(neutral sentences)
+
+(--uncentered restores the legacy raw mean). This probe dissects that
+vector: it separates the Quran-specific contrast direction from the generic
+mean-activation component, reports their geometry, and compares steering
+with each at controlled doses.
 
 Reported per layer: |quran mean|, |neutral mean|, |contrast|, and
 cos(quran, neutral). Then, for one prompt, per-layer and pooled non-abelian
@@ -46,27 +49,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.llm_wrapper import SteeredLLM
 from experiments.steered_vs_baseline_transport import (
-    build_steering_vectors,
+    NEUTRAL_SENTENCES,
     force_eager_attention,
     load_quran_verses,
+    mean_activation_vectors,
     select_workspace_layers,
     transport_summary,
 )
-
-NEUTRAL_SENTENCES = [
-    "The train arrives at the station at nine in the morning.",
-    "She poured the coffee and opened her laptop to check email.",
-    "The recipe calls for two cups of flour and one egg.",
-    "Traffic on the highway was heavy during the evening commute.",
-    "The museum's new exhibit features photographs from the 1960s.",
-    "He fixed the leaking faucet with a wrench from the garage.",
-    "The quarterly report shows a modest increase in revenue.",
-    "Clouds gathered over the hills before the afternoon rain.",
-    "The students revised their essays before the deadline.",
-    "A gentle breeze moved through the open kitchen window.",
-    "The mechanic replaced the worn brake pads on the sedan.",
-    "They planted tomatoes and basil in the community garden.",
-]
 
 
 def chat_prompt(llm: SteeredLLM, prompt: str) -> str:
@@ -178,8 +167,8 @@ def main():
     print(f"Steering layers: {layers}")
 
     verses = load_quran_verses(quran_path, args.num_verses)
-    quran_vecs = build_steering_vectors(llm, verses, layers)
-    neutral_vecs = build_steering_vectors(llm, NEUTRAL_SENTENCES, layers)
+    quran_vecs = mean_activation_vectors(llm, verses, layers)
+    neutral_vecs = mean_activation_vectors(llm, NEUTRAL_SENTENCES, layers)
     centered = {li: quran_vecs[li] - neutral_vecs[li] for li in layers}
 
     geometry = {}
