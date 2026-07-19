@@ -1,5 +1,20 @@
 # Steered vs Baseline Attention-Transport: Results on Real Models
 
+> **2026-07-19 update.** The original results below used 1-4 prompts per
+> model and no significance testing, which was too little evidence to
+> support the causal claims being made. This update adds `src/transport_stats.py`
+> (paired bootstrap CI + exact/Monte Carlo sign-permutation test) and expands
+> the default prompt set to 16 (`DEFAULT_PROMPTS` in
+> `experiments/steered_vs_baseline_transport.py`), then re-runs the smaller
+> models at n=16. See **"n=16 statistically-tested re-run"** below for what
+> changed and what didn't. Gemma-4-E2B (5.1B params, ~10GB in bf16) could not
+> be re-run in the environment available for this update (2 CPU cores, ~8GB
+> RAM, ~6GB free disk) -- its n=2 results below are unchanged and still carry
+> the original small-sample caveat. The scripts now accept `--prompts-file`
+> and `--n-boot`/`--n-perm`, so re-running Gemma at n=16 on a larger machine
+> is a direct `python experiments/centered_contrast_probe.py --model
+> google/gemma-4-E2B-it --dtype bfloat16 ...` away.
+
 Runs of `experiments/steered_vs_baseline_transport.py` and
 `experiments/centered_contrast_probe.py` on real open models, CPU-only
 (4 cores, 15 GB RAM), transformers 4.x, torch 2.x CPU wheels.
@@ -177,6 +192,68 @@ Two runs, 2 prompts each, coefficient 4.0:
      steering slightly *increases* path dependence in local (sliding)
      routing while slightly *flattening* every global (full-attention)
      layer.
+
+## n=16 statistically-tested re-run (2026-07-19)
+
+Re-ran the two CPU-feasible models with the expanded 16-prompt default set
+and `src/transport_stats.py`'s paired bootstrap CI + exact sign-permutation
+test (n=16 <= 20, so the permutation p-value is an exact enumeration of all
+2^16 sign patterns, not a Monte Carlo approximation).
+
+| model | condition | n | mean Δρ | 95% CI | p | mean Δhol | 95% CI | p |
+|---|---|---|---|---|---|---|---|---|
+| SmolLM2-135M | raw coeff=4.0 (`smollm2-135m_coeff4.0_n16.json`) | 16 | -0.097 | [-0.099, -0.093] | 3.1e-5 | +0.031 | [+0.016, +0.052] | 1.8e-4 |
+| SmolLM2-135M | centered, calibrated c=1.313, target rel_pert<=0.1 (`smollm2-135m_centered_probe_n16.json`) | 16 | -0.092 | [-0.094, -0.088] | 3.1e-5 | -0.275 | [-0.289, -0.258] | 3.1e-5 |
+| Qwen3-0.6B | raw coeff=4.0 (`qwen3-0.6b_coeff4.0_n16.json`) | 16 | -0.148 | [-0.152, -0.145] | 3.1e-5 | -0.560 | [-0.592, -0.529] | 3.1e-5 |
+
+**What this confirms, now with a real sample and exact p-values instead of
+n=1-4 point estimates:**
+
+1. The raw-mean saturation collapse (SmolLM2 and Qwen3 at coefficient 4.0)
+   is real and highly consistent across prompts, not an artifact of the 4
+   prompts originally tested -- p < 0.0002 for both Δρ and Δholonomy on
+   both models, with tight CIs that exclude zero by a wide margin.
+2. **The centered vector does not fix SmolLM2 the way it fixed Gemma-4-E2B.**
+   Even at a calibrated dose capped to <=0.1 relative perturbation, SmolLM2's
+   greedy generation still collapses (`دددددد...`, a repeated Arabic letter,
+   instead of fluent Arabic), and Δholonomy is large and significant
+   (-0.275 rad, p=3.1e-5) -- the opposite sign and an order of magnitude
+   larger than Gemma's calibrated-dose Δholonomy (+0.03 to +0.07 rad in the
+   sections above). This is now a well-powered result, not noise: whatever
+   let Gemma-4-E2B preserve routing and fluency at a gentle dose
+   (larger model, different activation-norm geometry -- see the note at the
+   end of the Gemma section above -- and/or greedy decoding degrading a
+   135M-parameter instruct model regardless of steering) does not transfer
+   to SmolLM2-135M. **The "gentle centered steering behaves like a
+   translation" finding should be scoped to Gemma-4-E2B specifically until a
+   model of comparable capacity to Gemma is tested at n>4 with a control.**
+3. Qwen3-0.6B was only re-run at coefficient 4.0 (raw); its calibrated-dose
+   condition was not repeated at n=16 due to runtime (the qwen3 run above
+   took ~28 minutes of wall-clock time on 2 CPU cores for 16 prompts x 2
+   passes -- a centered-probe run with 3 conditions would take longer). This
+   is a straightforward follow-up, not a blocked one:
+   `python experiments/centered_contrast_probe.py --model qwen3-0.6b
+   --target-perturbation 0.1 --centered-coefficients 1.0`.
+4. Gemma-4-E2B (5.1B params, ~10GB in bf16) was not re-run at n=16 in this
+   environment (2 CPU cores, ~8GB RAM, ~6GB free disk was not enough headroom
+   to safely download and load it). Its headline "steering preserves
+   routing" result above is still based on 1-2 prompts and should be treated
+   as preliminary until repeated at n=16 with the same statistical testing
+   applied to SmolLM2 and Qwen3 here.
+
+**Files:** `smollm2-135m_coeff4.0_n16.json`, `smollm2-135m_centered_probe_n16.json`,
+`qwen3-0.6b_coeff4.0_n16.json`. Reproduce with (from the repo root, CPU-only
+is fine, expect ~10-15 min for SmolLM2 and ~25-30 min for Qwen3 on 2 cores):
+
+```bash
+python experiments/steered_vs_baseline_transport.py --model smollm2-135m \
+    --coefficient 4.0 --generate --output experiments/results/smollm2-135m_coeff4.0_n16.json
+python experiments/centered_contrast_probe.py --model smollm2-135m \
+    --target-perturbation 0.1 --centered-coefficients 1.0 \
+    --output experiments/results/smollm2-135m_centered_probe_n16.json
+python experiments/steered_vs_baseline_transport.py --model qwen3-0.6b \
+    --coefficient 4.0 --generate --output experiments/results/qwen3-0.6b_coeff4.0_n16.json
+```
 
 ## Method caveats observed while running
 

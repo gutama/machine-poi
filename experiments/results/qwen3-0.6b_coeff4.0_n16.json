@@ -1,0 +1,2893 @@
+{
+  "model": "qwen3-0.6b",
+  "coefficient": 4.0,
+  "injection_mode": "add",
+  "centered": true,
+  "steering_layers": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "num_verses": 12,
+  "eta": 1.0,
+  "prompts": {
+    "What does it mean to live a just and merciful life?": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.2335931778463384,
+          "rho_steered": 0.2335931778463384,
+          "holonomy_baseline": 1.0467990500619635,
+          "holonomy_steered": 1.0467990500619635
+        },
+        "1": {
+          "rho_baseline": 0.19604885690528778,
+          "rho_steered": 0.19604885690528778,
+          "holonomy_baseline": 0.7804084913306204,
+          "holonomy_steered": 0.7804084913306204
+        },
+        "2": {
+          "rho_baseline": 0.24593708186462762,
+          "rho_steered": 0.24593708186462762,
+          "holonomy_baseline": 1.0601456957270525,
+          "holonomy_steered": 1.0601456957270525
+        },
+        "3": {
+          "rho_baseline": 0.3718952433595582,
+          "rho_steered": 0.3718952433595582,
+          "holonomy_baseline": 1.8154500723550362,
+          "holonomy_steered": 1.8154500723550362
+        },
+        "4": {
+          "rho_baseline": 0.3383995423579269,
+          "rho_steered": 0.3383995423579269,
+          "holonomy_baseline": 1.5011861235502044,
+          "holonomy_steered": 1.5011861235502044
+        },
+        "5": {
+          "rho_baseline": 0.35706980321722664,
+          "rho_steered": 0.35706980321722664,
+          "holonomy_baseline": 1.5863562408568603,
+          "holonomy_steered": 1.5863562408568603
+        },
+        "6": {
+          "rho_baseline": 0.3738134402887702,
+          "rho_steered": 0.3738134402887702,
+          "holonomy_baseline": 1.8003325768347298,
+          "holonomy_steered": 1.8003325768347298
+        },
+        "7": {
+          "rho_baseline": 0.3387059036223612,
+          "rho_steered": 0.3387059036223612,
+          "holonomy_baseline": 1.5316091271982128,
+          "holonomy_steered": 1.5316091271982128
+        },
+        "8": {
+          "rho_baseline": 0.3917186523754615,
+          "rho_steered": 0.3917186523754615,
+          "holonomy_baseline": 1.8701169300890927,
+          "holonomy_steered": 1.8701169300890927
+        },
+        "9": {
+          "rho_baseline": 0.35108998251877593,
+          "rho_steered": 0.35108998251877593,
+          "holonomy_baseline": 1.6168345008710665,
+          "holonomy_steered": 1.6168345008710665
+        },
+        "10": {
+          "rho_baseline": 0.33352279010045605,
+          "rho_steered": 0.33352279010045605,
+          "holonomy_baseline": 1.5071654762474023,
+          "holonomy_steered": 1.5071654762474023
+        },
+        "11": {
+          "rho_baseline": 0.36313266531122557,
+          "rho_steered": 0.36313266531122557,
+          "holonomy_baseline": 1.7991079660797757,
+          "holonomy_steered": 1.7991079660797757
+        },
+        "12": {
+          "rho_baseline": 0.4015263444204277,
+          "rho_steered": 0.25564859099099924,
+          "holonomy_baseline": 2.0703516241296063,
+          "holonomy_steered": 1.5510213167955433
+        },
+        "13": {
+          "rho_baseline": 0.3896671139033106,
+          "rho_steered": 0.16789316138483013,
+          "holonomy_baseline": 2.0100197821655974,
+          "holonomy_steered": 1.1784102890690389
+        },
+        "14": {
+          "rho_baseline": 0.39456097842708193,
+          "rho_steered": 0.13649706367631034,
+          "holonomy_baseline": 2.0408496396017393,
+          "holonomy_steered": 1.1000776551580722
+        },
+        "15": {
+          "rho_baseline": 0.36375047442009567,
+          "rho_steered": 0.13049388802751377,
+          "holonomy_baseline": 1.8038657324920808,
+          "holonomy_steered": 0.8555781820988548
+        },
+        "16": {
+          "rho_baseline": 0.37124065661207306,
+          "rho_steered": 0.10828613923867754,
+          "holonomy_baseline": 1.7624398500525527,
+          "holonomy_steered": 0.6794107650390028
+        },
+        "17": {
+          "rho_baseline": 0.3567656509980906,
+          "rho_steered": 0.11043800760104175,
+          "holonomy_baseline": 1.6639372376458985,
+          "holonomy_steered": 0.6859251029922494
+        },
+        "18": {
+          "rho_baseline": 0.36264404065990835,
+          "rho_steered": 0.11351267763505171,
+          "holonomy_baseline": 1.73287428945436,
+          "holonomy_steered": 0.7554850343149155
+        },
+        "19": {
+          "rho_baseline": 0.3798972100778937,
+          "rho_steered": 0.13070137129746834,
+          "holonomy_baseline": 1.8163878188934177,
+          "holonomy_steered": 0.8178613785920399
+        },
+        "20": {
+          "rho_baseline": 0.3834351786403917,
+          "rho_steered": 0.10941560748057444,
+          "holonomy_baseline": 1.8873969529356276,
+          "holonomy_steered": 0.7952817492187023
+        },
+        "21": {
+          "rho_baseline": 0.4070725589077989,
+          "rho_steered": 0.12099124128721528,
+          "holonomy_baseline": 1.9482883957347699,
+          "holonomy_steered": 0.7961416185633945
+        },
+        "22": {
+          "rho_baseline": 0.39033044859443317,
+          "rho_steered": 0.12047714708523558,
+          "holonomy_baseline": 1.861929498945496,
+          "holonomy_steered": 0.7884904891585133
+        },
+        "23": {
+          "rho_baseline": 0.39315221120473903,
+          "rho_steered": 0.1347339520739824,
+          "holonomy_baseline": 1.9120695099367626,
+          "holonomy_steered": 0.8050539782936019
+        },
+        "24": {
+          "rho_baseline": 0.40430664226544927,
+          "rho_steered": 0.11836598289107265,
+          "holonomy_baseline": 1.9660736473410256,
+          "holonomy_steered": 0.7943215352217001
+        },
+        "25": {
+          "rho_baseline": 0.3999549426897945,
+          "rho_steered": 0.14337993878674105,
+          "holonomy_baseline": 1.939647089823016,
+          "holonomy_steered": 0.837102073278012
+        },
+        "26": {
+          "rho_baseline": 0.39619124134451633,
+          "rho_steered": 0.1267194696427775,
+          "holonomy_baseline": 1.869360769965819,
+          "holonomy_steered": 0.7657079193408468
+        },
+        "27": {
+          "rho_baseline": 0.38417065199053346,
+          "rho_steered": 0.1322012623641266,
+          "holonomy_baseline": 1.8437561319608773,
+          "holonomy_steered": 0.8215264517680875
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.35977119589016265,
+        "rho_steered": 0.21623866575827266,
+        "holonomy_baseline": 1.7158842936528809,
+        "holonomy_steered": 1.1408181353608782
+      }
+    },
+    "Explain how patience helps a person deal with hardship.": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.23546140870093046,
+          "rho_steered": 0.23546140870093046,
+          "holonomy_baseline": 1.0599194794860003,
+          "holonomy_steered": 1.0599194794860003
+        },
+        "1": {
+          "rho_baseline": 0.19493415323401822,
+          "rho_steered": 0.19493415323401822,
+          "holonomy_baseline": 0.8069130690169654,
+          "holonomy_steered": 0.8069130690169654
+        },
+        "2": {
+          "rho_baseline": 0.25685253571163114,
+          "rho_steered": 0.25685253571163114,
+          "holonomy_baseline": 1.1205502463604458,
+          "holonomy_steered": 1.1205502463604458
+        },
+        "3": {
+          "rho_baseline": 0.3763289329754574,
+          "rho_steered": 0.3763289329754574,
+          "holonomy_baseline": 1.799368891665446,
+          "holonomy_steered": 1.799368891665446
+        },
+        "4": {
+          "rho_baseline": 0.3496643267040894,
+          "rho_steered": 0.3496643267040894,
+          "holonomy_baseline": 1.5620782450007806,
+          "holonomy_steered": 1.5620782450007806
+        },
+        "5": {
+          "rho_baseline": 0.3540905562087229,
+          "rho_steered": 0.3540905562087229,
+          "holonomy_baseline": 1.5905908125319652,
+          "holonomy_steered": 1.5905908125319652
+        },
+        "6": {
+          "rho_baseline": 0.34127667469514633,
+          "rho_steered": 0.34127667469514633,
+          "holonomy_baseline": 1.6959152066015772,
+          "holonomy_steered": 1.6959152066015772
+        },
+        "7": {
+          "rho_baseline": 0.3006002416573125,
+          "rho_steered": 0.3006002416573125,
+          "holonomy_baseline": 1.4088707597527121,
+          "holonomy_steered": 1.4088707597527121
+        },
+        "8": {
+          "rho_baseline": 0.37427526630124014,
+          "rho_steered": 0.37427526630124014,
+          "holonomy_baseline": 1.6697781210366105,
+          "holonomy_steered": 1.6697781210366105
+        },
+        "9": {
+          "rho_baseline": 0.33191406241610016,
+          "rho_steered": 0.33191406241610016,
+          "holonomy_baseline": 1.5262684662094606,
+          "holonomy_steered": 1.5262684662094606
+        },
+        "10": {
+          "rho_baseline": 0.28305900848259735,
+          "rho_steered": 0.28305900848259735,
+          "holonomy_baseline": 1.2864115535215075,
+          "holonomy_steered": 1.2864115535215075
+        },
+        "11": {
+          "rho_baseline": 0.34831614880052336,
+          "rho_steered": 0.34831614880052336,
+          "holonomy_baseline": 1.6689835953459675,
+          "holonomy_steered": 1.6689835953459675
+        },
+        "12": {
+          "rho_baseline": 0.3735383261226021,
+          "rho_steered": 0.16421107584783765,
+          "holonomy_baseline": 1.6908409206994943,
+          "holonomy_steered": 0.745418437527925
+        },
+        "13": {
+          "rho_baseline": 0.345639839533794,
+          "rho_steered": 0.15811239639982122,
+          "holonomy_baseline": 1.5342512127078538,
+          "holonomy_steered": 0.8159337853098155
+        },
+        "14": {
+          "rho_baseline": 0.37323781315899424,
+          "rho_steered": 0.13938736444956165,
+          "holonomy_baseline": 1.6760591750831477,
+          "holonomy_steered": 0.8384649469600325
+        },
+        "15": {
+          "rho_baseline": 0.34140257933184426,
+          "rho_steered": 0.13391498009219044,
+          "holonomy_baseline": 1.6477974517537015,
+          "holonomy_steered": 0.6409545503889343
+        },
+        "16": {
+          "rho_baseline": 0.3643696866941962,
+          "rho_steered": 0.11322426799469035,
+          "holonomy_baseline": 1.67125280484158,
+          "holonomy_steered": 0.6507523026250834
+        },
+        "17": {
+          "rho_baseline": 0.34713471992125927,
+          "rho_steered": 0.1106183410602456,
+          "holonomy_baseline": 1.6212881096705263,
+          "holonomy_steered": 0.6888517655232655
+        },
+        "18": {
+          "rho_baseline": 0.3462305342894081,
+          "rho_steered": 0.10293698870215855,
+          "holonomy_baseline": 1.6548901197966188,
+          "holonomy_steered": 0.8082544958119148
+        },
+        "19": {
+          "rho_baseline": 0.36956940914622516,
+          "rho_steered": 0.11141383282476071,
+          "holonomy_baseline": 1.7823671768086828,
+          "holonomy_steered": 0.8696447240321764
+        },
+        "20": {
+          "rho_baseline": 0.38130132556854224,
+          "rho_steered": 0.08580520087665329,
+          "holonomy_baseline": 1.9348937890359335,
+          "holonomy_steered": 0.8275465018481815
+        },
+        "21": {
+          "rho_baseline": 0.39308008758078145,
+          "rho_steered": 0.09619858244081116,
+          "holonomy_baseline": 1.9602534724399447,
+          "holonomy_steered": 0.8183024686545001
+        },
+        "22": {
+          "rho_baseline": 0.39325623094485,
+          "rho_steered": 0.09386043772060255,
+          "holonomy_baseline": 1.9249693406080561,
+          "holonomy_steered": 0.8094016507134906
+        },
+        "23": {
+          "rho_baseline": 0.381362503865434,
+          "rho_steered": 0.11381956343483121,
+          "holonomy_baseline": 1.8568424440122075,
+          "holonomy_steered": 0.8516610385850072
+        },
+        "24": {
+          "rho_baseline": 0.39516853557373255,
+          "rho_steered": 0.1033785793027118,
+          "holonomy_baseline": 1.9286670413400446,
+          "holonomy_steered": 0.8223981797096452
+        },
+        "25": {
+          "rho_baseline": 0.396184840069948,
+          "rho_steered": 0.1264792292423419,
+          "holonomy_baseline": 1.9301170958871288,
+          "holonomy_steered": 0.8515263312562767
+        },
+        "26": {
+          "rho_baseline": 0.3938220368035186,
+          "rho_steered": 0.11645435139560847,
+          "holonomy_baseline": 1.929085631655263,
+          "holonomy_steered": 0.7812108381850911
+        },
+        "27": {
+          "rho_baseline": 0.3846389733571701,
+          "rho_steered": 0.10858922736885714,
+          "holonomy_baseline": 1.9045210928390068,
+          "holonomy_steered": 0.8517254888013538
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.3473825270660739,
+        "rho_steered": 0.20089920482290904,
+        "holonomy_baseline": 1.6372766187753083,
+        "holonomy_steered": 1.0667034268736475
+      }
+    },
+    "Why is honesty considered a virtue in most ethical traditions?": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.23403889286526133,
+          "rho_steered": 0.23403889286526133,
+          "holonomy_baseline": 1.1041144178182418,
+          "holonomy_steered": 1.1041144178182418
+        },
+        "1": {
+          "rho_baseline": 0.19168949104149263,
+          "rho_steered": 0.19168949104149263,
+          "holonomy_baseline": 0.8590805966274014,
+          "holonomy_steered": 0.8590805966274014
+        },
+        "2": {
+          "rho_baseline": 0.23108326216868996,
+          "rho_steered": 0.23108326216868996,
+          "holonomy_baseline": 1.1032550280048912,
+          "holonomy_steered": 1.1032550280048912
+        },
+        "3": {
+          "rho_baseline": 0.3763150417180171,
+          "rho_steered": 0.3763150417180171,
+          "holonomy_baseline": 1.8179104682058096,
+          "holonomy_steered": 1.8179104682058096
+        },
+        "4": {
+          "rho_baseline": 0.3396350856554732,
+          "rho_steered": 0.3396350856554732,
+          "holonomy_baseline": 1.5110935558664746,
+          "holonomy_steered": 1.5110935558664746
+        },
+        "5": {
+          "rho_baseline": 0.34235028529587824,
+          "rho_steered": 0.34235028529587824,
+          "holonomy_baseline": 1.4595527748710342,
+          "holonomy_steered": 1.4595527748710342
+        },
+        "6": {
+          "rho_baseline": 0.3457439191730231,
+          "rho_steered": 0.3457439191730231,
+          "holonomy_baseline": 1.6347341622957694,
+          "holonomy_steered": 1.6347341622957694
+        },
+        "7": {
+          "rho_baseline": 0.3006571324308598,
+          "rho_steered": 0.3006571324308598,
+          "holonomy_baseline": 1.3523179538814085,
+          "holonomy_steered": 1.3523179538814085
+        },
+        "8": {
+          "rho_baseline": 0.36941357758452875,
+          "rho_steered": 0.36941357758452875,
+          "holonomy_baseline": 1.7067050834053328,
+          "holonomy_steered": 1.7067050834053328
+        },
+        "9": {
+          "rho_baseline": 0.3182211133256554,
+          "rho_steered": 0.3182211133256554,
+          "holonomy_baseline": 1.4341699798325342,
+          "holonomy_steered": 1.4341699798325342
+        },
+        "10": {
+          "rho_baseline": 0.2890794922915474,
+          "rho_steered": 0.2890794922915474,
+          "holonomy_baseline": 1.271980625444225,
+          "holonomy_steered": 1.271980625444225
+        },
+        "11": {
+          "rho_baseline": 0.3473481670555028,
+          "rho_steered": 0.3473481670555028,
+          "holonomy_baseline": 1.7055951998502548,
+          "holonomy_steered": 1.7055951998502548
+        },
+        "12": {
+          "rho_baseline": 0.3765123112424028,
+          "rho_steered": 0.17718976809779152,
+          "holonomy_baseline": 1.7478447128752512,
+          "holonomy_steered": 0.8340947197866626
+        },
+        "13": {
+          "rho_baseline": 0.3595964764448894,
+          "rho_steered": 0.15614114263821066,
+          "holonomy_baseline": 1.7163591767062567,
+          "holonomy_steered": 0.8070432516189092
+        },
+        "14": {
+          "rho_baseline": 0.37332379686721223,
+          "rho_steered": 0.13488407487884077,
+          "holonomy_baseline": 1.7367701919283718,
+          "holonomy_steered": 0.817582670347682
+        },
+        "15": {
+          "rho_baseline": 0.328474412523496,
+          "rho_steered": 0.12396763063508842,
+          "holonomy_baseline": 1.5764661022195858,
+          "holonomy_steered": 0.6133073780552617
+        },
+        "16": {
+          "rho_baseline": 0.35597715262326085,
+          "rho_steered": 0.10456406482746079,
+          "holonomy_baseline": 1.629010905677985,
+          "holonomy_steered": 0.590816188304286
+        },
+        "17": {
+          "rho_baseline": 0.3234262212353337,
+          "rho_steered": 0.10084753317963852,
+          "holonomy_baseline": 1.4795475411894066,
+          "holonomy_steered": 0.6390440622178305
+        },
+        "18": {
+          "rho_baseline": 0.33883211161172855,
+          "rho_steered": 0.09831326721832505,
+          "holonomy_baseline": 1.6213970252512289,
+          "holonomy_steered": 0.7213734060891771
+        },
+        "19": {
+          "rho_baseline": 0.3594549807912063,
+          "rho_steered": 0.11038511694938827,
+          "holonomy_baseline": 1.7153031339070626,
+          "holonomy_steered": 0.7651884519561593
+        },
+        "20": {
+          "rho_baseline": 0.3711446998121722,
+          "rho_steered": 0.0894461892888154,
+          "holonomy_baseline": 1.8423873224694813,
+          "holonomy_steered": 0.7512008087110839
+        },
+        "21": {
+          "rho_baseline": 0.3869586991741383,
+          "rho_steered": 0.09509686118018502,
+          "holonomy_baseline": 1.9206944863045854,
+          "holonomy_steered": 0.7379439701991422
+        },
+        "22": {
+          "rho_baseline": 0.3870180605926418,
+          "rho_steered": 0.0940106080986218,
+          "holonomy_baseline": 1.8618947742506862,
+          "holonomy_steered": 0.7226900589053652
+        },
+        "23": {
+          "rho_baseline": 0.385728529672633,
+          "rho_steered": 0.1098896113367991,
+          "holonomy_baseline": 1.88494323107547,
+          "holonomy_steered": 0.760126747490306
+        },
+        "24": {
+          "rho_baseline": 0.3966109507993997,
+          "rho_steered": 0.09786907719743548,
+          "holonomy_baseline": 1.9604445028650974,
+          "holonomy_steered": 0.7331257548981479
+        },
+        "25": {
+          "rho_baseline": 0.38345643074501307,
+          "rho_steered": 0.12283923928486556,
+          "holonomy_baseline": 1.8928863686243338,
+          "holonomy_steered": 0.762125775766825
+        },
+        "26": {
+          "rho_baseline": 0.386186910282266,
+          "rho_steered": 0.11138135607347886,
+          "holonomy_baseline": 1.8721631709486246,
+          "holonomy_steered": 0.684256166452542
+        },
+        "27": {
+          "rho_baseline": 0.3813004823556902,
+          "rho_steered": 0.11283678650521001,
+          "holonomy_baseline": 1.807554058198418,
+          "holonomy_steered": 0.774690828826611
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.3421277745492648,
+        "rho_steered": 0.1973299209998602,
+        "holonomy_baseline": 1.6152205910926865,
+        "holonomy_steered": 1.0241114316331916
+      }
+    },
+    "Describe what forgiveness looks like after a serious betrayal.": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.2311396954681749,
+          "rho_steered": 0.2311396954681749,
+          "holonomy_baseline": 1.059809731610585,
+          "holonomy_steered": 1.059809731610585
+        },
+        "1": {
+          "rho_baseline": 0.20623808920782666,
+          "rho_steered": 0.20623808920782666,
+          "holonomy_baseline": 0.8439723966044507,
+          "holonomy_steered": 0.8439723966044507
+        },
+        "2": {
+          "rho_baseline": 0.25723679046497977,
+          "rho_steered": 0.25723679046497977,
+          "holonomy_baseline": 1.1649565528911938,
+          "holonomy_steered": 1.1649565528911938
+        },
+        "3": {
+          "rho_baseline": 0.3633028273626061,
+          "rho_steered": 0.3633028273626061,
+          "holonomy_baseline": 1.7056190792604216,
+          "holonomy_steered": 1.7056190792604216
+        },
+        "4": {
+          "rho_baseline": 0.33202841031964087,
+          "rho_steered": 0.33202841031964087,
+          "holonomy_baseline": 1.4583826655788081,
+          "holonomy_steered": 1.4583826655788081
+        },
+        "5": {
+          "rho_baseline": 0.33841606060922214,
+          "rho_steered": 0.33841606060922214,
+          "holonomy_baseline": 1.4807346993392068,
+          "holonomy_steered": 1.4807346993392068
+        },
+        "6": {
+          "rho_baseline": 0.33958511560986715,
+          "rho_steered": 0.33958511560986715,
+          "holonomy_baseline": 1.6286824412776957,
+          "holonomy_steered": 1.6286824412776957
+        },
+        "7": {
+          "rho_baseline": 0.2845695039094817,
+          "rho_steered": 0.2845695039094817,
+          "holonomy_baseline": 1.2788054847624153,
+          "holonomy_steered": 1.2788054847624153
+        },
+        "8": {
+          "rho_baseline": 0.3538307886719713,
+          "rho_steered": 0.3538307886719713,
+          "holonomy_baseline": 1.620053368720359,
+          "holonomy_steered": 1.620053368720359
+        },
+        "9": {
+          "rho_baseline": 0.32504831944117973,
+          "rho_steered": 0.32504831944117973,
+          "holonomy_baseline": 1.4980904233774968,
+          "holonomy_steered": 1.4980904233774968
+        },
+        "10": {
+          "rho_baseline": 0.28742613178964493,
+          "rho_steered": 0.28742613178964493,
+          "holonomy_baseline": 1.2525575989192086,
+          "holonomy_steered": 1.2525575989192086
+        },
+        "11": {
+          "rho_baseline": 0.3340513260985029,
+          "rho_steered": 0.3340513260985029,
+          "holonomy_baseline": 1.5803205300055976,
+          "holonomy_steered": 1.5803205300055976
+        },
+        "12": {
+          "rho_baseline": 0.34685777685005553,
+          "rho_steered": 0.12315002245428257,
+          "holonomy_baseline": 1.5398631494691861,
+          "holonomy_steered": 0.5154327951251096
+        },
+        "13": {
+          "rho_baseline": 0.3171500263058445,
+          "rho_steered": 0.1430903591795786,
+          "holonomy_baseline": 1.395622290571087,
+          "holonomy_steered": 0.7244596009175959
+        },
+        "14": {
+          "rho_baseline": 0.35494154066397643,
+          "rho_steered": 0.12531161353541218,
+          "holonomy_baseline": 1.577841812661583,
+          "holonomy_steered": 0.7523389196846567
+        },
+        "15": {
+          "rho_baseline": 0.3284466430415214,
+          "rho_steered": 0.11604375893616035,
+          "holonomy_baseline": 1.5886807200565403,
+          "holonomy_steered": 0.5395952723421422
+        },
+        "16": {
+          "rho_baseline": 0.3603791565965093,
+          "rho_steered": 0.09993301536045619,
+          "holonomy_baseline": 1.6700899793899484,
+          "holonomy_steered": 0.6189598103685837
+        },
+        "17": {
+          "rho_baseline": 0.3331678015508935,
+          "rho_steered": 0.09770054540410754,
+          "holonomy_baseline": 1.52304833292562,
+          "holonomy_steered": 0.6821797602543873
+        },
+        "18": {
+          "rho_baseline": 0.35665984124240935,
+          "rho_steered": 0.08937370318862735,
+          "holonomy_baseline": 1.7058504146324205,
+          "holonomy_steered": 0.8180596769421494
+        },
+        "19": {
+          "rho_baseline": 0.3704018328889809,
+          "rho_steered": 0.10464020541363954,
+          "holonomy_baseline": 1.7831756733357906,
+          "holonomy_steered": 0.8839731600933841
+        },
+        "20": {
+          "rho_baseline": 0.36170124485502475,
+          "rho_steered": 0.07928515381468051,
+          "holonomy_baseline": 1.8508113708812743,
+          "holonomy_steered": 0.8490768703798364
+        },
+        "21": {
+          "rho_baseline": 0.38596135468647536,
+          "rho_steered": 0.09201820589824226,
+          "holonomy_baseline": 1.947012218447136,
+          "holonomy_steered": 0.8412329480717224
+        },
+        "22": {
+          "rho_baseline": 0.3854409312047775,
+          "rho_steered": 0.09064683468481893,
+          "holonomy_baseline": 1.8956167416514031,
+          "holonomy_steered": 0.8431992948088529
+        },
+        "23": {
+          "rho_baseline": 0.38228957352354115,
+          "rho_steered": 0.11262448096752836,
+          "holonomy_baseline": 1.872521816885897,
+          "holonomy_steered": 0.886422023376716
+        },
+        "24": {
+          "rho_baseline": 0.3914380234048868,
+          "rho_steered": 0.09772683869797738,
+          "holonomy_baseline": 1.9715720862482806,
+          "holonomy_steered": 0.8459472122069981
+        },
+        "25": {
+          "rho_baseline": 0.3764606135092612,
+          "rho_steered": 0.12499791948086193,
+          "holonomy_baseline": 1.9187818693795373,
+          "holonomy_steered": 0.8894390723268901
+        },
+        "26": {
+          "rho_baseline": 0.3820662985183897,
+          "rho_steered": 0.11813704756763047,
+          "holonomy_baseline": 1.8978893451525696,
+          "holonomy_steered": 0.8143755507855011
+        },
+        "27": {
+          "rho_baseline": 0.3788457327276412,
+          "rho_steered": 0.10329730748992846,
+          "holonomy_baseline": 1.8535127883244837,
+          "holonomy_steered": 0.8811418440725122
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.3380386232329745,
+        "rho_steered": 0.19181607396525108,
+        "holonomy_baseline": 1.5915669850842928,
+        "holonomy_steered": 1.034207813718017
+      }
+    },
+    "What should someone do when they feel overwhelmed by guilt?": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.22005412115915166,
+          "rho_steered": 0.22005412115915166,
+          "holonomy_baseline": 1.0530520389688067,
+          "holonomy_steered": 1.0530520389688067
+        },
+        "1": {
+          "rho_baseline": 0.19239908753810292,
+          "rho_steered": 0.19239908753810292,
+          "holonomy_baseline": 0.858393301122955,
+          "holonomy_steered": 0.858393301122955
+        },
+        "2": {
+          "rho_baseline": 0.2415669102325163,
+          "rho_steered": 0.2415669102325163,
+          "holonomy_baseline": 1.0958222134504467,
+          "holonomy_steered": 1.0958222134504467
+        },
+        "3": {
+          "rho_baseline": 0.36760751356810745,
+          "rho_steered": 0.36760751356810745,
+          "holonomy_baseline": 1.823387005432908,
+          "holonomy_steered": 1.823387005432908
+        },
+        "4": {
+          "rho_baseline": 0.33362978740400423,
+          "rho_steered": 0.33362978740400423,
+          "holonomy_baseline": 1.521575736763355,
+          "holonomy_steered": 1.521575736763355
+        },
+        "5": {
+          "rho_baseline": 0.34564570224303054,
+          "rho_steered": 0.34564570224303054,
+          "holonomy_baseline": 1.555754195566156,
+          "holonomy_steered": 1.555754195566156
+        },
+        "6": {
+          "rho_baseline": 0.34869334232632343,
+          "rho_steered": 0.34869334232632343,
+          "holonomy_baseline": 1.7031192773221326,
+          "holonomy_steered": 1.7031192773221326
+        },
+        "7": {
+          "rho_baseline": 0.31264941668885465,
+          "rho_steered": 0.31264941668885465,
+          "holonomy_baseline": 1.419855754040847,
+          "holonomy_steered": 1.419855754040847
+        },
+        "8": {
+          "rho_baseline": 0.36627152493492715,
+          "rho_steered": 0.36627152493492715,
+          "holonomy_baseline": 1.7482049301200147,
+          "holonomy_steered": 1.7482049301200147
+        },
+        "9": {
+          "rho_baseline": 0.3313141971029214,
+          "rho_steered": 0.3313141971029214,
+          "holonomy_baseline": 1.5703188719760095,
+          "holonomy_steered": 1.5703188719760095
+        },
+        "10": {
+          "rho_baseline": 0.3104881338447549,
+          "rho_steered": 0.3104881338447549,
+          "holonomy_baseline": 1.4212070695523704,
+          "holonomy_steered": 1.4212070695523704
+        },
+        "11": {
+          "rho_baseline": 0.3457091077065217,
+          "rho_steered": 0.3457091077065217,
+          "holonomy_baseline": 1.7386872046959718,
+          "holonomy_steered": 1.7386872046959718
+        },
+        "12": {
+          "rho_baseline": 0.3539025986145808,
+          "rho_steered": 0.06442832548576134,
+          "holonomy_baseline": 1.7771282043041927,
+          "holonomy_steered": 0.34899452182331253
+        },
+        "13": {
+          "rho_baseline": 0.3038489692280215,
+          "rho_steered": 0.09019592090519694,
+          "holonomy_baseline": 1.5797689932598067,
+          "holonomy_steered": 0.6637685235390174
+        },
+        "14": {
+          "rho_baseline": 0.3324589812703954,
+          "rho_steered": 0.08854744747577072,
+          "holonomy_baseline": 1.6008580042647997,
+          "holonomy_steered": 0.7421304848061742
+        },
+        "15": {
+          "rho_baseline": 0.3359311759332592,
+          "rho_steered": 0.08708184063231925,
+          "holonomy_baseline": 1.7092591214126773,
+          "holonomy_steered": 0.5925758978368582
+        },
+        "16": {
+          "rho_baseline": 0.35875468317472775,
+          "rho_steered": 0.09263371045069067,
+          "holonomy_baseline": 1.7184408777726017,
+          "holonomy_steered": 0.6929231577752424
+        },
+        "17": {
+          "rho_baseline": 0.3403102483387432,
+          "rho_steered": 0.09621138044871283,
+          "holonomy_baseline": 1.6310130216048233,
+          "holonomy_steered": 0.7756903080402741
+        },
+        "18": {
+          "rho_baseline": 0.34929789622589213,
+          "rho_steered": 0.08625602486465754,
+          "holonomy_baseline": 1.6954374251155448,
+          "holonomy_steered": 0.8894250090233982
+        },
+        "19": {
+          "rho_baseline": 0.3650138626950238,
+          "rho_steered": 0.1007625668172197,
+          "holonomy_baseline": 1.7526260636347746,
+          "holonomy_steered": 0.9382376461289823
+        },
+        "20": {
+          "rho_baseline": 0.3752799047418712,
+          "rho_steered": 0.08537042320094672,
+          "holonomy_baseline": 1.9625633285114807,
+          "holonomy_steered": 0.9007137876303335
+        },
+        "21": {
+          "rho_baseline": 0.3933579764226768,
+          "rho_steered": 0.09075482139992332,
+          "holonomy_baseline": 1.9804744870135826,
+          "holonomy_steered": 0.8972154429149148
+        },
+        "22": {
+          "rho_baseline": 0.3946645335581912,
+          "rho_steered": 0.08832528696315485,
+          "holonomy_baseline": 1.9264885702037384,
+          "holonomy_steered": 0.8721848776830095
+        },
+        "23": {
+          "rho_baseline": 0.38209861171980763,
+          "rho_steered": 0.10796702357404024,
+          "holonomy_baseline": 1.8654418769292533,
+          "holonomy_steered": 0.9093981483685118
+        },
+        "24": {
+          "rho_baseline": 0.39583810469102376,
+          "rho_steered": 0.09245986014060328,
+          "holonomy_baseline": 1.9683253043996436,
+          "holonomy_steered": 0.8708255369814911
+        },
+        "25": {
+          "rho_baseline": 0.39955352598970134,
+          "rho_steered": 0.12101074522955561,
+          "holonomy_baseline": 1.984182174716677,
+          "holonomy_steered": 0.8890389405922698
+        },
+        "26": {
+          "rho_baseline": 0.39720150409651667,
+          "rho_steered": 0.1090765824452143,
+          "holonomy_baseline": 1.9328716762496956,
+          "holonomy_steered": 0.7964099378524614
+        },
+        "27": {
+          "rho_baseline": 0.388684558264351,
+          "rho_steered": 0.10655392009485917,
+          "holonomy_baseline": 1.8906376361846924,
+          "holonomy_steered": 0.9111905806265506
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.34222235641835713,
+        "rho_steered": 0.18655945445992295,
+        "holonomy_baseline": 1.6601747987353555,
+        "holonomy_steered": 1.0785750143083848
+      }
+    },
+    "How can a person stay humble after achieving great success?": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.2241510468502326,
+          "rho_steered": 0.2241510468502326,
+          "holonomy_baseline": 1.0574048318667337,
+          "holonomy_steered": 1.0574048318667337
+        },
+        "1": {
+          "rho_baseline": 0.19946080823102816,
+          "rho_steered": 0.19946080823102816,
+          "holonomy_baseline": 0.8611429750786296,
+          "holonomy_steered": 0.8611429750786296
+        },
+        "2": {
+          "rho_baseline": 0.2540592293652476,
+          "rho_steered": 0.2540592293652476,
+          "holonomy_baseline": 1.1253893408990865,
+          "holonomy_steered": 1.1253893408990865
+        },
+        "3": {
+          "rho_baseline": 0.37485879020722374,
+          "rho_steered": 0.37485879020722374,
+          "holonomy_baseline": 1.8197329696933073,
+          "holonomy_steered": 1.8197329696933073
+        },
+        "4": {
+          "rho_baseline": 0.3464222772322753,
+          "rho_steered": 0.3464222772322753,
+          "holonomy_baseline": 1.5919374074188195,
+          "holonomy_steered": 1.5919374074188195
+        },
+        "5": {
+          "rho_baseline": 0.35515774833907193,
+          "rho_steered": 0.35515774833907193,
+          "holonomy_baseline": 1.5419457215217076,
+          "holonomy_steered": 1.5419457215217076
+        },
+        "6": {
+          "rho_baseline": 0.33926991007732993,
+          "rho_steered": 0.33926991007732993,
+          "holonomy_baseline": 1.6413438555318862,
+          "holonomy_steered": 1.6413438555318862
+        },
+        "7": {
+          "rho_baseline": 0.2959115429088713,
+          "rho_steered": 0.2959115429088713,
+          "holonomy_baseline": 1.356966906460002,
+          "holonomy_steered": 1.356966906460002
+        },
+        "8": {
+          "rho_baseline": 0.40781290307800233,
+          "rho_steered": 0.40781290307800233,
+          "holonomy_baseline": 2.0090205042922338,
+          "holonomy_steered": 2.0090205042922338
+        },
+        "9": {
+          "rho_baseline": 0.3350849075813548,
+          "rho_steered": 0.3350849075813548,
+          "holonomy_baseline": 1.5728778984464173,
+          "holonomy_steered": 1.5728778984464173
+        },
+        "10": {
+          "rho_baseline": 0.3161355714254841,
+          "rho_steered": 0.3161355714254841,
+          "holonomy_baseline": 1.4710145036224276,
+          "holonomy_steered": 1.4710145036224276
+        },
+        "11": {
+          "rho_baseline": 0.3565276518428504,
+          "rho_steered": 0.3565276518428504,
+          "holonomy_baseline": 1.766196254541033,
+          "holonomy_steered": 1.766196254541033
+        },
+        "12": {
+          "rho_baseline": 0.41768806049119256,
+          "rho_steered": 0.13265370107780977,
+          "holonomy_baseline": 2.1706864362848655,
+          "holonomy_steered": 0.984593117343528
+        },
+        "13": {
+          "rho_baseline": 0.37906600844975874,
+          "rho_steered": 0.07694711917508405,
+          "holonomy_baseline": 2.082032994866105,
+          "holonomy_steered": 0.8025265088643729
+        },
+        "14": {
+          "rho_baseline": 0.4068127589561345,
+          "rho_steered": 0.05589765989128147,
+          "holonomy_baseline": 2.1436505348288586,
+          "holonomy_steered": 0.5336957484250888
+        },
+        "15": {
+          "rho_baseline": 0.34535226145409664,
+          "rho_steered": 0.04868147730356353,
+          "holonomy_baseline": 1.6811883583265756,
+          "holonomy_steered": 0.43934932348409866
+        },
+        "16": {
+          "rho_baseline": 0.3573105158720009,
+          "rho_steered": 0.07489435784593068,
+          "holonomy_baseline": 1.655115632606404,
+          "holonomy_steered": 0.4323527176249107
+        },
+        "17": {
+          "rho_baseline": 0.34162648806193574,
+          "rho_steered": 0.09001465023707549,
+          "holonomy_baseline": 1.606504408892111,
+          "holonomy_steered": 0.4878988604177721
+        },
+        "18": {
+          "rho_baseline": 0.3422838227573781,
+          "rho_steered": 0.10731313845910663,
+          "holonomy_baseline": 1.6257144632483167,
+          "holonomy_steered": 0.5912779076357505
+        },
+        "19": {
+          "rho_baseline": 0.36905276153756744,
+          "rho_steered": 0.12354377360836116,
+          "holonomy_baseline": 1.7602149539161474,
+          "holonomy_steered": 0.6665496486072827
+        },
+        "20": {
+          "rho_baseline": 0.37209650105421066,
+          "rho_steered": 0.10436126996301127,
+          "holonomy_baseline": 1.8554047926196031,
+          "holonomy_steered": 0.692922389533903
+        },
+        "21": {
+          "rho_baseline": 0.3996498114211436,
+          "rho_steered": 0.10718435860297348,
+          "holonomy_baseline": 1.984454547786819,
+          "holonomy_steered": 0.6798028587197352
+        },
+        "22": {
+          "rho_baseline": 0.3907404649798661,
+          "rho_steered": 0.10103906169898252,
+          "holonomy_baseline": 1.8831841494621975,
+          "holonomy_steered": 0.7048982155309724
+        },
+        "23": {
+          "rho_baseline": 0.3866332957143052,
+          "rho_steered": 0.1121534923737425,
+          "holonomy_baseline": 1.8517236207678383,
+          "holonomy_steered": 0.7199236990418285
+        },
+        "24": {
+          "rho_baseline": 0.39350759271902735,
+          "rho_steered": 0.09445703742614632,
+          "holonomy_baseline": 1.959252974750208,
+          "holonomy_steered": 0.7239566180422636
+        },
+        "25": {
+          "rho_baseline": 0.3909690843727449,
+          "rho_steered": 0.11740256208361255,
+          "holonomy_baseline": 1.913473887701652,
+          "holonomy_steered": 0.7826109037435215
+        },
+        "26": {
+          "rho_baseline": 0.39413578065190075,
+          "rho_steered": 0.08547046122043617,
+          "holonomy_baseline": 1.904101012141577,
+          "holonomy_steered": 0.7379602073093078
+        },
+        "27": {
+          "rho_baseline": 0.384606359897092,
+          "rho_steered": 0.11862617238161774,
+          "holonomy_baseline": 1.863969393939312,
+          "holonomy_steered": 0.7288780580773684
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.35272799841176167,
+        "rho_steered": 0.19126759573170385,
+        "holonomy_baseline": 1.7055587618396741,
+        "holonomy_steered": 1.0187203554204995
+      }
+    },
+    "What is the relationship between gratitude and contentment?": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.2248465654409525,
+          "rho_steered": 0.2248465654409525,
+          "holonomy_baseline": 1.037944218676005,
+          "holonomy_steered": 1.037944218676005
+        },
+        "1": {
+          "rho_baseline": 0.20197484252457867,
+          "rho_steered": 0.20197484252457867,
+          "holonomy_baseline": 0.8405608777289412,
+          "holonomy_steered": 0.8405608777289412
+        },
+        "2": {
+          "rho_baseline": 0.23195099671615907,
+          "rho_steered": 0.23195099671615907,
+          "holonomy_baseline": 1.061795341017257,
+          "holonomy_steered": 1.061795341017257
+        },
+        "3": {
+          "rho_baseline": 0.3733510976273924,
+          "rho_steered": 0.3733510976273924,
+          "holonomy_baseline": 1.8190539038873146,
+          "holonomy_steered": 1.8190539038873146
+        },
+        "4": {
+          "rho_baseline": 0.34647244596455185,
+          "rho_steered": 0.34647244596455185,
+          "holonomy_baseline": 1.6099918730989364,
+          "holonomy_steered": 1.6099918730989364
+        },
+        "5": {
+          "rho_baseline": 0.35292193066689653,
+          "rho_steered": 0.35292193066689653,
+          "holonomy_baseline": 1.5935646419945573,
+          "holonomy_steered": 1.5935646419945573
+        },
+        "6": {
+          "rho_baseline": 0.3524529816681596,
+          "rho_steered": 0.3524529816681596,
+          "holonomy_baseline": 1.7536277724429965,
+          "holonomy_steered": 1.7536277724429965
+        },
+        "7": {
+          "rho_baseline": 0.326377348819475,
+          "rho_steered": 0.326377348819475,
+          "holonomy_baseline": 1.5629036163112948,
+          "holonomy_steered": 1.5629036163112948
+        },
+        "8": {
+          "rho_baseline": 0.40671560420840147,
+          "rho_steered": 0.40671560420840147,
+          "holonomy_baseline": 2.0189875533937345,
+          "holonomy_steered": 2.0189875533937345
+        },
+        "9": {
+          "rho_baseline": 0.34248109731663273,
+          "rho_steered": 0.34248109731663273,
+          "holonomy_baseline": 1.6858909424793507,
+          "holonomy_steered": 1.6858909424793507
+        },
+        "10": {
+          "rho_baseline": 0.3374365439524985,
+          "rho_steered": 0.3374365439524985,
+          "holonomy_baseline": 1.6291831064570164,
+          "holonomy_steered": 1.6291831064570164
+        },
+        "11": {
+          "rho_baseline": 0.35233626178597194,
+          "rho_steered": 0.35233626178597194,
+          "holonomy_baseline": 1.8110402103713048,
+          "holonomy_steered": 1.8110402103713048
+        },
+        "12": {
+          "rho_baseline": 0.41152799412108454,
+          "rho_steered": 0.1419966967581798,
+          "holonomy_baseline": 2.1742059527896345,
+          "holonomy_steered": 1.0961838267311188
+        },
+        "13": {
+          "rho_baseline": 0.39361253917007144,
+          "rho_steered": 0.07403444128371364,
+          "holonomy_baseline": 2.1343537641556134,
+          "holonomy_steered": 0.8572431663602141
+        },
+        "14": {
+          "rho_baseline": 0.41027726507612905,
+          "rho_steered": 0.044789395164682534,
+          "holonomy_baseline": 2.1735558609611223,
+          "holonomy_steered": 0.5258043339428176
+        },
+        "15": {
+          "rho_baseline": 0.3554455590310624,
+          "rho_steered": 0.04075119571080535,
+          "holonomy_baseline": 1.8182677122697766,
+          "holonomy_steered": 0.40870013194424765
+        },
+        "16": {
+          "rho_baseline": 0.3681169395876449,
+          "rho_steered": 0.06577943902886958,
+          "holonomy_baseline": 1.8021002732483404,
+          "holonomy_steered": 0.41063233412985156
+        },
+        "17": {
+          "rho_baseline": 0.3490270026018055,
+          "rho_steered": 0.08351605505213373,
+          "holonomy_baseline": 1.691049864183047,
+          "holonomy_steered": 0.4883371970915635
+        },
+        "18": {
+          "rho_baseline": 0.3468573538606022,
+          "rho_steered": 0.09847250577429148,
+          "holonomy_baseline": 1.736192420524146,
+          "holonomy_steered": 0.5690372676971103
+        },
+        "19": {
+          "rho_baseline": 0.36637561712153416,
+          "rho_steered": 0.12222946085004209,
+          "holonomy_baseline": 1.8017504250497691,
+          "holonomy_steered": 0.6839275803982413
+        },
+        "20": {
+          "rho_baseline": 0.37267086562810364,
+          "rho_steered": 0.10998332936620003,
+          "holonomy_baseline": 1.8417600190400012,
+          "holonomy_steered": 0.7293654722826821
+        },
+        "21": {
+          "rho_baseline": 0.39658073600183696,
+          "rho_steered": 0.11347884139160931,
+          "holonomy_baseline": 1.939218214979129,
+          "holonomy_steered": 0.7293084965785965
+        },
+        "22": {
+          "rho_baseline": 0.3766384400798475,
+          "rho_steered": 0.10858093104119046,
+          "holonomy_baseline": 1.839226380323193,
+          "holonomy_steered": 0.7537263057061604
+        },
+        "23": {
+          "rho_baseline": 0.3854574281857951,
+          "rho_steered": 0.11782875376067445,
+          "holonomy_baseline": 1.8919317810463585,
+          "holonomy_steered": 0.7764539574771854
+        },
+        "24": {
+          "rho_baseline": 0.39682644555886765,
+          "rho_steered": 0.10759818343065598,
+          "holonomy_baseline": 1.9893319040669928,
+          "holonomy_steered": 0.8055197839525395
+        },
+        "25": {
+          "rho_baseline": 0.3875095378869555,
+          "rho_steered": 0.12749042153036,
+          "holonomy_baseline": 1.9330803333515567,
+          "holonomy_steered": 0.8492264724336565
+        },
+        "26": {
+          "rho_baseline": 0.38716378394087,
+          "rho_steered": 0.10128662100822702,
+          "holonomy_baseline": 1.894424384060715,
+          "holonomy_steered": 0.8341212427809036
+        },
+        "27": {
+          "rho_baseline": 0.38401463951175036,
+          "rho_steered": 0.12001268564416537,
+          "holonomy_baseline": 1.882212874679161,
+          "holonomy_steered": 0.7671184915234335
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.3549078522877011,
+        "rho_steered": 0.19382666691026681,
+        "holonomy_baseline": 1.748828793663831,
+        "holonomy_steered": 1.0610446471031796
+      }
+    },
+    "Discuss the tension between individual freedom and communal duty.": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.2125062797712442,
+          "rho_steered": 0.2125062797712442,
+          "holonomy_baseline": 1.1104580316293453,
+          "holonomy_steered": 1.1104580316293453
+        },
+        "1": {
+          "rho_baseline": 0.1919115140442346,
+          "rho_steered": 0.1919115140442346,
+          "holonomy_baseline": 0.9115435732611721,
+          "holonomy_steered": 0.9115435732611721
+        },
+        "2": {
+          "rho_baseline": 0.23751097737110446,
+          "rho_steered": 0.23751097737110446,
+          "holonomy_baseline": 1.1378142882271536,
+          "holonomy_steered": 1.1378142882271536
+        },
+        "3": {
+          "rho_baseline": 0.36670319464509427,
+          "rho_steered": 0.36670319464509427,
+          "holonomy_baseline": 1.736873169862,
+          "holonomy_steered": 1.736873169862
+        },
+        "4": {
+          "rho_baseline": 0.3349762672376406,
+          "rho_steered": 0.3349762672376406,
+          "holonomy_baseline": 1.4975398440146819,
+          "holonomy_steered": 1.4975398440146819
+        },
+        "5": {
+          "rho_baseline": 0.34228681349467094,
+          "rho_steered": 0.34228681349467094,
+          "holonomy_baseline": 1.510329016218228,
+          "holonomy_steered": 1.510329016218228
+        },
+        "6": {
+          "rho_baseline": 0.3384852791005862,
+          "rho_steered": 0.3384852791005862,
+          "holonomy_baseline": 1.6509791813524706,
+          "holonomy_steered": 1.6509791813524706
+        },
+        "7": {
+          "rho_baseline": 0.2899702826340269,
+          "rho_steered": 0.2899702826340269,
+          "holonomy_baseline": 1.3228527730264301,
+          "holonomy_steered": 1.3228527730264301
+        },
+        "8": {
+          "rho_baseline": 0.360726449291516,
+          "rho_steered": 0.360726449291516,
+          "holonomy_baseline": 1.7026559039617755,
+          "holonomy_steered": 1.7026559039617755
+        },
+        "9": {
+          "rho_baseline": 0.3054499766261506,
+          "rho_steered": 0.3054499766261506,
+          "holonomy_baseline": 1.4421287759739374,
+          "holonomy_steered": 1.4421287759739374
+        },
+        "10": {
+          "rho_baseline": 0.2670039345908586,
+          "rho_steered": 0.2670039345908586,
+          "holonomy_baseline": 1.2091720836303597,
+          "holonomy_steered": 1.2091720836303597
+        },
+        "11": {
+          "rho_baseline": 0.3281115411970702,
+          "rho_steered": 0.3281115411970702,
+          "holonomy_baseline": 1.5800270076641547,
+          "holonomy_steered": 1.5800270076641547
+        },
+        "12": {
+          "rho_baseline": 0.31730648947073925,
+          "rho_steered": 0.06724183903659374,
+          "holonomy_baseline": 1.5897781965322793,
+          "holonomy_steered": 0.3948048404334778
+        },
+        "13": {
+          "rho_baseline": 0.2700135716586209,
+          "rho_steered": 0.08960465920286144,
+          "holonomy_baseline": 1.3014562612765337,
+          "holonomy_steered": 0.7222719815493162
+        },
+        "14": {
+          "rho_baseline": 0.33108536311471914,
+          "rho_steered": 0.08185653607066985,
+          "holonomy_baseline": 1.5421044529149575,
+          "holonomy_steered": 0.8025267159142199
+        },
+        "15": {
+          "rho_baseline": 0.321214658009061,
+          "rho_steered": 0.07848104061308794,
+          "holonomy_baseline": 1.5706311537485038,
+          "holonomy_steered": 0.645885398777734
+        },
+        "16": {
+          "rho_baseline": 0.3388196978781706,
+          "rho_steered": 0.0748994704593024,
+          "holonomy_baseline": 1.5987586241015899,
+          "holonomy_steered": 0.7657718313525298
+        },
+        "17": {
+          "rho_baseline": 0.33622052289433874,
+          "rho_steered": 0.07638503095268522,
+          "holonomy_baseline": 1.5624794795044832,
+          "holonomy_steered": 0.8142589468708528
+        },
+        "18": {
+          "rho_baseline": 0.32205516502204684,
+          "rho_steered": 0.07222792164867026,
+          "holonomy_baseline": 1.4895286795051237,
+          "holonomy_steered": 0.9581105307941991
+        },
+        "19": {
+          "rho_baseline": 0.35322306010067916,
+          "rho_steered": 0.09464986182576429,
+          "holonomy_baseline": 1.7044566996794726,
+          "holonomy_steered": 1.0183612013435257
+        },
+        "20": {
+          "rho_baseline": 0.3690937374138674,
+          "rho_steered": 0.0749127902131326,
+          "holonomy_baseline": 1.8418006714034294,
+          "holonomy_steered": 0.9590378470685599
+        },
+        "21": {
+          "rho_baseline": 0.38689831225715493,
+          "rho_steered": 0.08474753931613781,
+          "holonomy_baseline": 1.9453234813575233,
+          "holonomy_steered": 0.9659197163335713
+        },
+        "22": {
+          "rho_baseline": 0.3766791641233355,
+          "rho_steered": 0.0855103856228455,
+          "holonomy_baseline": 1.8415546123537103,
+          "holonomy_steered": 0.9322386558633298
+        },
+        "23": {
+          "rho_baseline": 0.37605847756615823,
+          "rho_steered": 0.10382658627551773,
+          "holonomy_baseline": 1.8510002998102988,
+          "holonomy_steered": 0.997534679115883
+        },
+        "24": {
+          "rho_baseline": 0.38782471873059793,
+          "rho_steered": 0.09057588754682812,
+          "holonomy_baseline": 1.8971130769101106,
+          "holonomy_steered": 0.9431826363517237
+        },
+        "25": {
+          "rho_baseline": 0.3717043176343294,
+          "rho_steered": 0.11478982288178723,
+          "holonomy_baseline": 1.8219123988944506,
+          "holonomy_steered": 0.9913748187412108
+        },
+        "26": {
+          "rho_baseline": 0.3845769885905204,
+          "rho_steered": 0.10995855146344458,
+          "holonomy_baseline": 1.8836340350764138,
+          "holonomy_steered": 0.9033212188764342
+        },
+        "27": {
+          "rho_baseline": 0.37993460089824044,
+          "rho_steered": 0.09714568619613148,
+          "holonomy_baseline": 1.8609265960486872,
+          "holonomy_steered": 0.9777857799365718
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.3285125484059563,
+        "rho_steered": 0.17758771854748776,
+        "holonomy_baseline": 1.5755297274264028,
+        "holonomy_steered": 1.093027158862316
+      }
+    },
+    "The engineer debugged the program before the deadline.": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.23275486154792824,
+          "rho_steered": 0.23275486154792824,
+          "holonomy_baseline": 1.0948762540106796,
+          "holonomy_steered": 1.0948762540106796
+        },
+        "1": {
+          "rho_baseline": 0.20938271277739698,
+          "rho_steered": 0.20938271277739698,
+          "holonomy_baseline": 0.9290171913370224,
+          "holonomy_steered": 0.9290171913370224
+        },
+        "2": {
+          "rho_baseline": 0.2554594465755644,
+          "rho_steered": 0.2554594465755644,
+          "holonomy_baseline": 1.1026312140415289,
+          "holonomy_steered": 1.1026312140415289
+        },
+        "3": {
+          "rho_baseline": 0.3534284202039635,
+          "rho_steered": 0.3534284202039635,
+          "holonomy_baseline": 1.7477810371866715,
+          "holonomy_steered": 1.7477810371866715
+        },
+        "4": {
+          "rho_baseline": 0.344891934461655,
+          "rho_steered": 0.344891934461655,
+          "holonomy_baseline": 1.5917089135286264,
+          "holonomy_steered": 1.5917089135286264
+        },
+        "5": {
+          "rho_baseline": 0.33217637503709013,
+          "rho_steered": 0.33217637503709013,
+          "holonomy_baseline": 1.5057772597896733,
+          "holonomy_steered": 1.5057772597896733
+        },
+        "6": {
+          "rho_baseline": 0.3205868798429246,
+          "rho_steered": 0.3205868798429246,
+          "holonomy_baseline": 1.547979885911835,
+          "holonomy_steered": 1.547979885911835
+        },
+        "7": {
+          "rho_baseline": 0.30610457092455756,
+          "rho_steered": 0.30610457092455756,
+          "holonomy_baseline": 1.4163205965721448,
+          "holonomy_steered": 1.4163205965721448
+        },
+        "8": {
+          "rho_baseline": 0.35915324676682114,
+          "rho_steered": 0.35915324676682114,
+          "holonomy_baseline": 1.6855909830691027,
+          "holonomy_steered": 1.6855909830691027
+        },
+        "9": {
+          "rho_baseline": 0.3215690271138771,
+          "rho_steered": 0.3215690271138771,
+          "holonomy_baseline": 1.5220661173308534,
+          "holonomy_steered": 1.5220661173308534
+        },
+        "10": {
+          "rho_baseline": 0.26861788365130385,
+          "rho_steered": 0.26861788365130385,
+          "holonomy_baseline": 1.2228573196501071,
+          "holonomy_steered": 1.2228573196501071
+        },
+        "11": {
+          "rho_baseline": 0.33846587642911263,
+          "rho_steered": 0.33846587642911263,
+          "holonomy_baseline": 1.59125542968312,
+          "holonomy_steered": 1.59125542968312
+        },
+        "12": {
+          "rho_baseline": 0.35991254236121634,
+          "rho_steered": 0.1610026458680874,
+          "holonomy_baseline": 1.6920534832669156,
+          "holonomy_steered": 0.8169726024082463
+        },
+        "13": {
+          "rho_baseline": 0.3546490511696526,
+          "rho_steered": 0.15095169770015218,
+          "holonomy_baseline": 1.7022877634902085,
+          "holonomy_steered": 0.7749665668109499
+        },
+        "14": {
+          "rho_baseline": 0.36855716757853396,
+          "rho_steered": 0.1250284120239355,
+          "holonomy_baseline": 1.6837320306471415,
+          "holonomy_steered": 0.7663229489324814
+        },
+        "15": {
+          "rho_baseline": 0.3339751573439151,
+          "rho_steered": 0.1276869155630808,
+          "holonomy_baseline": 1.6690660021766754,
+          "holonomy_steered": 0.6526338638172352
+        },
+        "16": {
+          "rho_baseline": 0.35116436752525626,
+          "rho_steered": 0.10249375333074989,
+          "holonomy_baseline": 1.664811621453347,
+          "holonomy_steered": 0.6416176013715033
+        },
+        "17": {
+          "rho_baseline": 0.3194232595617906,
+          "rho_steered": 0.1077943809067357,
+          "holonomy_baseline": 1.4726633388033536,
+          "holonomy_steered": 0.7095538960337373
+        },
+        "18": {
+          "rho_baseline": 0.3404566686694286,
+          "rho_steered": 0.09551716863394451,
+          "holonomy_baseline": 1.654313881815012,
+          "holonomy_steered": 0.813483251874069
+        },
+        "19": {
+          "rho_baseline": 0.35166759643956397,
+          "rho_steered": 0.10659630482111328,
+          "holonomy_baseline": 1.6907749679937427,
+          "holonomy_steered": 0.8739484956354967
+        },
+        "20": {
+          "rho_baseline": 0.36051544746537295,
+          "rho_steered": 0.08134084993440421,
+          "holonomy_baseline": 1.8444136274047196,
+          "holonomy_steered": 0.8741619483667559
+        },
+        "21": {
+          "rho_baseline": 0.3960260011502536,
+          "rho_steered": 0.09546564097497298,
+          "holonomy_baseline": 1.9961592416678156,
+          "holonomy_steered": 0.8788278123829514
+        },
+        "22": {
+          "rho_baseline": 0.38554128118599307,
+          "rho_steered": 0.09138999328841359,
+          "holonomy_baseline": 1.909583669854328,
+          "holonomy_steered": 0.8749590257648379
+        },
+        "23": {
+          "rho_baseline": 0.3740575424913716,
+          "rho_steered": 0.11056019334245414,
+          "holonomy_baseline": 1.8631975403321641,
+          "holonomy_steered": 0.9310375517234206
+        },
+        "24": {
+          "rho_baseline": 0.3818533470499779,
+          "rho_steered": 0.09806551465436733,
+          "holonomy_baseline": 1.9540716853059297,
+          "holonomy_steered": 0.8972505876528365
+        },
+        "25": {
+          "rho_baseline": 0.3830273687733409,
+          "rho_steered": 0.12176632912919376,
+          "holonomy_baseline": 1.9952980881290776,
+          "holonomy_steered": 0.9396439018060586
+        },
+        "26": {
+          "rho_baseline": 0.38521489144244736,
+          "rho_steered": 0.115488549346399,
+          "holonomy_baseline": 1.968815158586949,
+          "holonomy_steered": 0.8699025814421475
+        },
+        "27": {
+          "rho_baseline": 0.38937243213890527,
+          "rho_steered": 0.1039714998170387,
+          "holonomy_baseline": 1.9458970418865127,
+          "holonomy_steered": 0.9122772675889012
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.33850019134568626,
+        "rho_steered": 0.1942039673095442,
+        "holonomy_baseline": 1.630892905175902,
+        "holonomy_steered": 1.0780507894901068
+      }
+    },
+    "Man bites dog is news, dog bites man is not.": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.24857138803049522,
+          "rho_steered": 0.24857138803049522,
+          "holonomy_baseline": 1.2156520170725085,
+          "holonomy_steered": 1.2156520170725085
+        },
+        "1": {
+          "rho_baseline": 0.2198358599765461,
+          "rho_steered": 0.2198358599765461,
+          "holonomy_baseline": 0.940090599785825,
+          "holonomy_steered": 0.940090599785825
+        },
+        "2": {
+          "rho_baseline": 0.25721824757886325,
+          "rho_steered": 0.25721824757886325,
+          "holonomy_baseline": 1.1630731572264008,
+          "holonomy_steered": 1.1630731572264008
+        },
+        "3": {
+          "rho_baseline": 0.3612387192184043,
+          "rho_steered": 0.3612387192184043,
+          "holonomy_baseline": 1.7135031850609397,
+          "holonomy_steered": 1.7135031850609397
+        },
+        "4": {
+          "rho_baseline": 0.3486016490544151,
+          "rho_steered": 0.3486016490544151,
+          "holonomy_baseline": 1.648125710531271,
+          "holonomy_steered": 1.648125710531271
+        },
+        "5": {
+          "rho_baseline": 0.34705448216255036,
+          "rho_steered": 0.34705448216255036,
+          "holonomy_baseline": 1.6242810257910085,
+          "holonomy_steered": 1.6242810257910085
+        },
+        "6": {
+          "rho_baseline": 0.326567980887887,
+          "rho_steered": 0.326567980887887,
+          "holonomy_baseline": 1.5247676092133458,
+          "holonomy_steered": 1.5247676092133458
+        },
+        "7": {
+          "rho_baseline": 0.28448601909343263,
+          "rho_steered": 0.28448601909343263,
+          "holonomy_baseline": 1.2932772882548826,
+          "holonomy_steered": 1.2932772882548826
+        },
+        "8": {
+          "rho_baseline": 0.3289545333716088,
+          "rho_steered": 0.3289545333716088,
+          "holonomy_baseline": 1.498571208944278,
+          "holonomy_steered": 1.498571208944278
+        },
+        "9": {
+          "rho_baseline": 0.2937119252282815,
+          "rho_steered": 0.2937119252282815,
+          "holonomy_baseline": 1.315048171739493,
+          "holonomy_steered": 1.315048171739493
+        },
+        "10": {
+          "rho_baseline": 0.2644607886582651,
+          "rho_steered": 0.2644607886582651,
+          "holonomy_baseline": 1.1287864083091594,
+          "holonomy_steered": 1.1287864083091594
+        },
+        "11": {
+          "rho_baseline": 0.3135649047591906,
+          "rho_steered": 0.3135649047591906,
+          "holonomy_baseline": 1.4415237671429557,
+          "holonomy_steered": 1.4415237671429557
+        },
+        "12": {
+          "rho_baseline": 0.293863636449714,
+          "rho_steered": 0.06340716461511756,
+          "holonomy_baseline": 1.320657673923831,
+          "holonomy_steered": 0.35262655161620515
+        },
+        "13": {
+          "rho_baseline": 0.28164575525911645,
+          "rho_steered": 0.09925616695242154,
+          "holonomy_baseline": 1.258398414223588,
+          "holonomy_steered": 0.6723376400935065
+        },
+        "14": {
+          "rho_baseline": 0.31108980618995347,
+          "rho_steered": 0.0912731826635681,
+          "holonomy_baseline": 1.338401457061991,
+          "holonomy_steered": 0.7913389677580979
+        },
+        "15": {
+          "rho_baseline": 0.29446968903175164,
+          "rho_steered": 0.08743656546689976,
+          "holonomy_baseline": 1.322027105937845,
+          "holonomy_steered": 0.613701182450833
+        },
+        "16": {
+          "rho_baseline": 0.3222915806273542,
+          "rho_steered": 0.08409555375499414,
+          "holonomy_baseline": 1.4557631565923137,
+          "holonomy_steered": 0.7167839355367635
+        },
+        "17": {
+          "rho_baseline": 0.29835217875628434,
+          "rho_steered": 0.09207500733863287,
+          "holonomy_baseline": 1.3383880391816743,
+          "holonomy_steered": 0.8431381198710629
+        },
+        "18": {
+          "rho_baseline": 0.30594239436050447,
+          "rho_steered": 0.08708030653411164,
+          "holonomy_baseline": 1.4192506353969552,
+          "holonomy_steered": 0.9895374609290489
+        },
+        "19": {
+          "rho_baseline": 0.3249501044078903,
+          "rho_steered": 0.10824395237127256,
+          "holonomy_baseline": 1.5296077755878545,
+          "holonomy_steered": 1.0531577163242867
+        },
+        "20": {
+          "rho_baseline": 0.34862533566497445,
+          "rho_steered": 0.08901012370625073,
+          "holonomy_baseline": 1.7639784102793783,
+          "holonomy_steered": 1.0361829528452031
+        },
+        "21": {
+          "rho_baseline": 0.39509644898176877,
+          "rho_steered": 0.09931123798636639,
+          "holonomy_baseline": 1.983457911759615,
+          "holonomy_steered": 1.0213368465192616
+        },
+        "22": {
+          "rho_baseline": 0.36642175819097267,
+          "rho_steered": 0.10358340910332069,
+          "holonomy_baseline": 1.7988561454029488,
+          "holonomy_steered": 1.0233194057696633
+        },
+        "23": {
+          "rho_baseline": 0.3683676712015244,
+          "rho_steered": 0.12358139386001707,
+          "holonomy_baseline": 1.8515925986825355,
+          "holonomy_steered": 1.06463860653873
+        },
+        "24": {
+          "rho_baseline": 0.38587384286461207,
+          "rho_steered": 0.10751736165948764,
+          "holonomy_baseline": 1.885562936176679,
+          "holonomy_steered": 1.024556103960744
+        },
+        "25": {
+          "rho_baseline": 0.38221165389498646,
+          "rho_steered": 0.1403568758426265,
+          "holonomy_baseline": 1.9307663044227021,
+          "holonomy_steered": 1.0504769805286611
+        },
+        "26": {
+          "rho_baseline": 0.37349071905378833,
+          "rho_steered": 0.12934449909668672,
+          "holonomy_baseline": 1.8367520200221668,
+          "holonomy_steered": 0.9696605619974434
+        },
+        "27": {
+          "rho_baseline": 0.38877205112331187,
+          "rho_steered": 0.11747689697729889,
+          "holonomy_baseline": 1.9476345594905848,
+          "holonomy_steered": 1.088379809100713
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.3227046830028017,
+        "rho_steered": 0.1863327212838933,
+        "holonomy_baseline": 1.5174212604719546,
+        "holonomy_steered": 1.1006383211040105
+      }
+    },
+    "The committee postponed the vote until next quarter's meeting.": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.24412988963627696,
+          "rho_steered": 0.24412988963627696,
+          "holonomy_baseline": 1.1793042790876436,
+          "holonomy_steered": 1.1793042790876436
+        },
+        "1": {
+          "rho_baseline": 0.1919477712855261,
+          "rho_steered": 0.1919477712855261,
+          "holonomy_baseline": 0.8263127718320382,
+          "holonomy_steered": 0.8263127718320382
+        },
+        "2": {
+          "rho_baseline": 0.23934380049002218,
+          "rho_steered": 0.23934380049002218,
+          "holonomy_baseline": 1.0428824508562684,
+          "holonomy_steered": 1.0428824508562684
+        },
+        "3": {
+          "rho_baseline": 0.3691916973825776,
+          "rho_steered": 0.3691916973825776,
+          "holonomy_baseline": 1.7829158479746963,
+          "holonomy_steered": 1.7829158479746963
+        },
+        "4": {
+          "rho_baseline": 0.342054655661384,
+          "rho_steered": 0.342054655661384,
+          "holonomy_baseline": 1.5361207959109118,
+          "holonomy_steered": 1.5361207959109118
+        },
+        "5": {
+          "rho_baseline": 0.3490587784173456,
+          "rho_steered": 0.3490587784173456,
+          "holonomy_baseline": 1.5888330292821462,
+          "holonomy_steered": 1.5888330292821462
+        },
+        "6": {
+          "rho_baseline": 0.3379234008811874,
+          "rho_steered": 0.3379234008811874,
+          "holonomy_baseline": 1.6130096410135073,
+          "holonomy_steered": 1.6130096410135073
+        },
+        "7": {
+          "rho_baseline": 0.299518972398915,
+          "rho_steered": 0.299518972398915,
+          "holonomy_baseline": 1.3705457445300584,
+          "holonomy_steered": 1.3705457445300584
+        },
+        "8": {
+          "rho_baseline": 0.35330191712870695,
+          "rho_steered": 0.35330191712870695,
+          "holonomy_baseline": 1.634708950528875,
+          "holonomy_steered": 1.634708950528875
+        },
+        "9": {
+          "rho_baseline": 0.31494750729619136,
+          "rho_steered": 0.31494750729619136,
+          "holonomy_baseline": 1.4162381969924485,
+          "holonomy_steered": 1.4162381969924485
+        },
+        "10": {
+          "rho_baseline": 0.281225409881054,
+          "rho_steered": 0.281225409881054,
+          "holonomy_baseline": 1.2840342351368494,
+          "holonomy_steered": 1.2840342351368494
+        },
+        "11": {
+          "rho_baseline": 0.31929416728732124,
+          "rho_steered": 0.31929416728732124,
+          "holonomy_baseline": 1.5119343278929591,
+          "holonomy_steered": 1.5119343278929591
+        },
+        "12": {
+          "rho_baseline": 0.32323017517933306,
+          "rho_steered": 0.050148966066315234,
+          "holonomy_baseline": 1.5518113770522177,
+          "holonomy_steered": 0.246669883947886
+        },
+        "13": {
+          "rho_baseline": 0.2962797212337844,
+          "rho_steered": 0.08799921291823634,
+          "holonomy_baseline": 1.350883888296916,
+          "holonomy_steered": 0.5549113191788949
+        },
+        "14": {
+          "rho_baseline": 0.3221333385772984,
+          "rho_steered": 0.0823834269268859,
+          "holonomy_baseline": 1.4756108752917498,
+          "holonomy_steered": 0.652821690627856
+        },
+        "15": {
+          "rho_baseline": 0.33563638047835437,
+          "rho_steered": 0.08035030004683572,
+          "holonomy_baseline": 1.6330003531849278,
+          "holonomy_steered": 0.48489939410605337
+        },
+        "16": {
+          "rho_baseline": 0.3523865219574442,
+          "rho_steered": 0.07722389612801607,
+          "holonomy_baseline": 1.6076986032671163,
+          "holonomy_steered": 0.5893448617342594
+        },
+        "17": {
+          "rho_baseline": 0.3261699749185072,
+          "rho_steered": 0.0804606830290354,
+          "holonomy_baseline": 1.4988245939769382,
+          "holonomy_steered": 0.6777953231773739
+        },
+        "18": {
+          "rho_baseline": 0.3410061072723956,
+          "rho_steered": 0.08525512894803472,
+          "holonomy_baseline": 1.6317331731385951,
+          "holonomy_steered": 0.8071452501795388
+        },
+        "19": {
+          "rho_baseline": 0.3455712143745998,
+          "rho_steered": 0.10107973522194869,
+          "holonomy_baseline": 1.652146796762411,
+          "holonomy_steered": 0.8703223258323436
+        },
+        "20": {
+          "rho_baseline": 0.36746522801947523,
+          "rho_steered": 0.08219130169758063,
+          "holonomy_baseline": 1.8137890748746162,
+          "holonomy_steered": 0.8687605889447566
+        },
+        "21": {
+          "rho_baseline": 0.3939632297916553,
+          "rho_steered": 0.090931714465223,
+          "holonomy_baseline": 1.9512616251595318,
+          "holonomy_steered": 0.8510288790400539
+        },
+        "22": {
+          "rho_baseline": 0.3817081986691299,
+          "rho_steered": 0.09032425198123967,
+          "holonomy_baseline": 1.8198993970373911,
+          "holonomy_steered": 0.8484999070808823
+        },
+        "23": {
+          "rho_baseline": 0.3807020875480029,
+          "rho_steered": 0.10511906917775415,
+          "holonomy_baseline": 1.8461403350146222,
+          "holonomy_steered": 0.8937460237648338
+        },
+        "24": {
+          "rho_baseline": 0.38126145761048574,
+          "rho_steered": 0.09564787212880556,
+          "holonomy_baseline": 1.8558892425748388,
+          "holonomy_steered": 0.8500127878505737
+        },
+        "25": {
+          "rho_baseline": 0.3786005055122388,
+          "rho_steered": 0.12013987580054182,
+          "holonomy_baseline": 1.8711395445279777,
+          "holonomy_steered": 0.8846191456874034
+        },
+        "26": {
+          "rho_baseline": 0.38402992292610744,
+          "rho_steered": 0.1070856297729833,
+          "holonomy_baseline": 1.8946117292424398,
+          "holonomy_steered": 0.8067099307164816
+        },
+        "27": {
+          "rho_baseline": 0.38873743277566714,
+          "rho_steered": 0.10979972771017925,
+          "holonomy_baseline": 1.8632725284634424,
+          "holonomy_steered": 0.9017620521065379
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.33360069516396385,
+        "rho_steered": 0.18171709856307586,
+        "holonomy_baseline": 1.5751626217465762,
+        "holonomy_steered": 1.0205674869647905
+      }
+    },
+    "Explain how photosynthesis converts light into chemical energy.": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.22629837904563893,
+          "rho_steered": 0.22629837904563893,
+          "holonomy_baseline": 1.059134362864175,
+          "holonomy_steered": 1.059134362864175
+        },
+        "1": {
+          "rho_baseline": 0.2002303555273297,
+          "rho_steered": 0.2002303555273297,
+          "holonomy_baseline": 0.8270394484612292,
+          "holonomy_steered": 0.8270394484612292
+        },
+        "2": {
+          "rho_baseline": 0.2574442631579069,
+          "rho_steered": 0.2574442631579069,
+          "holonomy_baseline": 1.1494079404510558,
+          "holonomy_steered": 1.1494079404510558
+        },
+        "3": {
+          "rho_baseline": 0.3771276467411665,
+          "rho_steered": 0.3771276467411665,
+          "holonomy_baseline": 1.8181540560908616,
+          "holonomy_steered": 1.8181540560908616
+        },
+        "4": {
+          "rho_baseline": 0.3465539451773589,
+          "rho_steered": 0.3465539451773589,
+          "holonomy_baseline": 1.5575147556540156,
+          "holonomy_steered": 1.5575147556540156
+        },
+        "5": {
+          "rho_baseline": 0.34259757183812073,
+          "rho_steered": 0.34259757183812073,
+          "holonomy_baseline": 1.5378534780549151,
+          "holonomy_steered": 1.5378534780549151
+        },
+        "6": {
+          "rho_baseline": 0.3424160375606963,
+          "rho_steered": 0.3424160375606963,
+          "holonomy_baseline": 1.6754443293570407,
+          "holonomy_steered": 1.6754443293570407
+        },
+        "7": {
+          "rho_baseline": 0.32015194069909575,
+          "rho_steered": 0.32015194069909575,
+          "holonomy_baseline": 1.4765744681603141,
+          "holonomy_steered": 1.4765744681603141
+        },
+        "8": {
+          "rho_baseline": 0.3716918140830649,
+          "rho_steered": 0.3716918140830649,
+          "holonomy_baseline": 1.6665992534586362,
+          "holonomy_steered": 1.6665992534586362
+        },
+        "9": {
+          "rho_baseline": 0.3345785943701513,
+          "rho_steered": 0.3345785943701513,
+          "holonomy_baseline": 1.5181152844868069,
+          "holonomy_steered": 1.5181152844868069
+        },
+        "10": {
+          "rho_baseline": 0.2929948552665609,
+          "rho_steered": 0.2929948552665609,
+          "holonomy_baseline": 1.3357965589966625,
+          "holonomy_steered": 1.3357965589966625
+        },
+        "11": {
+          "rho_baseline": 0.3335679183320276,
+          "rho_steered": 0.3335679183320276,
+          "holonomy_baseline": 1.6409558070424413,
+          "holonomy_steered": 1.6409558070424413
+        },
+        "12": {
+          "rho_baseline": 0.3368059183021455,
+          "rho_steered": 0.05563467732457231,
+          "holonomy_baseline": 1.5921414255031516,
+          "holonomy_steered": 0.2687873583095747
+        },
+        "13": {
+          "rho_baseline": 0.30951231288389736,
+          "rho_steered": 0.08990499031429615,
+          "holonomy_baseline": 1.482048028414803,
+          "holonomy_steered": 0.5752005013387783
+        },
+        "14": {
+          "rho_baseline": 0.34681312658162083,
+          "rho_steered": 0.08589764940243366,
+          "holonomy_baseline": 1.6026437910872378,
+          "holonomy_steered": 0.6526758049731143
+        },
+        "15": {
+          "rho_baseline": 0.3394598788576914,
+          "rho_steered": 0.0821157837255089,
+          "holonomy_baseline": 1.6550244065666837,
+          "holonomy_steered": 0.5100220406311564
+        },
+        "16": {
+          "rho_baseline": 0.3591038817871803,
+          "rho_steered": 0.0771419765797449,
+          "holonomy_baseline": 1.66144412227108,
+          "holonomy_steered": 0.5962575044915346
+        },
+        "17": {
+          "rho_baseline": 0.3265301388969083,
+          "rho_steered": 0.08303485068223014,
+          "holonomy_baseline": 1.498116848657706,
+          "holonomy_steered": 0.6705735157676307
+        },
+        "18": {
+          "rho_baseline": 0.34164364216879994,
+          "rho_steered": 0.08360623054263791,
+          "holonomy_baseline": 1.6101983108923639,
+          "holonomy_steered": 0.7995996942211475
+        },
+        "19": {
+          "rho_baseline": 0.3621460410080412,
+          "rho_steered": 0.09865929603264358,
+          "holonomy_baseline": 1.719396918513147,
+          "holonomy_steered": 0.8570187961449847
+        },
+        "20": {
+          "rho_baseline": 0.37203094308772516,
+          "rho_steered": 0.08094809800075478,
+          "holonomy_baseline": 1.833342094040875,
+          "holonomy_steered": 0.8124270758292239
+        },
+        "21": {
+          "rho_baseline": 0.3953264197376865,
+          "rho_steered": 0.087577193723872,
+          "holonomy_baseline": 1.909511818484004,
+          "holonomy_steered": 0.8055279605656064
+        },
+        "22": {
+          "rho_baseline": 0.37782370902545176,
+          "rho_steered": 0.09031185075481904,
+          "holonomy_baseline": 1.7634734362363815,
+          "holonomy_steered": 0.7965015989528703
+        },
+        "23": {
+          "rho_baseline": 0.3776299631878285,
+          "rho_steered": 0.10628521590675584,
+          "holonomy_baseline": 1.8003758464806847,
+          "holonomy_steered": 0.8592929166874715
+        },
+        "24": {
+          "rho_baseline": 0.40116640557160094,
+          "rho_steered": 0.09085991965956257,
+          "holonomy_baseline": 1.9169795573689044,
+          "holonomy_steered": 0.8071728766164077
+        },
+        "25": {
+          "rho_baseline": 0.39394588249647555,
+          "rho_steered": 0.11668935731699648,
+          "holonomy_baseline": 1.9195471402656819,
+          "holonomy_steered": 0.8497645434856946
+        },
+        "26": {
+          "rho_baseline": 0.3860631080206154,
+          "rho_steered": 0.10464489889799347,
+          "holonomy_baseline": 1.8273710634426348,
+          "holonomy_steered": 0.758758491154627
+        },
+        "27": {
+          "rho_baseline": 0.3827847340201071,
+          "rho_steered": 0.10902544829272018,
+          "holonomy_baseline": 1.7920660163009805,
+          "holonomy_steered": 0.835533221019432
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.3412299795511748,
+        "rho_steered": 0.18528538424845215,
+        "holonomy_baseline": 1.6016525202715883,
+        "holonomy_steered": 1.025632272973836
+      }
+    },
+    "Is it ever acceptable to break a promise, and if so, when?": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.2627820349189596,
+          "rho_steered": 0.2627820349189596,
+          "holonomy_baseline": 1.200800692645966,
+          "holonomy_steered": 1.200800692645966
+        },
+        "1": {
+          "rho_baseline": 0.2059663102086924,
+          "rho_steered": 0.2059663102086924,
+          "holonomy_baseline": 0.8102005538364341,
+          "holonomy_steered": 0.8102005538364341
+        },
+        "2": {
+          "rho_baseline": 0.24374812169558036,
+          "rho_steered": 0.24374812169558036,
+          "holonomy_baseline": 1.0808829424370612,
+          "holonomy_steered": 1.0808829424370612
+        },
+        "3": {
+          "rho_baseline": 0.37817622890835373,
+          "rho_steered": 0.37817622890835373,
+          "holonomy_baseline": 1.7046918327521001,
+          "holonomy_steered": 1.7046918327521001
+        },
+        "4": {
+          "rho_baseline": 0.35648121254591525,
+          "rho_steered": 0.35648121254591525,
+          "holonomy_baseline": 1.5007464875400598,
+          "holonomy_steered": 1.5007464875400598
+        },
+        "5": {
+          "rho_baseline": 0.34978739115000373,
+          "rho_steered": 0.34978739115000373,
+          "holonomy_baseline": 1.4422618228875632,
+          "holonomy_steered": 1.4422618228875632
+        },
+        "6": {
+          "rho_baseline": 0.35615660078320616,
+          "rho_steered": 0.35615660078320616,
+          "holonomy_baseline": 1.618123539789979,
+          "holonomy_steered": 1.618123539789979
+        },
+        "7": {
+          "rho_baseline": 0.3177127476035019,
+          "rho_steered": 0.3177127476035019,
+          "holonomy_baseline": 1.320114509069494,
+          "holonomy_steered": 1.320114509069494
+        },
+        "8": {
+          "rho_baseline": 0.392737459459595,
+          "rho_steered": 0.392737459459595,
+          "holonomy_baseline": 1.7677032067773066,
+          "holonomy_steered": 1.7677032067773066
+        },
+        "9": {
+          "rho_baseline": 0.341858939303666,
+          "rho_steered": 0.341858939303666,
+          "holonomy_baseline": 1.4887082773327296,
+          "holonomy_steered": 1.4887082773327296
+        },
+        "10": {
+          "rho_baseline": 0.3013406426285907,
+          "rho_steered": 0.3013406426285907,
+          "holonomy_baseline": 1.2827608756321882,
+          "holonomy_steered": 1.2827608756321882
+        },
+        "11": {
+          "rho_baseline": 0.3623095434590464,
+          "rho_steered": 0.3623095434590464,
+          "holonomy_baseline": 1.705529690853187,
+          "holonomy_steered": 1.705529690853187
+        },
+        "12": {
+          "rho_baseline": 0.4069462654916872,
+          "rho_steered": 0.22723686189480352,
+          "holonomy_baseline": 1.9651698463130742,
+          "holonomy_steered": 1.2073679766201946
+        },
+        "13": {
+          "rho_baseline": 0.39136246255926826,
+          "rho_steered": 0.15068217541625234,
+          "holonomy_baseline": 1.9337536614454751,
+          "holonomy_steered": 1.0106854983647022
+        },
+        "14": {
+          "rho_baseline": 0.40534995053289585,
+          "rho_steered": 0.13298117441638738,
+          "holonomy_baseline": 1.976550335363884,
+          "holonomy_steered": 0.9897625433014972
+        },
+        "15": {
+          "rho_baseline": 0.3464868350743796,
+          "rho_steered": 0.11053364088104889,
+          "holonomy_baseline": 1.5600700059439987,
+          "holonomy_steered": 0.700178711359123
+        },
+        "16": {
+          "rho_baseline": 0.3680988476481757,
+          "rho_steered": 0.0985160550322253,
+          "holonomy_baseline": 1.6137246854071106,
+          "holonomy_steered": 0.6321004042900833
+        },
+        "17": {
+          "rho_baseline": 0.3325402336339513,
+          "rho_steered": 0.11430732810702858,
+          "holonomy_baseline": 1.4448852267482184,
+          "holonomy_steered": 0.6654195003544113
+        },
+        "18": {
+          "rho_baseline": 0.357249960217919,
+          "rho_steered": 0.12053823697639976,
+          "holonomy_baseline": 1.5984165748647814,
+          "holonomy_steered": 0.7764857030540172
+        },
+        "19": {
+          "rho_baseline": 0.3666301454450424,
+          "rho_steered": 0.13526401367534516,
+          "holonomy_baseline": 1.6598565401842018,
+          "holonomy_steered": 0.8414251581832235
+        },
+        "20": {
+          "rho_baseline": 0.3887171871619166,
+          "rho_steered": 0.11278722198307896,
+          "holonomy_baseline": 1.8778543243450778,
+          "holonomy_steered": 0.8563427370972931
+        },
+        "21": {
+          "rho_baseline": 0.41091818428157234,
+          "rho_steered": 0.11696047848340445,
+          "holonomy_baseline": 1.9592292195718204,
+          "holonomy_steered": 0.8369278330023268
+        },
+        "22": {
+          "rho_baseline": 0.39803685002204675,
+          "rho_steered": 0.1166755235085841,
+          "holonomy_baseline": 1.822434825124219,
+          "holonomy_steered": 0.8414225166530481
+        },
+        "23": {
+          "rho_baseline": 0.3906536808409993,
+          "rho_steered": 0.13308678742190425,
+          "holonomy_baseline": 1.83824368027438,
+          "holonomy_steered": 0.8465188483241946
+        },
+        "24": {
+          "rho_baseline": 0.40873000415600874,
+          "rho_steered": 0.11216015126252411,
+          "holonomy_baseline": 1.933598330510514,
+          "holonomy_steered": 0.8386831276251802
+        },
+        "25": {
+          "rho_baseline": 0.396999942352542,
+          "rho_steered": 0.1392948399123772,
+          "holonomy_baseline": 1.8417104870812702,
+          "holonomy_steered": 0.8542374825504209
+        },
+        "26": {
+          "rho_baseline": 0.3968381256168389,
+          "rho_steered": 0.11778489831896741,
+          "holonomy_baseline": 1.831505420152098,
+          "holonomy_steered": 0.7967895861448986
+        },
+        "27": {
+          "rho_baseline": 0.4080249761180786,
+          "rho_steered": 0.1343630969020377,
+          "holonomy_baseline": 1.8990793087785798,
+          "holonomy_steered": 0.8773906078921365
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.35866574585065836,
+        "rho_steered": 0.21222248988776715,
+        "holonomy_baseline": 1.6313788179879563,
+        "holonomy_steered": 1.0890808095132436
+      }
+    },
+    "The train was delayed, but the passengers barely reacted.": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.25133306963072066,
+          "rho_steered": 0.25133306963072066,
+          "holonomy_baseline": 1.1471329351354922,
+          "holonomy_steered": 1.1471329351354922
+        },
+        "1": {
+          "rho_baseline": 0.20212950965444929,
+          "rho_steered": 0.20212950965444929,
+          "holonomy_baseline": 0.8694848732058225,
+          "holonomy_steered": 0.8694848732058225
+        },
+        "2": {
+          "rho_baseline": 0.24781843162764466,
+          "rho_steered": 0.24781843162764466,
+          "holonomy_baseline": 1.1075702590335692,
+          "holonomy_steered": 1.1075702590335692
+        },
+        "3": {
+          "rho_baseline": 0.3728686210202768,
+          "rho_steered": 0.3728686210202768,
+          "holonomy_baseline": 1.800439965545333,
+          "holonomy_steered": 1.800439965545333
+        },
+        "4": {
+          "rho_baseline": 0.3559046727532226,
+          "rho_steered": 0.3559046727532226,
+          "holonomy_baseline": 1.5794463834193135,
+          "holonomy_steered": 1.5794463834193135
+        },
+        "5": {
+          "rho_baseline": 0.34049633538272256,
+          "rho_steered": 0.34049633538272256,
+          "holonomy_baseline": 1.5341797395210182,
+          "holonomy_steered": 1.5341797395210182
+        },
+        "6": {
+          "rho_baseline": 0.3306425604271545,
+          "rho_steered": 0.3306425604271545,
+          "holonomy_baseline": 1.5891172587206321,
+          "holonomy_steered": 1.5891172587206321
+        },
+        "7": {
+          "rho_baseline": 0.32181747614714634,
+          "rho_steered": 0.32181747614714634,
+          "holonomy_baseline": 1.4746967434683549,
+          "holonomy_steered": 1.4746967434683549
+        },
+        "8": {
+          "rho_baseline": 0.3690568924086777,
+          "rho_steered": 0.3690568924086777,
+          "holonomy_baseline": 1.635761919797265,
+          "holonomy_steered": 1.635761919797265
+        },
+        "9": {
+          "rho_baseline": 0.32949181205948863,
+          "rho_steered": 0.32949181205948863,
+          "holonomy_baseline": 1.5414213388160403,
+          "holonomy_steered": 1.5414213388160403
+        },
+        "10": {
+          "rho_baseline": 0.2939576436849437,
+          "rho_steered": 0.2939576436849437,
+          "holonomy_baseline": 1.3133309516457041,
+          "holonomy_steered": 1.3133309516457041
+        },
+        "11": {
+          "rho_baseline": 0.32998190366985514,
+          "rho_steered": 0.32998190366985514,
+          "holonomy_baseline": 1.5736526452071433,
+          "holonomy_steered": 1.5736526452071433
+        },
+        "12": {
+          "rho_baseline": 0.35848274820550874,
+          "rho_steered": 0.14612733323826987,
+          "holonomy_baseline": 1.5810110305901617,
+          "holonomy_steered": 0.6977981102120663
+        },
+        "13": {
+          "rho_baseline": 0.3546751768151278,
+          "rho_steered": 0.15041705579370662,
+          "holonomy_baseline": 1.5900305490441886,
+          "holonomy_steered": 0.7887722627825237
+        },
+        "14": {
+          "rho_baseline": 0.36080454308420606,
+          "rho_steered": 0.14025305682947045,
+          "holonomy_baseline": 1.5982517322325813,
+          "holonomy_steered": 0.8340041993152616
+        },
+        "15": {
+          "rho_baseline": 0.329289035085476,
+          "rho_steered": 0.14036010991308495,
+          "holonomy_baseline": 1.6445691468127603,
+          "holonomy_steered": 0.6526812771335244
+        },
+        "16": {
+          "rho_baseline": 0.35991961990594096,
+          "rho_steered": 0.12384901839458633,
+          "holonomy_baseline": 1.6933035486976482,
+          "holonomy_steered": 0.6663926658885819
+        },
+        "17": {
+          "rho_baseline": 0.31326916626920326,
+          "rho_steered": 0.11622168461044098,
+          "holonomy_baseline": 1.4458349353434252,
+          "holonomy_steered": 0.7148838547956464
+        },
+        "18": {
+          "rho_baseline": 0.35236159817887586,
+          "rho_steered": 0.11102266242447216,
+          "holonomy_baseline": 1.6480081384236525,
+          "holonomy_steered": 0.8455631509755871
+        },
+        "19": {
+          "rho_baseline": 0.3461652141071822,
+          "rho_steered": 0.1130332095281737,
+          "holonomy_baseline": 1.651661159636985,
+          "holonomy_steered": 0.9014276525205267
+        },
+        "20": {
+          "rho_baseline": 0.36660374277587127,
+          "rho_steered": 0.08519006794917461,
+          "holonomy_baseline": 1.846502854222698,
+          "holonomy_steered": 0.8846681606789518
+        },
+        "21": {
+          "rho_baseline": 0.3962293070590413,
+          "rho_steered": 0.09626471752026548,
+          "holonomy_baseline": 1.9935026690363884,
+          "holonomy_steered": 0.875096053857955
+        },
+        "22": {
+          "rho_baseline": 0.3839659900886089,
+          "rho_steered": 0.08747907954776797,
+          "holonomy_baseline": 1.8465349086161171,
+          "holonomy_steered": 0.8735099621948653
+        },
+        "23": {
+          "rho_baseline": 0.3820837349901068,
+          "rho_steered": 0.10897195269696992,
+          "holonomy_baseline": 1.8791550239548087,
+          "holonomy_steered": 0.9214324769231358
+        },
+        "24": {
+          "rho_baseline": 0.39313811309467445,
+          "rho_steered": 0.09536421981449986,
+          "holonomy_baseline": 1.9571794890466012,
+          "holonomy_steered": 0.8788699945434928
+        },
+        "25": {
+          "rho_baseline": 0.3856075529018429,
+          "rho_steered": 0.1187341835243685,
+          "holonomy_baseline": 1.922891010596816,
+          "holonomy_steered": 0.9246108199004084
+        },
+        "26": {
+          "rho_baseline": 0.38869333260534417,
+          "rho_steered": 0.11094432126864792,
+          "holonomy_baseline": 1.8912913018970616,
+          "holonomy_steered": 0.8461121488196244
+        },
+        "27": {
+          "rho_baseline": 0.39272788462791447,
+          "rho_steered": 0.10574863872139052,
+          "holonomy_baseline": 1.952006439678371,
+          "holonomy_steered": 0.9113039531595339
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.34319698886647243,
+        "rho_steered": 0.19983858000862828,
+        "holonomy_baseline": 1.6181417482623555,
+        "holonomy_steered": 1.0851200627577633
+      }
+    },
+    "What separates courage from recklessness in a crisis?": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.2242353257569132,
+          "rho_steered": 0.2242353257569132,
+          "holonomy_baseline": 1.0950339876414676,
+          "holonomy_steered": 1.0950339876414676
+        },
+        "1": {
+          "rho_baseline": 0.20109360677382573,
+          "rho_steered": 0.20109360677382573,
+          "holonomy_baseline": 0.8405779591661745,
+          "holonomy_steered": 0.8405779591661745
+        },
+        "2": {
+          "rho_baseline": 0.2422158755832048,
+          "rho_steered": 0.2422158755832048,
+          "holonomy_baseline": 1.0874275142060859,
+          "holonomy_steered": 1.0874275142060859
+        },
+        "3": {
+          "rho_baseline": 0.3579548670765273,
+          "rho_steered": 0.3579548670765273,
+          "holonomy_baseline": 1.7842809176737708,
+          "holonomy_steered": 1.7842809176737708
+        },
+        "4": {
+          "rho_baseline": 0.3272654041157438,
+          "rho_steered": 0.3272654041157438,
+          "holonomy_baseline": 1.5079991777227926,
+          "holonomy_steered": 1.5079991777227926
+        },
+        "5": {
+          "rho_baseline": 0.33560309963205254,
+          "rho_steered": 0.33560309963205254,
+          "holonomy_baseline": 1.5228219362574498,
+          "holonomy_steered": 1.5228219362574498
+        },
+        "6": {
+          "rho_baseline": 0.33060037712552026,
+          "rho_steered": 0.33060037712552026,
+          "holonomy_baseline": 1.589123564007293,
+          "holonomy_steered": 1.589123564007293
+        },
+        "7": {
+          "rho_baseline": 0.2791263838736581,
+          "rho_steered": 0.2791263838736581,
+          "holonomy_baseline": 1.3771768804706102,
+          "holonomy_steered": 1.3771768804706102
+        },
+        "8": {
+          "rho_baseline": 0.34760680779104913,
+          "rho_steered": 0.34760680779104913,
+          "holonomy_baseline": 1.5588240332602123,
+          "holonomy_steered": 1.5588240332602123
+        },
+        "9": {
+          "rho_baseline": 0.31193924273398416,
+          "rho_steered": 0.31193924273398416,
+          "holonomy_baseline": 1.4909145054740034,
+          "holonomy_steered": 1.4909145054740034
+        },
+        "10": {
+          "rho_baseline": 0.27898261574488364,
+          "rho_steered": 0.27898261574488364,
+          "holonomy_baseline": 1.2961364531823034,
+          "holonomy_steered": 1.2961364531823034
+        },
+        "11": {
+          "rho_baseline": 0.31528679942479665,
+          "rho_steered": 0.31528679942479665,
+          "holonomy_baseline": 1.5389757912739046,
+          "holonomy_steered": 1.5389757912739046
+        },
+        "12": {
+          "rho_baseline": 0.3345906727438235,
+          "rho_steered": 0.13552830835701024,
+          "holonomy_baseline": 1.4559016874991357,
+          "holonomy_steered": 0.5291250115925712
+        },
+        "13": {
+          "rho_baseline": 0.31133677933957515,
+          "rho_steered": 0.14845159288225543,
+          "holonomy_baseline": 1.360792474471964,
+          "holonomy_steered": 0.7376985764380412
+        },
+        "14": {
+          "rho_baseline": 0.34121291378849977,
+          "rho_steered": 0.14589723382627892,
+          "holonomy_baseline": 1.4264971009771605,
+          "holonomy_steered": 0.8061618161487526
+        },
+        "15": {
+          "rho_baseline": 0.3069714837240777,
+          "rho_steered": 0.1300895518456761,
+          "holonomy_baseline": 1.4815529616815704,
+          "holonomy_steered": 0.5980735201820997
+        },
+        "16": {
+          "rho_baseline": 0.3445485284428814,
+          "rho_steered": 0.11888923661667121,
+          "holonomy_baseline": 1.576781146960067,
+          "holonomy_steered": 0.6669971141298967
+        },
+        "17": {
+          "rho_baseline": 0.3300156106741592,
+          "rho_steered": 0.11499356875665107,
+          "holonomy_baseline": 1.5518707244856549,
+          "holonomy_steered": 0.713225532605845
+        },
+        "18": {
+          "rho_baseline": 0.3302008294128288,
+          "rho_steered": 0.11271010647100627,
+          "holonomy_baseline": 1.597086704801768,
+          "holonomy_steered": 0.8502758882573939
+        },
+        "19": {
+          "rho_baseline": 0.3595622968480368,
+          "rho_steered": 0.11737708743911908,
+          "holonomy_baseline": 1.7630237454681525,
+          "holonomy_steered": 0.9137485127097794
+        },
+        "20": {
+          "rho_baseline": 0.3624713411202087,
+          "rho_steered": 0.08893340722185406,
+          "holonomy_baseline": 1.7967759996120418,
+          "holonomy_steered": 0.8684712789420571
+        },
+        "21": {
+          "rho_baseline": 0.3825778787421819,
+          "rho_steered": 0.10059889514352631,
+          "holonomy_baseline": 1.9137113887949713,
+          "holonomy_steered": 0.86284827187358
+        },
+        "22": {
+          "rho_baseline": 0.37574416455051574,
+          "rho_steered": 0.09212772126359384,
+          "holonomy_baseline": 1.8299019680957176,
+          "holonomy_steered": 0.8560076850366646
+        },
+        "23": {
+          "rho_baseline": 0.37903884868753734,
+          "rho_steered": 0.11354265786668793,
+          "holonomy_baseline": 1.8653521125337906,
+          "holonomy_steered": 0.9079333532468549
+        },
+        "24": {
+          "rho_baseline": 0.3931730252861453,
+          "rho_steered": 0.1039430318840223,
+          "holonomy_baseline": 1.9617548381377543,
+          "holonomy_steered": 0.8679071711708924
+        },
+        "25": {
+          "rho_baseline": 0.3793519134988798,
+          "rho_steered": 0.12537946747180054,
+          "holonomy_baseline": 1.891871118651969,
+          "holonomy_steered": 0.9107071072461882
+        },
+        "26": {
+          "rho_baseline": 0.38010061191966005,
+          "rho_steered": 0.12206613101945507,
+          "holonomy_baseline": 1.881960199347564,
+          "holonomy_steered": 0.8308530861312258
+        },
+        "27": {
+          "rho_baseline": 0.37987769078341405,
+          "rho_steered": 0.10591330870018283,
+          "holonomy_baseline": 1.8439683764507728,
+          "holonomy_steered": 0.8988868188711682
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.3300958926855209,
+        "rho_steered": 0.19386970401421252,
+        "holonomy_baseline": 1.5674319738680758,
+        "holonomy_steered": 1.0538647666042529
+      }
+    },
+    "Summarize the plot of a mystery novel in three sentences.": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.2574079670292165,
+          "rho_steered": 0.2574079670292165,
+          "holonomy_baseline": 1.150088589122918,
+          "holonomy_steered": 1.150088589122918
+        },
+        "1": {
+          "rho_baseline": 0.20156919581568494,
+          "rho_steered": 0.20156919581568494,
+          "holonomy_baseline": 0.8743469482952995,
+          "holonomy_steered": 0.8743469482952995
+        },
+        "2": {
+          "rho_baseline": 0.25048367265205,
+          "rho_steered": 0.25048367265205,
+          "holonomy_baseline": 1.0515092119873901,
+          "holonomy_steered": 1.0515092119873901
+        },
+        "3": {
+          "rho_baseline": 0.37132028535528344,
+          "rho_steered": 0.37132028535528344,
+          "holonomy_baseline": 1.7174093906568098,
+          "holonomy_steered": 1.7174093906568098
+        },
+        "4": {
+          "rho_baseline": 0.35938615616759606,
+          "rho_steered": 0.35938615616759606,
+          "holonomy_baseline": 1.632246886646109,
+          "holonomy_steered": 1.632246886646109
+        },
+        "5": {
+          "rho_baseline": 0.3695259973755031,
+          "rho_steered": 0.3695259973755031,
+          "holonomy_baseline": 1.6344537634202945,
+          "holonomy_steered": 1.6344537634202945
+        },
+        "6": {
+          "rho_baseline": 0.36561354441679816,
+          "rho_steered": 0.36561354441679816,
+          "holonomy_baseline": 1.7245081874009753,
+          "holonomy_steered": 1.7245081874009753
+        },
+        "7": {
+          "rho_baseline": 0.3001030034254218,
+          "rho_steered": 0.3001030034254218,
+          "holonomy_baseline": 1.3050704842233765,
+          "holonomy_steered": 1.3050704842233765
+        },
+        "8": {
+          "rho_baseline": 0.393632762159659,
+          "rho_steered": 0.393632762159659,
+          "holonomy_baseline": 1.807255216341998,
+          "holonomy_steered": 1.807255216341998
+        },
+        "9": {
+          "rho_baseline": 0.33447386898150483,
+          "rho_steered": 0.33447386898150483,
+          "holonomy_baseline": 1.4969103409509574,
+          "holonomy_steered": 1.4969103409509574
+        },
+        "10": {
+          "rho_baseline": 0.2965810189446154,
+          "rho_steered": 0.2965810189446154,
+          "holonomy_baseline": 1.264636657533369,
+          "holonomy_steered": 1.264636657533369
+        },
+        "11": {
+          "rho_baseline": 0.34433082620969546,
+          "rho_steered": 0.34433082620969546,
+          "holonomy_baseline": 1.597471658007375,
+          "holonomy_steered": 1.597471658007375
+        },
+        "12": {
+          "rho_baseline": 0.39266455925448673,
+          "rho_steered": 0.2120017142836943,
+          "holonomy_baseline": 1.8749056899853582,
+          "holonomy_steered": 1.1369087237399071
+        },
+        "13": {
+          "rho_baseline": 0.38691940245438405,
+          "rho_steered": 0.16643537892982588,
+          "holonomy_baseline": 1.8367429884217148,
+          "holonomy_steered": 1.005621334870479
+        },
+        "14": {
+          "rho_baseline": 0.3916921494103604,
+          "rho_steered": 0.14445835336129823,
+          "holonomy_baseline": 1.8436156531263674,
+          "holonomy_steered": 0.9809778020135127
+        },
+        "15": {
+          "rho_baseline": 0.3478756371073103,
+          "rho_steered": 0.12100789995333135,
+          "holonomy_baseline": 1.6351270546937096,
+          "holonomy_steered": 0.7362661464139819
+        },
+        "16": {
+          "rho_baseline": 0.37222631676021084,
+          "rho_steered": 0.1017290457318329,
+          "holonomy_baseline": 1.7120276596729778,
+          "holonomy_steered": 0.677214435102152
+        },
+        "17": {
+          "rho_baseline": 0.3206996528390068,
+          "rho_steered": 0.10453300393886761,
+          "holonomy_baseline": 1.522845541758995,
+          "holonomy_steered": 0.7036533821041563
+        },
+        "18": {
+          "rho_baseline": 0.35525589051651757,
+          "rho_steered": 0.1041015053870374,
+          "holonomy_baseline": 1.672451501080234,
+          "holonomy_steered": 0.7965266520290503
+        },
+        "19": {
+          "rho_baseline": 0.3718148833576538,
+          "rho_steered": 0.11689418201384637,
+          "holonomy_baseline": 1.7699510763299517,
+          "holonomy_steered": 0.868538385390171
+        },
+        "20": {
+          "rho_baseline": 0.3833233236973203,
+          "rho_steered": 0.098086790409913,
+          "holonomy_baseline": 1.906701359698283,
+          "holonomy_steered": 0.8650938997577343
+        },
+        "21": {
+          "rho_baseline": 0.40322365119728837,
+          "rho_steered": 0.10734567535403845,
+          "holonomy_baseline": 1.9276544635982387,
+          "holonomy_steered": 0.8602087507357022
+        },
+        "22": {
+          "rho_baseline": 0.3930852047773911,
+          "rho_steered": 0.10554146058836078,
+          "holonomy_baseline": 1.8971558365904326,
+          "holonomy_steered": 0.8741586921470506
+        },
+        "23": {
+          "rho_baseline": 0.3916787354437922,
+          "rho_steered": 0.1205975424242687,
+          "holonomy_baseline": 1.9085692092776299,
+          "holonomy_steered": 0.9008426653287773
+        },
+        "24": {
+          "rho_baseline": 0.3945802321797092,
+          "rho_steered": 0.10665546478247442,
+          "holonomy_baseline": 1.9250472886487842,
+          "holonomy_steered": 0.8891464352075543
+        },
+        "25": {
+          "rho_baseline": 0.3890813145336688,
+          "rho_steered": 0.1267184123496634,
+          "holonomy_baseline": 1.8996366416769368,
+          "holonomy_steered": 0.9381629298108497
+        },
+        "26": {
+          "rho_baseline": 0.3945645208256848,
+          "rho_steered": 0.1125082537697241,
+          "holonomy_baseline": 1.8701942584011704,
+          "holonomy_steered": 0.8852941302383053
+        },
+        "27": {
+          "rho_baseline": 0.38526104815374196,
+          "rho_steered": 0.12693921240805117,
+          "holonomy_baseline": 1.7728111185133457,
+          "holonomy_steered": 0.9107778463845274
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.3542276721800556,
+        "rho_steered": 0.20785650693640204,
+        "holonomy_baseline": 1.6511194527164643,
+        "holonomy_steered": 1.117332126637885
+      }
+    }
+  },
+  "statistics": {
+    "rho": {
+      "n": 16,
+      "mean_diff": -0.1481913107163085,
+      "ci_low": -0.15179613716431237,
+      "ci_high": -0.14470391406177993,
+      "ci_level": 0.95,
+      "p_value": 3.0517578125e-05,
+      "p_value_exact": true
+    },
+    "holonomy": {
+      "n": 16,
+      "mean_diff": -0.5597342032153314,
+      "ci_low": -0.5916228681715958,
+      "ci_high": -0.5288948632834378,
+      "ci_level": 0.95,
+      "p_value": 3.0517578125e-05,
+      "p_value_exact": true
+    }
+  },
+  "generation": {
+    "baseline": " How does this relate to the concept of justice and mercy in the context of the Bible? Additionally, what is the significance of the story of the two men in the Bible, and how does it relate to the concept of justice and mercy?\n\nThe question of living a just and merciful life is deeply",
+    "steered": "alealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealealeale"
+  }
+}
