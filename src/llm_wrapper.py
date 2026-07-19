@@ -328,7 +328,15 @@ class SteeredLLM:
         config = self.model.config
         if hasattr(config, name):
             return getattr(config, name)
-        return getattr(config.get_text_config(), name)
+        getter = getattr(config, "get_text_config", None)
+        if callable(getter):
+            text_config = getter()
+            if hasattr(text_config, name):
+                return getattr(text_config, name)
+        raise AttributeError(
+            f"Config {type(config).__name__} has no attribute {name!r} at the "
+            "top level or on its text config"
+        )
 
     @property
     def hidden_size(self) -> int:
@@ -358,7 +366,7 @@ class SteeredLLM:
             try:
                 for part in layer_path.split("."):
                     module = module[int(part)] if part.isdigit() else getattr(module, part)
-            except (AttributeError, IndexError):
+            except (AttributeError, IndexError, KeyError, TypeError):
                 continue
             return module
         raise LayerIndexError(

@@ -12,7 +12,14 @@ of neutral English sentences and steering with the centered contrast
 Reported per layer: |quran mean|, |neutral mean|, |contrast|, and
 cos(quran, neutral). Then, for one prompt, per-layer and pooled non-abelian
 ratio rho, mean holonomy, mean relative perturbation, and a greedy
-generation (chat-templated for instruct models) under:
+generation under:
+
+Note on prompts: transport diagnostics run on the RAW --prompt text (kept
+comparable with steered_vs_baseline_transport.py), while generations use the
+tokenizer's chat template when one exists so instruct baselines don't emit
+EOS immediately. Both strings are recorded in the output JSON ("prompt" and
+"generation_prompt") since rho/holonomy correspond to the former and the
+generated text to the latter.
 
   A. baseline (steering vectors attached at coefficient 0 -- identical to no
      steering, but captures activation norms for coefficient calibration)
@@ -192,6 +199,7 @@ def main():
                   max_loop_positions=args.max_loop_positions)
 
     results = {"model": args.model, "prompt": args.prompt,
+               "generation_prompt": gen_prompt,
                "layers": layers, "geometry": geometry, "conditions": {}}
     conditions = results["conditions"]
 
