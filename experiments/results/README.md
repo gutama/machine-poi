@@ -26,6 +26,7 @@ steered minus baseline):
 | Qwen3-0.6B   | 4.0  | 1.12-1.35 | -0.137 | -0.615 | `andandandand...` (degenerate) |
 | Gemma-4-E2B (band 14-24) | 4.0 | 1.24 | -0.000 | -0.001 | multilingual token salad (degenerate) |
 | Gemma-4-E2B (band 5-11)  | 4.0 | 1.32-1.35 | -0.012 | -0.196 | multilingual token salad (degenerate) |
+| Gemma-4-E2B (band 5-11, centered contrast) | 0.419 (calibrated) | <= 0.078 | +0.008 | +0.031 | **fluent Arabic, on-topic** |
 
 Qwen3-0.6B's *baseline* greedy generation is fluent, on-topic prose for the
 same prompt, so the degeneration is caused by the steering, not the setup.
@@ -127,6 +128,35 @@ Two runs, 2 prompts each, coefficient 4.0:
    routing lives in the full-attention layers, and saturating the shared
    component hits exactly those.
 
+3. **Centered contrast at calibrated dose: steering works, routing is
+   essentially preserved.** Same early band (5-11), steering vector
+   quran_mean - neutral_mean, coefficient auto-calibrated (c = 0.419) so no
+   steered layer exceeds 0.1 relative perturbation (max observed 0.078).
+   One prompt, chat-templated generation:
+   - **Generation survives and is semantically steered**: baseline answers
+     in fluent English; steered answers the same question in fluent,
+     on-topic *Arabic* ("**العدل** و**الرحمة**" -- justice and mercy) --
+     the intended Quran-persona register shift, with no degeneration.
+   - **Transport geometry is nearly unchanged**: pooled delta-rho +0.008,
+     delta-holonomy +0.031 rad. Per-layer deltas are graded and small,
+     and still split along attention type with the same signs as the
+     saturated run -- full-attention layers 9/14 tick down (delta-rho
+     -0.032/-0.011, delta-hol -0.065/-0.221), sliding-window layers tick
+     up (delta-rho up to +0.058, delta-hol up to +0.369 at layer 13) --
+     at ~10-30x smaller magnitude than at coefficient 4.0.
+   This is the cleanest answer so far to the experiment's motivating
+   question: at a dose where steering does its semantic job, the
+   intervention behaves like a *translation* of representations with mild,
+   structured routing modulation; the dramatic "routing collapse" seen at
+   coefficient 4.0 is a saturation artifact of the uncentered vector, not
+   a property of steering.
+
+   (Gemma 4's activation geometry also differs from SmolLM2's: mean-
+   activation norms at the early band are ~30-70 (vs ~2400 in SmolLM2's
+   workspace band) and the contrast is ~20% of the raw norm (vs ~7%), so
+   the raw-mean pathology, while still decisive at coefficient 4.0, is
+   less extreme here.)
+
 ## Method caveats observed while running
 
 - **Baseline greedy generations are empty** for SmolLM2-135M-Instruct: the
@@ -149,6 +179,8 @@ Two runs, 2 prompts each, coefficient 4.0:
 - `gemma-4-E2B_coeff4.0_{workspace-band,early-band}.json` -- Gemma 4 E2B
   runs (see the Gemma 4 section for why only the early band is
   interpretable).
+- `gemma-4-E2B_centered_target0.1.json` -- Gemma 4 E2B centered-contrast
+  run at calibrated dose (per-layer geometry, deltas, and generations).
 - `smollm2-135m_centered_probe.json` -- vector geometry + centered-contrast
   conditions.
 

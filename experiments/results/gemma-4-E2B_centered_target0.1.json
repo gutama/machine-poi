@@ -1,0 +1,271 @@
+{
+  "model": "google/gemma-4-E2B-it",
+  "prompt": "What does it mean to live a just and merciful life?",
+  "layers": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "geometry": {
+    "5": {
+      "quran_norm": 68.99183654785156,
+      "neutral_norm": 68.64664459228516,
+      "contrast_norm": 14.660318374633789,
+      "cos_quran_neutral": 0.9773224592208862
+    },
+    "6": {
+      "quran_norm": 59.19394302368164,
+      "neutral_norm": 60.13211441040039,
+      "contrast_norm": 12.6517333984375,
+      "cos_quran_neutral": 0.9776390194892883
+    },
+    "7": {
+      "quran_norm": 56.32268142700195,
+      "neutral_norm": 58.488182067871094,
+      "contrast_norm": 13.38870620727539,
+      "cos_quran_neutral": 0.9735037684440613
+    },
+    "8": {
+      "quran_norm": 66.34772491455078,
+      "neutral_norm": 67.05552673339844,
+      "contrast_norm": 10.650513648986816,
+      "cos_quran_neutral": 0.9873080253601074
+    },
+    "9": {
+      "quran_norm": 52.313724517822266,
+      "neutral_norm": 53.00556945800781,
+      "contrast_norm": 10.953062057495117,
+      "cos_quran_neutral": 0.9784541726112366
+    },
+    "10": {
+      "quran_norm": 40.19489288330078,
+      "neutral_norm": 40.66073989868164,
+      "contrast_norm": 8.295226097106934,
+      "cos_quran_neutral": 0.979015052318573
+    },
+    "11": {
+      "quran_norm": 28.092071533203125,
+      "neutral_norm": 27.410768508911133,
+      "contrast_norm": 8.84232234954834,
+      "cos_quran_neutral": 0.9495325088500977
+    }
+  },
+  "conditions": {
+    "baseline": {
+      "coefficient": 0.0,
+      "rho": 0.2502689053735356,
+      "holonomy": 0.906368213320772,
+      "relative_perturbation": 0.0,
+      "generation": "Living a just and merciful life is a profound ethical and spiritual endeavor that involves a commitment to **fairness, righteousness, compassion, and kindness** in all interactions with others and in one's own conduct.\n\nWhile the specific interpretations can vary depending on philosophical, religious, or personal viewpoints, here",
+      "layers": {
+        "0": {
+          "rho": 0.22225050313773073,
+          "holonomy": 0.8953427883796394
+        },
+        "1": {
+          "rho": 0.2246240271910283,
+          "holonomy": 0.8053736694157123
+        },
+        "2": {
+          "rho": 0.23763093723748233,
+          "holonomy": 0.9316491754725575
+        },
+        "3": {
+          "rho": 0.25043547763667534,
+          "holonomy": 0.8533271361142396
+        },
+        "4": {
+          "rho": 0.25570599520868287,
+          "holonomy": 0.9777713445946575
+        },
+        "5": {
+          "rho": 0.2710615979118797,
+          "holonomy": 0.9287543250247835
+        },
+        "6": {
+          "rho": 0.21920370241405643,
+          "holonomy": 0.7658145840279759
+        },
+        "7": {
+          "rho": 0.24997765342073533,
+          "holonomy": 0.9264827759936454
+        },
+        "8": {
+          "rho": 0.2017230590945944,
+          "holonomy": 0.7144258040934801
+        },
+        "9": {
+          "rho": 0.32232695501538927,
+          "holonomy": 1.1353626918047666
+        },
+        "10": {
+          "rho": 0.23777677773234654,
+          "holonomy": 0.8954776825383306
+        },
+        "11": {
+          "rho": 0.26094109227982704,
+          "holonomy": 1.0042568860575556
+        },
+        "12": {
+          "rho": 0.284314479024584,
+          "holonomy": 0.9466215170919895
+        },
+        "13": {
+          "rho": 0.23906855977531266,
+          "holonomy": 0.835089884325862
+        },
+        "14": {
+          "rho": 0.27699276352270813,
+          "holonomy": 0.9797729348763822
+        }
+      },
+      "steering": {
+        "5": {
+          "activation_norm": 76.86519622802734,
+          "steering_norm": 14.660318374633789,
+          "relative_perturbation": 0.0
+        },
+        "6": {
+          "activation_norm": 67.31897735595703,
+          "steering_norm": 12.6517333984375,
+          "relative_perturbation": 0.0
+        },
+        "7": {
+          "activation_norm": 66.5110092163086,
+          "steering_norm": 13.38870620727539,
+          "relative_perturbation": 0.0
+        },
+        "8": {
+          "activation_norm": 73.15066528320312,
+          "steering_norm": 10.650513648986816,
+          "relative_perturbation": 0.0
+        },
+        "9": {
+          "activation_norm": 61.44404602050781,
+          "steering_norm": 10.953062057495117,
+          "relative_perturbation": 0.0
+        },
+        "10": {
+          "activation_norm": 47.82643508911133,
+          "steering_norm": 8.295226097106934,
+          "relative_perturbation": 0.0
+        },
+        "11": {
+          "activation_norm": 37.04911804199219,
+          "steering_norm": 8.84232234954834,
+          "relative_perturbation": 0.0
+        }
+      }
+    },
+    "centered_target": {
+      "coefficient": 0.4189975956246905,
+      "rho": 0.2587031536318708,
+      "holonomy": 0.9374685892835259,
+      "relative_perturbation": 0.0782626595880304,
+      "generation": "**أن يعيشُ حياةً justa ومرحمة** هو مفهوم عميق وشامل يتطلب توازناً بين جانبين أساسيين هما: **العدل** و**الرحمة**. لفهم معنى أن يعيش الإنسان حياةً justa ومرحمة، يجب تفك",
+      "layers": {
+        "0": {
+          "rho": 0.22225050313773073,
+          "holonomy": 0.8953427883796394
+        },
+        "1": {
+          "rho": 0.2246240271910283,
+          "holonomy": 0.8053736694157123
+        },
+        "2": {
+          "rho": 0.23763093723748233,
+          "holonomy": 0.9316491754725575
+        },
+        "3": {
+          "rho": 0.25043547763667534,
+          "holonomy": 0.8533271361142396
+        },
+        "4": {
+          "rho": 0.25570599520868287,
+          "holonomy": 0.9777713445946575
+        },
+        "5": {
+          "rho": 0.2710615979118797,
+          "holonomy": 0.9287543250247835
+        },
+        "6": {
+          "rho": 0.22476664162059296,
+          "holonomy": 0.7848455489613116
+        },
+        "7": {
+          "rho": 0.2551958163681913,
+          "holonomy": 0.936088065803051
+        },
+        "8": {
+          "rho": 0.21342933115667162,
+          "holonomy": 0.7169204272329807
+        },
+        "9": {
+          "rho": 0.2904438843043263,
+          "holonomy": 1.0705767070874572
+        },
+        "10": {
+          "rho": 0.2907227243192478,
+          "holonomy": 1.0992390414699913
+        },
+        "11": {
+          "rho": 0.29164338001884177,
+          "holonomy": 1.0728555571287872
+        },
+        "12": {
+          "rho": 0.2894996402020197,
+          "holonomy": 1.027049500308931
+        },
+        "13": {
+          "rho": 0.29700178289462015,
+          "holonomy": 1.2038213333114982
+        },
+        "14": {
+          "rho": 0.2661355652700711,
+          "holonomy": 0.7584142189472914
+        }
+      },
+      "steering": {
+        "5": {
+          "activation_norm": 76.86519622802734,
+          "steering_norm": 14.660318374633789,
+          "relative_perturbation": 0.07991442829370499
+        },
+        "6": {
+          "activation_norm": 67.34939575195312,
+          "steering_norm": 12.6517333984375,
+          "relative_perturbation": 0.07870962470769882
+        },
+        "7": {
+          "activation_norm": 66.35356140136719,
+          "steering_norm": 13.38870620727539,
+          "relative_perturbation": 0.0845446065068245
+        },
+        "8": {
+          "activation_norm": 72.61251831054688,
+          "steering_norm": 10.650513648986816,
+          "relative_perturbation": 0.06145690008997917
+        },
+        "9": {
+          "activation_norm": 61.42097854614258,
+          "steering_norm": 10.953062057495117,
+          "relative_perturbation": 0.0747188851237297
+        },
+        "10": {
+          "activation_norm": 47.59537887573242,
+          "steering_norm": 8.295226097106934,
+          "relative_perturbation": 0.07302556186914444
+        },
+        "11": {
+          "activation_norm": 38.80764389038086,
+          "steering_norm": 8.84232234954834,
+          "relative_perturbation": 0.09546861052513123
+        }
+      }
+    }
+  }
+}
