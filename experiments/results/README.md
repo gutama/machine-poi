@@ -194,7 +194,27 @@ Two runs, 2 prompts each, coefficient 4.0:
      routing while slightly *flattening* every global (full-attention)
      layer.
 
-<<<<<<< HEAD
+5. **Scale replication on Gemma 4 E4B (42 layers, hidden 2560, 18
+   KV-shared).** Same protocol at matched relative depth (steering band
+   6-13 ~ 14-31% of depth; c = 0.503 calibrated, max rel. perturbation
+   0.082; `gemma-4-E4B_centered_target0.1_fulldepth.json`):
+   - **Generation replicates**: baseline fluent English; steered fluent,
+     on-topic Arabic.
+   - **The layer-type dissociation replicates**: of the six affected
+     full-attention layers (11, 17, 23, 29, 35, 41), five show negative
+     delta-rho (to -0.029) and one is ~zero (35, +0.002), with holonomy
+     down at 17/29 by ~ -0.17 to -0.22; sliding-window layers are
+     overwhelmingly positive (24 of 28 affected, delta-rho up to +0.057,
+     delta-holonomy up to +0.29), with the effect attenuating toward the
+     deepest layers.
+   - Pooled deltas stay small (delta-rho +0.013, delta-holonomy +0.026),
+     matching E2B's translation-with-mild-modulation picture.
+   - Vector geometry matches too: contrast ~15-25% of the raw mean norm,
+     cos(quran, neutral) 0.97-0.99.
+   Practical note: the 16 GB bf16 checkpoint exceeds this machine's 15 GB
+   RAM but runs fine memory-mapped (transformers keeps matching-dtype
+   safetensors file-backed; the page cache absorbs the overhang).
+
 ## n=16 statistically-tested re-run (2026-07-19)
 
 Re-ran the two CPU-feasible models with the expanded 16-prompt default set
@@ -256,28 +276,6 @@ python experiments/centered_contrast_probe.py --model smollm2-135m \
 python experiments/steered_vs_baseline_transport.py --model qwen3-0.6b \
     --coefficient 4.0 --generate --output experiments/results/qwen3-0.6b_coeff4.0_n16.json
 ```
-=======
-5. **Scale replication on Gemma 4 E4B (42 layers, hidden 2560, 18
-   KV-shared).** Same protocol at matched relative depth (steering band
-   6-13 ~ 14-31% of depth; c = 0.503 calibrated, max rel. perturbation
-   0.082; `gemma-4-E4B_centered_target0.1_fulldepth.json`):
-   - **Generation replicates**: baseline fluent English; steered fluent,
-     on-topic Arabic.
-   - **The layer-type dissociation replicates**: of the six affected
-     full-attention layers (11, 17, 23, 29, 35, 41), five show negative
-     delta-rho (to -0.029) and one is ~zero (35, +0.002), with holonomy
-     down at 17/29 by ~ -0.17 to -0.22; sliding-window layers are
-     overwhelmingly positive (24 of 28 affected, delta-rho up to +0.057,
-     delta-holonomy up to +0.29), with the effect attenuating toward the
-     deepest layers.
-   - Pooled deltas stay small (delta-rho +0.013, delta-holonomy +0.026),
-     matching E2B's translation-with-mild-modulation picture.
-   - Vector geometry matches too: contrast ~15-25% of the raw mean norm,
-     cos(quran, neutral) 0.97-0.99.
-   Practical note: the 16 GB bf16 checkpoint exceeds this machine's 15 GB
-   RAM but runs fine memory-mapped (transformers keeps matching-dtype
-   safetensors file-backed; the page cache absorbs the overhang).
->>>>>>> origin/main
 
 ## Method caveats observed while running
 
