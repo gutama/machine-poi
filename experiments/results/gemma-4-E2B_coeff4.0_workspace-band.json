@@ -1,0 +1,226 @@
+{
+  "model": "google/gemma-4-E2B-it",
+  "coefficient": 4.0,
+  "injection_mode": "add",
+  "steering_layers": [
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24
+  ],
+  "num_verses": 12,
+  "eta": 1.0,
+  "prompts": {
+    "What does it mean to live a just and merciful life?": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.22225050313773073,
+          "rho_steered": 0.22225050313773073,
+          "holonomy_baseline": 0.8953427883796394,
+          "holonomy_steered": 0.8953427883796394
+        },
+        "1": {
+          "rho_baseline": 0.2246240271910283,
+          "rho_steered": 0.2242481752435233,
+          "holonomy_baseline": 0.8053736694157123,
+          "holonomy_steered": 0.8050819972530008
+        },
+        "2": {
+          "rho_baseline": 0.23763093723748233,
+          "rho_steered": 0.2378108874615976,
+          "holonomy_baseline": 0.9316491754725575,
+          "holonomy_steered": 0.931053818203509
+        },
+        "3": {
+          "rho_baseline": 0.25043547763667534,
+          "rho_steered": 0.25056472612508723,
+          "holonomy_baseline": 0.8533271361142396,
+          "holonomy_steered": 0.8527307011187075
+        },
+        "4": {
+          "rho_baseline": 0.25570599520868287,
+          "rho_steered": 0.25553065254422974,
+          "holonomy_baseline": 0.9777713445946575,
+          "holonomy_steered": 0.977926435135305
+        },
+        "5": {
+          "rho_baseline": 0.2710615979118797,
+          "rho_steered": 0.27125304723357874,
+          "holonomy_baseline": 0.9287543250247835,
+          "holonomy_steered": 0.925186922773719
+        },
+        "6": {
+          "rho_baseline": 0.21920370241405643,
+          "rho_steered": 0.2189182466251669,
+          "holonomy_baseline": 0.7658145840279759,
+          "holonomy_steered": 0.7655787429772317
+        },
+        "7": {
+          "rho_baseline": 0.24997765342073533,
+          "rho_steered": 0.24990529707581094,
+          "holonomy_baseline": 0.9264827759936454,
+          "holonomy_steered": 0.9257040627300739
+        },
+        "8": {
+          "rho_baseline": 0.2017230590945944,
+          "rho_steered": 0.20208963870957863,
+          "holonomy_baseline": 0.7144258040934801,
+          "holonomy_steered": 0.7152149413712322
+        },
+        "9": {
+          "rho_baseline": 0.3223645003021427,
+          "rho_steered": 0.32288889285543826,
+          "holonomy_baseline": 1.1355578772723673,
+          "holonomy_steered": 1.1374094892293214
+        },
+        "10": {
+          "rho_baseline": 0.23945426103812753,
+          "rho_steered": 0.2388956210141959,
+          "holonomy_baseline": 0.9043349307030438,
+          "holonomy_steered": 0.9039163179695606
+        },
+        "11": {
+          "rho_baseline": 0.26231620451685644,
+          "rho_steered": 0.26270801705256036,
+          "holonomy_baseline": 1.0063395639881492,
+          "holonomy_steered": 1.0053519975394012
+        },
+        "12": {
+          "rho_baseline": 0.2842510418716783,
+          "rho_steered": 0.28439832937115644,
+          "holonomy_baseline": 0.9543120147660374,
+          "holonomy_steered": 0.9502380877733231
+        },
+        "13": {
+          "rho_baseline": 0.24033755721733485,
+          "rho_steered": 0.23980476107719056,
+          "holonomy_baseline": 0.8633194901049137,
+          "holonomy_steered": 0.8381465910002589
+        },
+        "14": {
+          "rho_baseline": 0.2777651061378792,
+          "rho_steered": 0.2765920409284585,
+          "holonomy_baseline": 0.9819466203451157,
+          "holonomy_steered": 0.9819766364991664
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.2506067749557923,
+        "rho_steered": 0.2505239224303536,
+        "holonomy_baseline": 0.9096501400197546,
+        "holonomy_steered": 0.90739063533023
+      }
+    },
+    "The engineer debugged the program before the deadline.": {
+      "layers": {
+        "0": {
+          "rho_baseline": 0.21270518294989643,
+          "rho_steered": 0.21270518294989643,
+          "holonomy_baseline": 0.8099265284836292,
+          "holonomy_steered": 0.8099265284836292
+        },
+        "1": {
+          "rho_baseline": 0.22334269819955235,
+          "rho_steered": 0.22334269819955235,
+          "holonomy_baseline": 0.8751061230897903,
+          "holonomy_steered": 0.8751061230897903
+        },
+        "2": {
+          "rho_baseline": 0.20758692988878674,
+          "rho_steered": 0.20758692988878674,
+          "holonomy_baseline": 0.8565242244862019,
+          "holonomy_steered": 0.8565242244862019
+        },
+        "3": {
+          "rho_baseline": 0.2525031147472929,
+          "rho_steered": 0.2516332343117952,
+          "holonomy_baseline": 0.9220581712201238,
+          "holonomy_steered": 0.9214145020581782
+        },
+        "4": {
+          "rho_baseline": 0.25630104650424756,
+          "rho_steered": 0.25533094889524993,
+          "holonomy_baseline": 0.989440669491887,
+          "holonomy_steered": 0.9825160497799514
+        },
+        "5": {
+          "rho_baseline": 0.24346648547417832,
+          "rho_steered": 0.2432184244564586,
+          "holonomy_baseline": 1.068016204982996,
+          "holonomy_steered": 1.0720328360795974
+        },
+        "6": {
+          "rho_baseline": 0.21869592216390393,
+          "rho_steered": 0.21774114063890979,
+          "holonomy_baseline": 0.7865028677508233,
+          "holonomy_steered": 0.7870865831151606
+        },
+        "7": {
+          "rho_baseline": 0.24396282767311836,
+          "rho_steered": 0.24508270073170796,
+          "holonomy_baseline": 1.0069028548896313,
+          "holonomy_steered": 1.006469737738371
+        },
+        "8": {
+          "rho_baseline": 0.2195669208790174,
+          "rho_steered": 0.22097652471137114,
+          "holonomy_baseline": 0.7875294163823129,
+          "holonomy_steered": 0.8041996534913779
+        },
+        "9": {
+          "rho_baseline": 0.29146088473038506,
+          "rho_steered": 0.2901620476893301,
+          "holonomy_baseline": 1.1116655498743058,
+          "holonomy_steered": 1.1049350768327713
+        },
+        "10": {
+          "rho_baseline": 0.2696083069156015,
+          "rho_steered": 0.2695502845437438,
+          "holonomy_baseline": 1.0676286153495314,
+          "holonomy_steered": 1.0750348366796971
+        },
+        "11": {
+          "rho_baseline": 0.25501678467188377,
+          "rho_steered": 0.2525186160558202,
+          "holonomy_baseline": 1.023250852897763,
+          "holonomy_steered": 1.018945367448032
+        },
+        "12": {
+          "rho_baseline": 0.26563796227468917,
+          "rho_steered": 0.26509197920869837,
+          "holonomy_baseline": 0.9230860630050302,
+          "holonomy_steered": 0.9268601609393956
+        },
+        "13": {
+          "rho_baseline": 0.21029805293862366,
+          "rho_steered": 0.20699972718120677,
+          "holonomy_baseline": 0.7845608459785581,
+          "holonomy_steered": 0.7647677522152662
+        },
+        "14": {
+          "rho_baseline": 0.2403347827810552,
+          "rho_steered": 0.2410178984461582,
+          "holonomy_baseline": 0.9348296036943794,
+          "holonomy_steered": 0.9410780461505055
+        }
+      },
+      "mean": {
+        "rho_baseline": 0.24069919351948216,
+        "rho_steered": 0.24019722252724576,
+        "holonomy_baseline": 0.9298019061051309,
+        "holonomy_steered": 0.929793165239195
+      }
+    }
+  },
+  "generation": {
+    "baseline": "",
+    "steered": "FIRE…………………………samp यह………………………………………………………………………………cTempVal………… rubbers……………… افواج…………………………………………………………………………ivably…… Otago…………………………………………………………เจอ"
+  }
+}

@@ -168,13 +168,18 @@ def main():
     parser.add_argument("--generate", action="store_true",
                         help="Also sample steered vs baseline text for the first prompt")
     parser.add_argument("--output", default=None, help="Write results JSON here")
+    parser.add_argument("--dtype", default=None,
+                        choices=["float32", "float16", "bfloat16"],
+                        help="Model dtype override (e.g. bfloat16 to fit a "
+                             "larger model in RAM on CPU)")
     args = parser.parse_args()
 
     prompts = args.prompts if args.prompts else DEFAULT_PROMPTS
     quran_path = Path(__file__).parent.parent / "al-quran.txt"
 
     print(f"Loading model: {args.model}")
-    llm = SteeredLLM(model_name=args.model)
+    torch_dtype = getattr(torch, args.dtype) if args.dtype else None
+    llm = SteeredLLM(model_name=args.model, torch_dtype=torch_dtype)
     llm.load_model()
     force_eager_attention(llm)
 
