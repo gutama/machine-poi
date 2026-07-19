@@ -319,10 +319,10 @@ def main():
             print(f"\n  Paired stats vs baseline across n={rho_s['n']} prompts:")
             print(f"    Δρ mean={rho_s['mean_diff']:+.4f}  "
                   f"95% CI [{rho_s['ci_low']:+.4f}, {rho_s['ci_high']:+.4f}]  "
-                  f"p={rho_s['p_value']:.4f}")
+                  f"p={rho_s['p_value']:.4g}")
             print(f"    Δholonomy mean={hol_s['mean_diff']:+.4f}  "
                   f"95% CI [{hol_s['ci_low']:+.4f}, {hol_s['ci_high']:+.4f}]  "
-                  f"p={hol_s['p_value']:.4f}")
+                  f"p={hol_s['p_value']:.4g}")
 
     if args.output:
         with open(args.output, "w") as f:

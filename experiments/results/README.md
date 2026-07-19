@@ -216,7 +216,8 @@ Two runs, 2 prompts each, coefficient 4.0:
    safetensors file-backed; the page cache absorbs the overhang).
 
 6. **Prompt generality at n=4 on both Gemma models
-   (`gemma-4-E{2,4}B_centered_4prompts.json`).** The calibrated centered
+   (`gemma-4-E2B_centered_4prompts.json`,
+   `gemma-4-E4B_centered_4prompts.json`).** The calibrated centered
    protocol over 2 moral + 2 neutral prompts per model, with per-prompt
    baselines and calibration (c 0.415-0.502, rel. perturbation
    0.078-0.083; produced with the pre-statistics multi-prompt probe, so
@@ -318,18 +319,19 @@ python experiments/steered_vs_baseline_transport.py --model qwen3-0.6b \
 - `smollm2-135m_coeff{0.25,1.0,4.0}.json` -- full per-prompt, per-layer
   tables for the dose-response (0.5 and 2.0 omitted; they interpolate).
 - `qwen3-0.6b_coeff4.0.json` -- Qwen3-0.6B run.
-- `gemma-4-E2B_coeff4.0_{workspace-band,early-band}.json` -- Gemma 4 E2B
-  runs (see the Gemma 4 section for why only the early band is
-  interpretable).
+- `gemma-4-E2B_coeff4.0_workspace-band.json`,
+  `gemma-4-E2B_coeff4.0_early-band.json` -- Gemma 4 E2B runs (see the
+  Gemma 4 section for why only the early band is interpretable).
 - `gemma-4-E2B_centered_target0.1.json` -- Gemma 4 E2B centered-contrast
   run at calibrated dose (per-layer geometry, deltas, and generations).
 - `gemma-4-E2B_centered_target0.1_fulldepth.json` -- same protocol after
   the KV-shared-layer diagnostics extension; all 35 layers measurable.
 - `gemma-4-E4B_centered_target0.1_fulldepth.json` -- scale replication on
   Gemma 4 E4B (band 6-13, all 42 layers measurable).
-- `gemma-4-E{2,4}B_centered_4prompts.json` -- prompt-generality runs: the
-  calibrated protocol over 2 moral + 2 neutral prompts per model with
-  per-prompt baselines and calibration (pre-statistics probe schema).
+- `gemma-4-E2B_centered_4prompts.json`, `gemma-4-E4B_centered_4prompts.json`
+  -- prompt-generality runs: the calibrated protocol over 2 moral + 2
+  neutral prompts per model with per-prompt baselines and calibration
+  (pre-statistics probe schema).
 - `smollm2-135m_centered_probe.json` -- vector geometry + centered-contrast
   conditions.
 - `*_n16.json` -- see the n=16 statistically-tested re-run section.
