@@ -489,3 +489,101 @@ class TestKvShareSourceMap:
         layer_types = ["sliding_attention", "sliding_attention", "full_attention"]
         sources = kv_share_source_map(layer_types, 3, 1)
         assert sources == {}
+
+
+class TestKvSharedLayerDiagnostics:
+    """Transport diagnostics for layers that reuse another layer's KV."""
+
+    @staticmethod
+    def _build_llm(seq_len=5, dim=4):
+        """SteeredLLM over a tiny two-layer model whose layer 1 has no v_proj."""
+        from types import SimpleNamespace
+
+        from src.llm_wrapper import MODEL_CONFIGS, SteeredLLM
+
+        torch.manual_seed(0)
+
+        class TinyAttention(nn.Module):
+            def __init__(self, with_v):
+                super().__init__()
+                self.q_proj = nn.Linear(dim, dim, bias=False)
+                if with_v:
+                    self.v_proj = nn.Linear(dim, dim, bias=False)
+
+        class TinyLayer(nn.Module):
+            def __init__(self, with_v):
+                super().__init__()
+                self.self_attn = TinyAttention(with_v)
+
+        class TinyModel(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.model = SimpleNamespace(
+                    layers=nn.ModuleList([TinyLayer(True), TinyLayer(False)])
+                )
+                self.device = "cpu"
+                self.config = SimpleNamespace(
+                    num_hidden_layers=2,
+                    num_kv_shared_layers=1,
+                    layer_types=["full_attention", "full_attention"],
+                    num_attention_heads=1,
+                    hidden_size=dim,
+                )
+                self.hidden = torch.randn(1, seq_len, dim)
+                causal = torch.tril(torch.ones(seq_len, seq_len))
+                weights = causal / causal.sum(dim=-1, keepdim=True)
+                self.attn_weights = weights.expand(1, 1, seq_len, seq_len)
+
+            def forward(self, input_ids=None, output_attentions=False, **kwargs):
+                for layer in self.model.layers:
+                    attn = layer.self_attn
+                    attn.q_proj(self.hidden)
+                    if hasattr(attn, "v_proj"):
+                        attn.v_proj(self.hidden)
+                return SimpleNamespace(
+                    attentions=(self.attn_weights, self.attn_weights)
+                )
+
+        llm = SteeredLLM.__new__(SteeredLLM)
+        llm.model = TinyModel()
+        llm.config = MODEL_CONFIGS["llama"]
+        llm.hooks = {}
+        llm.hook_handles = []
+
+        batch = SimpleNamespace(to=lambda device: {
+            "input_ids": torch.arange(seq_len).unsqueeze(0)
+        })
+        llm.tokenizer = lambda prompt, return_tensors: batch
+        return llm
+
+    def test_shared_layer_uses_source_layer_values(self):
+        from src.workspace_diagnostics import summarize_attention_transport_heads
+
+        llm = self._build_llm()
+        assert llm._kv_share_sources() == {1: 0}
+
+        diag = llm.get_attention_transport_diagnostics("x", max_loop_positions=4)
+        assert set(diag.keys()) == {0, 1}, "KV-shared layer 1 must not be skipped"
+
+        # Layer 1 must be summarized with its own queries but layer 0's values.
+        model = llm.model
+        hidden = model.hidden[0]
+        q1 = model.model.layers[1].self_attn.q_proj(hidden).detach()
+        v0 = model.model.layers[0].self_attn.v_proj(hidden).detach()
+        seq_len = hidden.shape[0]
+        expected = summarize_attention_transport_heads(
+            model.attn_weights[0].float(),
+            q1.view(seq_len, 1, -1).transpose(0, 1).float(),
+            v0.view(seq_len, 1, -1).transpose(0, 1).float(),
+            max_loop_positions=4,
+        )
+        assert diag[1][0].non_abelian_ratio == pytest.approx(
+            expected[0].non_abelian_ratio)
+        assert diag[1][0].mean_holonomy == pytest.approx(expected[0].mean_holonomy)
+
+    def test_shared_layer_skipped_when_source_lacks_v_proj(self):
+        llm = self._build_llm()
+        del llm.model.model.layers[0].self_attn.v_proj
+
+        diag = llm.get_attention_transport_diagnostics("x", max_loop_positions=4)
+        assert diag == {}

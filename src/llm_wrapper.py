@@ -117,13 +117,17 @@ def kv_share_source_map(
     first_shared = num_layers - num_kv_shared_layers
     if num_kv_shared_layers <= 0 or first_shared <= 0:
         return {}
-    prev_types = list(layer_types[:first_shared])
-    sources = {}
-    for layer_idx in range(first_shared, num_layers):
-        layer_type = layer_types[layer_idx]
-        if layer_type in prev_types:
-            sources[layer_idx] = first_shared - 1 - prev_types[::-1].index(layer_type)
-    return sources
+    # Configs are untrusted: bound the scan to the layer types actually
+    # provided, and precompute each type's last non-shared occurrence.
+    last_seen = {
+        layer_type: idx
+        for idx, layer_type in enumerate(layer_types[:first_shared])
+    }
+    return {
+        layer_idx: last_seen[layer_types[layer_idx]]
+        for layer_idx in range(first_shared, min(num_layers, len(layer_types)))
+        if layer_types[layer_idx] in last_seen
+    }
 
 
 
@@ -589,8 +593,9 @@ class SteeredLLM:
                     if source_idx is not None else None
             if q_proj is None or v_proj is None:
                 logger.warning(
-                    f"Layer {layer_idx}: no usable q_proj/v_proj (and no KV-share "
-                    "source); skipping transport diagnostics for this layer"
+                    f"Layer {layer_idx}: could not resolve q_proj/v_proj, "
+                    "either directly or through a KV-share source layer; "
+                    "skipping transport diagnostics for this layer"
                 )
                 continue
             handles.append(q_proj.register_forward_hook(_capture(captured_q, layer_idx)))
