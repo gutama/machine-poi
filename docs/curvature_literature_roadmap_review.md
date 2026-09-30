@@ -1,115 +1,66 @@
-# Curvature & Manifold Literature Review — Relevance to Machine-POI's Roadmap
+# Geometry literature and containment research
 
-**Scope update (2026-09-29):** these are research leads, not validation of agent
-containment. The [architecture](architecture.md) keeps authorization in a
-deterministic host gateway. A geometric signal may inform an experiment or host
-investigation, but cannot authorize a tool action. Proposed cross-paper metric
-equivalences and thresholds below remain hypotheses requiring derivation and
-source verification before publication. The containment implementation did not
-re-run these literature studies. Read the [committed model results](../experiments/results/README.md)
-for the observed collapse and language/persona spillover, and the
-[testing guide](testing.md) for what the new runtime tests establish.
+Reviewed 2026-09-30 against primary-source metadata and abstracts. This replaces
+the earlier analogy-led prioritization; it does not reproduce the papers' results.
 
-**Purpose:** This document maps recent (2025–2026) literature on curvature, manifolds, and geometric attention onto Machine-POI's existing roadmap — specifically the [Global Workspace Improvement Plan](global_workspace_improvement_plan.md) and the attention-transport diagnostics already implemented in `machine_poi/workspace_diagnostics.py` and `experiments/gpt_on_manifolds_v4.py`.
+[Research design](containment_geometry_research.md) · [Research directions](research_directions.md) ·
+[Workspace roadmap](global_workspace_improvement_plan.md)
 
----
+## What the sources support
 
-## 1. Where the project already stands
+| Primary source | Established scope of the source | Use in Machine-POI | Transfer limit |
+| --- | --- | --- | --- |
+| You, Deng & Chen, [Spherical Steering](https://arxiv.org/abs/2602.08169), 2026 | Activation rotation preserving hidden-state magnitude | Essential comparator for the proposed low-rank `Cl(r,0)` rotor | Rotation/norm preservation is existing work; tool containment is not established |
+| Oozeer et al., [Riemannian-Manifold Steering](https://arxiv.org/abs/2605.24942), 2026 | Learned approximation to a behavioral pullback metric; arithmetic steering experiments | Later learned-metric comparator after spherical/additive baselines | Arithmetic class control does not validate unsafe-action prediction |
+| Cho et al., [Curve Your Attention: Mixed-Curvature Transformers for Graph Representation Learning](https://arxiv.org/abs/2309.04082), 2023 | Product constant-curvature spaces for graph Transformers | Precedent for the deferred product-space architecture experiment | Graph reconstruction/classification results are not agent or pretrained-LLM evidence |
+| Ji, [RiemannFormer](https://arxiv.org/abs/2506.07405), revised 2025 | Attention involving metrics, tangent spaces and parallel transport | Compare explicit metric/frame contracts when changing attention | A post-hoc query/value wedge is not automatically the paper's transport operator |
+| Di Sipio, Diaz-Rodriguez & Serrano, [The Curved Spacetime of Transformer Architectures](https://arxiv.org/abs/2511.03060), 2025 | Geometric analogy and representation-trajectory turning/deflection experiments | Cheap trajectory-shape controls under context edits | Extrinsic turning, intrinsic curvature and agent safety are different claims |
+| Arditi et al., [Refusal Is Mediated by a Single Direction](https://arxiv.org/abs/2406.11717), 2024 | Causal interventions on a refusal direction in studied chat models | Motivate refusal and harmless-task controls alongside compliance | Refusal is not authorization; refusing everything can destroy utility |
+| Debenedetti et al., [AgentDojo](https://arxiv.org/abs/2406.13352), 2024 | Tool-agent tasks, injected tool responses and extensible attacks | Primary trajectory benchmark | Policy adapters and tool-capable models must be validated separately |
+| Zhan et al., [InjecAgent](https://arxiv.org/abs/2403.02691), 2024 | Indirect injection benchmark for tool-integrated agents | Complementary attack/task families | Benchmark success is not coverage of host bypasses or remote cancellation |
+| Debenedetti et al., [CaMeL: Defeating Prompt Injections by Design](https://arxiv.org/abs/2503.18813), 2025 | Separates trusted control/data flow and enforces capability policies | Strong security architecture comparator | Machine-POI's scope gateway does not implement the same data-flow semantics |
+| Ames et al., [Control Barrier Function Based Quadratic Programs](https://arxiv.org/abs/1609.06408), 2017 | Forward invariance under specified continuous dynamics and controller conditions | Optional toy controller theory after declaring dynamics/safe set | Those conditions are not supplied by LLM embeddings or empirical safety probes |
 
-Machine-POI's roadmap has three geometry-adjacent workstreams already **implemented**:
+## Mathematical corrections before further literature transfer
 
-| Roadmap item | Status | File |
-|---|---|---|
-| Workspace-aware layer selection | Implemented | `machine_poi/steerer.py` (`select_workspace_layers()`) |
-| Pointwise steering diagnostics (norm, cosine, projection) | Implemented | `machine_poi/workspace_diagnostics.py` |
-| **Attention-transport (curvature) diagnostics** — non-abelian ratio ρ, holonomy, discrete Cartan curvature Ω = dω + ω∧ω | Implemented | `machine_poi/workspace_diagnostics.py`, `experiments/gpt_on_manifolds_v4.py`, `experiments/steered_vs_baseline_transport.py` |
+The current diagnostics construct skew generators, adjacent differences,
+commutators and products of three vertex rotations. They do not supply a declared
+curvature two-form or closed loop of directed edge transports. A constant
+commuting generator can produce a nonzero legacy “holonomy” angle. Query and
+value coordinate spaces also admit independent reparameterizations.
 
-The curvature diagnostics treat each attention head as a **discrete connection** on a sequence fiber bundle: attention weights define a connection bivector ω_t, and its variation (dω) vs. commutator (ω∧ω) terms separate "position-dependent but commutative" heads from "genuinely order-sensitive" heads. `gpt_on_manifolds_v4.py` additionally trains a toy GPT with embeddings projected onto **hyperbolic (Poincaré), spherical, product H×S, and Grassmannian manifolds**, using a Riemannian natural-gradient optimizer.
+The [research design](containment_geometry_research.md#4-repair-the-meaning-of-transport-diagnostics-first)
+specifies common frames, inverse links, loop orientation and pure-gauge controls.
+Run `python experiments/geometry_sanity.py` for an independent GA/vector check and
+the constant-generator counterexample. The executed checks validate those small
+fixtures only. Historical runtime fields and reports remain unchanged.
 
-Planned-but-not-implemented roadmap items that geometric literature can inform:
-- Workspace audit CLI mode
-- Oversteering safeguards (capping relative perturbation)
-- Structured Quranic concept vocabulary
-- Counterfactual reflection experiments
+Do not equate these quantities without a derivation:
 
----
+- a representation path's turning angle or length-to-chord ratio;
+- the statistical/Riemannian curvature of a declared metric;
+- noncommutativity of selected skew generators;
+- closed-loop transport holonomy;
+- independently scored model behavior and committed tool effects.
 
-## 2. Paper-by-paper relevance mapping
+A curve can bend in flat Euclidean space. A frame field can vary while its links
+remain pure gauge. Low curvature can accompany unsafe actions. Each inference
+requires its own measurement and controls.
 
-### 2.1 Attention-as-connection / curvature diagnostics (directly extends existing work)
+## Recommended reading and implementation order
 
-| Paper | Core idea | Relevance to roadmap |
-|---|---|---|
-| [The Curved Spacetime of Transformer Architectures](https://arxiv.org/abs/2511.03060) (Nov 2025) | Attention is a discrete connection transporting value vectors on a curved semantic manifold; proposes turning-angle and length-to-chord-ratio curvature diagnostics, plus a "deflection" test analogous to gravitational lensing. | Provides an **independent, published formalization** of the same idea Machine-POI already implements (attention-as-transport). Its turning-angle / length-to-chord diagnostics are simpler than the bivector/holonomy machinery in `gpt_on_manifolds_v4.py` and could serve as a **lightweight cross-check** in the planned audit CLI mode — cheap enough to run per-prompt without the O(n³) triangular-loop cost of holonomy. The "deflection under controlled context edits" experiment is a direct template for testing whether Quran steering *bends* representation trajectories in a meaning-consistent way, which is exactly what `steered_vs_baseline_transport.py` tries to detect via ρ and holonomy deltas.|
-| [RiemannFormer: A Framework for Attention in Curved Spaces](https://arxiv.org/abs/2506.07405) (Jun 2025) | Reformulates Q·K attention as parallel transport between tangent spaces under a learned Riemannian metric M_i at each token position; requires transporting keys into the query's tangent frame before the inner product. | Gives a **principled alternative attention formula** (not just a diagnostic) that Machine-POI could adopt if it ever wants to bake curvature *into* the steered model's forward pass rather than only measuring it post hoc. Also useful as a sanity check: RiemannFormer's parallel-transport operator is structurally the same object as the `transport_map()` (T_t = exp(−ηω_t)) already in `gpt_on_manifolds_v4.py`. |
-| [Gating Enables Curvature: A Geometric Expressivity Gap in Attention](https://arxiv.org/pdf/2604.14702.pdf) (Apr 2026) | Candidate literature on the relationship between gating and statistical-manifold curvature; verify its assumptions and curvature definition before applying it here. | Suggested experiment: compare gated/ungated variants while measuring output quality and this repository's ρ/holonomy. No implication from a different curvature definition to these diagnostics has been established here; ungated architecture alone does not justify labeling a measured head "FLAT". |
-| [The Bayesian Geometry of Transformer Attention](https://arxiv.org/abs/2512.22471) (Dec 2025) | Shows attention implements content-addressable routing of a Bayesian belief state carried in the residual stream. | Less a curvature paper than a routing-semantics paper, but complements the roadmap's framing that steering should be evaluated on whether it changes *how context is routed*, not just *where representations sit*. Could motivate a belief-tracking diagnostic alongside ρ/holonomy in the planned audit mode. |
+1. Spherical Steering plus existing additive baselines: establish a fair,
+   bounded-intervention comparison before inventing a new curved architecture.
+2. AgentDojo, InjecAgent and CaMeL: build a receipt-scored agent evaluation and
+   identify where structured scope checks miss harmful permitted data flows.
+3. Riemannian-Manifold Steering: investigate a local SPD/pullback metric only
+   if simple rotor/additive comparisons justify the cost.
+4. RiemannFormer and mixed-curvature graph Transformers: use later to design
+   actual metric-compatible attention or product-space components.
+5. Continuous barrier-function theory: keep its assumptions explicit in a toy
+   system; do not cite it as a proof of discrete agent containment.
 
-### 2.2 Hyperbolic / mixed-curvature LLM architectures (relevant to the manifold *training* experiment, not the steering pipeline itself)
-
-| Paper | Core idea | Relevance to roadmap |
-|---|---|---|
-| [Hyperbolic Large Language Models](https://arxiv.org/html/2509.05757v1) (Sep 2025, survey) | Taxonomy of HypLLMs: exp/log-map hybrids, hyperbolic fine-tuning, fully hyperbolic models, hyperbolic SSMs. | Useful **background reading** for anyone extending `gpt_on_manifolds_v4.py` beyond a toy testbed — the taxonomy clarifies which manifold-integration strategy (hybrid vs. fully hyperbolic) would be tractable to port into the main `SteeredLLM` wrapper. |
-| [HELM: Hyperbolic LLMs via Mixture-of-Curvature Experts](https://proceedings.neurips.cc/paper_files/paper/2025/hash/d1e2f808a51842eedaf6ef0099d716c6-Abstract-Conference.html) (NeurIPS 2025) | Billion-scale fully hyperbolic LLM; each expert operates in its own curvature; hyperbolic RoPE/RMSNorm/attention. | Not applicable to steering an *existing pretrained Euclidean* model (Machine-POI's actual use case), since HELM requires training from scratch in hyperbolic space. Relevant only if the roadmap's "Future Work" ever pivots to training a small Quran-native model rather than steering off-the-shelf checkpoints. |
-| [CAT: Curvature-Adaptive Transformers](https://arxiv.org/abs/2510.01634) (Oct 2025) | Learns per-token routing across Euclidean/hyperbolic/spherical attention branches. | Conceptually validates the project's `MANIFOLD_TYPE` product-space experiment (H^8 × S^8) — CAT shows *mixed* geometry outperforms any single fixed geometry, supporting the choice to keep testing product manifolds rather than committing to pure hyperbolic. |
-| [Curve Your Attention: Mixed-Curvature Transformers](http://arxiv.org/pdf/2309.04082.pdf) | Learnable per-head sectional curvature on a product-stereographic manifold. | Direct ancestor of the `MANIFOLD_TYPE='product'` path in `gpt_on_manifolds_v4.py`; the roadmap could cite this as the architectural precedent and consider making curvature itself learnable (currently `HYPERBOLIC_C` is a fixed constant). |
-| [Hyperbolic Fine-tuning for LLMs (HypLoRA)](http://arxiv.org/pdf/2410.04010.pdf) | LoRA-style low-rank adaptation performed in hyperbolic space; gains on hierarchical reasoning tasks. | Most **directly actionable** hyperbolic paper for the roadmap: HypLoRA fine-tunes an *existing* pretrained LLM without full retraining — structurally analogous to Machine-POI's activation-steering approach (no full fine-tuning) but operating in a different intervention space (weight-space LoRA deltas vs. residual-stream activations). Item 3 of the roadmap ("prefer activation-derived steering vectors... projection-based utilities experimental") could reference HypLoRA as a possible complementary/alternative intervention to evaluate. |
-| [Position: Foundation Models Should Embrace Non-Euclidean Geometries](https://arxiv.org/abs/2504.08896) (Apr 2025) | Argues Euclidean geometry is a scaling bottleneck; proposes a roadmap for non-Euclidean foundation models. | Broad motivational framing; supports treating `gpt_on_manifolds_v4.py` as more than a toy — i.e., justifies eventually scaling the manifold experiment past a 30-name toy dataset if resources allow. |
-
-### 2.3 Riemannian structure of pretrained representations (interpretability-focused, closest to the *diagnostics* half of the roadmap)
-
-| Paper | Core idea | Relevance to roadmap |
-|---|---|---|
-| [Riemannian Geometry for Pre-trained Language Model Embeddings](https://arxiv.org/html/2607.07047v1) (Jul 2026) | Pulls back a Riemannian metric from a PLM's Jacobian; aggregates token embeddings via Fréchet means on the SPD manifold ("Riemannian Mean Pooling"); outperforms Euclidean pooling on linguistically structured tasks. | Suggests a **new diagnostic**: instead of (or alongside) mean-activation steering vectors, compute a Fréchet-mean steering vector on the pulled-back metric. Could reduce noise in the Quran Persona vector, which currently uses a plain arithmetic mean of activations (README §2). Worth a follow-up experiment. |
-| [Latent Semantic Manifolds in Large Language Models](https://arxiv.org/pdf/2603.22301.pdf) (Mar 2026) | Formalizes an LLM latent manifold with a Fisher-information metric; shows curvature spikes correlate with polysemy/semantic ambiguity and proposes curvature as a real-time training diagnostic. | Directly extends the roadmap's diagnostics philosophy ("diagnostics before trust"). Curvature-spike monitoring could become an **oversteering safeguard** (roadmap item 7): if steering pushes a layer's local curvature far outside its baseline range, flag it as a potential representation-collapse or instability risk, analogous to how the paper proposes detecting training instabilities. |
-| [RiemannInfer](https://www.nature.com/articles/s41598-026-37328-x) (Nature Sci Reports, Jan 2026) | Builds a Riemannian manifold from attention distributions; uses geodesics/curvature for inference-path planning and interpretability. | Less about steering, more about efficiency — lower priority for Machine-POI, but its geodesic/curvature-based "reasoning path" visualization could inspire a visualization component for the planned workspace audit CLI mode (e.g., plotting the steered vs. baseline generation path through curvature space). |
-
----
-
-## 3. Recommended roadmap updates
-
-Based on the above mapping, three concrete additions to `docs/global_workspace_improvement_plan.md` are suggested:
-
-1. **Item 2b (attention-transport diagnostics) — add a lightweight cross-check.**
-   Implement the turning-angle / length-to-chord curvature diagnostic from *[The Curved Spacetime of Transformer Architectures](https://arxiv.org/abs/2511.03060)* as a cheaper companion to the existing bivector/holonomy diagnostics, since it avoids the O(n³) triangular-loop cost and can run per-token during interactive sessions.
-
-2. **Item 7 (oversteering safeguards) — evaluate a curvature-spike hypothesis.**
-   The proposed connection to *[Latent Semantic Manifolds in LLMs](https://arxiv.org/pdf/2603.22301.pdf)* needs a precise metric mapping and held-out calibration. Test whether changes relative to a model's baseline predict an independently measured output regression; do not install a threshold based on the analogy alone. Current finite-value/configuration checks are implemented, but a validated geometric detector is not.
-
-3. **New experimental item — Fréchet-mean steering vectors.**
-   Following *[Riemannian Geometry for Pre-trained LM Embeddings](https://arxiv.org/html/2607.07047v1)*, add an experiment comparing the current arithmetic-mean Quran Persona vector against a Fréchet mean computed on the pulled-back Jacobian metric, to test whether it yields more stable or more thematically consistent steering at a given coefficient.
-
-Lower-priority / background-only: the hyperbolic-LLM architecture papers (HELM, Hypformer, CAT, Curve Your Attention) are valuable context for the `gpt_on_manifolds_v4.py` testbed but are not directly actionable for the steering pipeline, since they assume training from scratch rather than steering an existing checkpoint. HypLoRA is the one exception worth a scoping note, as it shares Machine-POI's "no full fine-tuning" constraint.
-
----
-
-## 4. Full reference list
-
-- Turner, A. M. et al. (2024). *Activation Addition: Steering Language Models Without Optimization.* [arXiv:2308.10248](https://doi.org/10.48550/arXiv.2308.10248)
-- Rimsky, N. et al. (2024). *Steering Llama 2 via Contrastive Activation Addition.* ACL 2024. [ACL Anthology](https://aclanthology.org/2024.acl-long.828/)
-- *The Curved Spacetime of Transformer Architectures.* [arXiv:2511.03060](https://arxiv.org/abs/2511.03060)
-- *RiemannFormer: A Framework for Attention in Curved Spaces.* [arXiv:2506.07405](https://arxiv.org/abs/2506.07405)
-- *Gating Enables Curvature: A Geometric Expressivity Gap in Attention.* [arXiv:2604.14702](https://arxiv.org/pdf/2604.14702.pdf)
-- *The Bayesian Geometry of Transformer Attention.* [arXiv:2512.22471](https://arxiv.org/abs/2512.22471)
-- *Hyperbolic Large Language Models* (survey). [arXiv:2509.05757](https://arxiv.org/html/2509.05757v1)
-- *HELM: Hyperbolic Large Language Models via Mixture-of-Curvature Experts.* NeurIPS 2025. [proceedings.neurips.cc](https://proceedings.neurips.cc/paper_files/paper/2025/hash/d1e2f808a51842eedaf6ef0099d716c6-Abstract-Conference.html)
-- *CAT: Curvature-Adaptive Transformers for Geometry-Aware Attention.* [arXiv:2510.01634](https://arxiv.org/abs/2510.01634)
-- *Curve Your Attention: Mixed-Curvature Transformers.* [arXiv:2309.04082](http://arxiv.org/pdf/2309.04082.pdf)
-- *Hyperbolic Fine-tuning for Large Language Models (HypLoRA).* [arXiv:2410.04010](http://arxiv.org/pdf/2410.04010.pdf)
-- *Position: Foundation Models Should Embrace Non-Euclidean Geometries.* [arXiv:2504.08896](https://arxiv.org/abs/2504.08896)
-- *Riemannian Geometry for Pre-trained Language Model Embeddings.* [arXiv:2607.07047](https://arxiv.org/html/2607.07047v1)
-- *Latent Semantic Manifolds in Large Language Models.* [arXiv:2603.22301](https://arxiv.org/pdf/2603.22301.pdf)
-- *RiemannInfer: Improving Transformer Inference through Riemannian Geometry.* Nature Scientific Reports (2026). [nature.com](https://www.nature.com/articles/s41598-026-37328-x)
-- Nickel, M. & Kiela, D. (2017). *Poincaré Embeddings for Learning Hierarchies.*
-- Amari, S. (1998). *Natural Gradient Works Efficiently in Learning.*
-- Absil, P.-A., Mahony, R., & Sepulchre, R. (2008). *Optimization Algorithms on Matrix Manifolds.*
-- Hestenes, D. & Sobczyk, G. (1984). *Clifford Algebra to Geometric Calculus.*
-- Vaswani, A. et al. (2017). *Attention Is All You Need.* [arXiv:1706.03762](https://arxiv.org/abs/1706.03762)
-
-**Note:** The original review could not locate the repo's internal reference
-("Is Attention Commutative? Quantifying Contextuality via a Discrete Cartan
-Curvature Diagnostic," Feb 2026) as a distinct indexed publication. Related
-geometric frameworks use their own objects and definitions; they do not
-automatically validate this repository's equations or replace a missing source.
-Verify each reference and any metric correspondence before relying on it in a
-publication.
+Older roadmap entries and harvested literature rankings are research leads.
+Their metadata, benchmark scope and claimed equivalences need source-level
+verification before use in a publication. Topic growth or a general-relativity
+analogy is not evidence for a safety mechanism.

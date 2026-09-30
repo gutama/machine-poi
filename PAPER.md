@@ -1,6 +1,6 @@
 # Machine-POI: Activation Steering and a Host-Side Action Boundary
 
-Research and implementation note, updated 2026-09-29.
+Research and implementation note, updated 2026-09-30.
 
 [Architecture](docs/architecture.md) · [Steering guide](docs/steering_guide.md) ·
 [Validation](docs/testing.md) · [Committed model results](experiments/results/README.md)
@@ -144,9 +144,14 @@ Pointwise diagnostics report activation/vector norms, cosine alignment,
 projection magnitude and relative perturbation computed from the actual update
 for each injection mode, averaged over every steered token of a generation. The
 achieved dose ratio divides the mean update norm by the median token norm.
-High-level generation retains these scalar summaries in `last_run_diagnostics`. Attention-transport experiments summarize a constructed
-connection using variation/commutator terms and holonomy. Those quantities are
-research diagnostics, with no validated threshold for authorization or safety.
+High-level generation retains these scalar summaries in `last_run_diagnostics`.
+Attention-transport experiments summarize constructed skew generators using
+variation, commutators and three-rotation product angles. Legacy field names use
+“curvature” and “holonomy”, but adjacent differences do not derive a curvature
+two-form and the rotation product has no defined closed edge loop. Query/value
+coordinate identification also needs justification. See the
+[geometry contract and counterexample](docs/containment_geometry_research.md#4-repair-the-meaning-of-transport-diagnostics-first).
+Historical values are unchanged; no authorization or safety threshold is validated.
 
 Remote model code defaults off and requires a pinned commit for explicit opt-in.
 Steering caches store numeric arrays and identity metadata rather than pickled
@@ -211,8 +216,9 @@ produced a much weaker direction than the Arabic one at the same ratio.
 
 Retrieval alone raised the proxy without changing NLL, but it answered none of
 the Arabic prompts in Arabic script: the template's instructions are English.
-Mean attention-transport ρ and holonomy fell as the centered dose rose. They are
-geometric measurements, not behavior.
+Mean legacy attention-transport ρ and three-rotation angles fell as the centered
+dose rose. These constructed diagnostics measure neither intrinsic curvature nor
+safe behavior under the current transport definition.
 
 ### 5.3 What the run does not show
 
@@ -260,6 +266,13 @@ adapter can also be incorrect, and completed remote effects cannot be undone by
 local cancellation. Scope/goal semantics depend on host classification and task
 design. These limits require a concrete deployment inventory and response drills.
 
+The current [research design](docs/containment_geometry_research.md) prioritizes
+bounded low-rank spherical rotors, compared with prompting and dose-matched
+centered addition, each with and without host enforcement in benchmark sandboxes.
+It specifies `Cl(r,0)`, explicit degeneracies, transport controls and later metric
+experiments. These are proposed methods, not new model results. Novelty must be
+established against existing spherical-steering methods.
+
 Next evaluations should compare baseline, steering-only, gateway-only and combined
 conditions on held-out benign/adversarial tasks, with matched prompts and model
 settings. Report task success, unauthorized effects, false blocks, review burden,
@@ -289,3 +302,4 @@ The first command reproduces section 5; the second scores the blinded ratings
 once two raters have filled in copies of the sheet. `experiments/reproduce_paper.py`
 only prints sample outputs for demonstration. Its keyword-counting section 5.2 is
 retired, and its numbering does not match this note.
+
