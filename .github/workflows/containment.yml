@@ -28,6 +28,8 @@ jobs:
       # No research extras: the guardian must install and run without ML packages.
       - run: python -m pip install -c ci-constraints.txt -e ".[test]"
       - run: python -m pytest tests/guardian --confcutdir=tests/guardian -q
+      - name: Verify algebra and synthetic transport controls
+        run: python experiments/geometry_sanity.py
       - run: python -m examples.guarded_agent.process_demo
       - run: python -m evals.rogue_agent.run --output containment-eval-report.json
       - if: matrix.python == '3.12'

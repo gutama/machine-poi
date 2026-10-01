@@ -159,7 +159,15 @@ def main():
     legacy = mm(t, mm(t, t))
     legacy_angle = math.acos(max(-1, min(1, (sum(legacy[i][i] for i in range(3)) - 1) / 2)))
     assert abs(legacy_angle - 0.3) < 1e-12
-    assert difference(mm(t, t), mm(t, t)) == 0  # Identical generators commute.
+
+    # Distinct same-axis rotations commute and compose to the angle sum.
+    same_axis = rotation([0, 0, 1], 0.23)
+    forward = mm(t, same_axis)
+    backward = mm(same_axis, t)
+    commuting_error = difference(forward, backward)
+    assert difference(t, same_axis) > 1e-3
+    assert commuting_error < 1e-12
+    assert difference(forward, rotation([0, 0, 1], 0.33)) < 1e-12
 
     # A flat closed path with forward angles .1,.1 and return angle -.2.
     closed = mm(rotation([0, 0, 1], -0.2), mm(t, t))
@@ -211,6 +219,7 @@ def main():
                       "random_rotor_cases": 100, "maximum_errors": worst,
                       "degenerate_noops": degenerate,
                       "legacy_constant_generator_angle_rad": legacy_angle,
+                      "same_axis_commutation_error": commuting_error,
                       "flat_closed_loop_error": flat_error,
                       "pure_gauge_loop_error": pure_gauge_error,
                       "inverse_edge_error": inverse_error,
