@@ -18,20 +18,30 @@ This page maps the recent literature around those strands, recommends where to
 take the research next, and lists open problems that collaborators can pick up.
 Contributions of any size are welcome; see [how to join](#how-to-join).
 
-## Summary
+## Current research priority (2026-09-30)
 
-- **Primary direction: language-matched, capability-audited steering for Arabic
-  and Islamic contexts.** Cultural steering is an active niche. Steering toward
-  Arabic or Islamic content is almost empty: 7 of 7,322 harvested abstracts
-  combine steering with Arabic, Islamic or Quranic terms, and none steers toward
-  Islamic content. This repository already has the pieces the question needs.
-- **Secondary direction: representation signals as inputs to the gateway.** Agent
-  containment is the fastest-growing and most crowded area. A probe or steering
-  signal that feeds the gateway's `observe()` call, which never adds authority,
-  is a narrower contribution than another gateway.
-- **Deprioritize attention geometry as a headline.** It is the slowest-growing
-  theme, and its active work designs curved-space architectures rather than
-  diagnosing trained models. It stays useful as supporting analysis.
+**Primary direction: agent containment with bounded geometric interventions.**
+Ask whether geometry reduces unauthorized tool proposals and operator burden at
+matched benign task utility, with an independent host enforcing permissions.
+The [research design](containment_geometry_research.md) defines the threat model,
+`Cl(r,0)` low-rank rotors, metric/transport assumptions, controls and stopping rules.
+
+1. Establish one isolated tool-capable agent and a receipt-scored gateway baseline.
+2. Compare prompting, centered addition and spherical rotors, each with and without
+   the gateway in benchmark sandboxes; match achieved displacement and decoding.
+3. Correct transport interpretation before treating any field as curvature.
+4. Promote learned SPD metrics, signal-triggered review and product spaces only
+   after held-out utility/risk gains beyond cheap baselines.
+
+**Secondary direction: language-matched Arabic/Islamic steering.** The corpus,
+controls and evaluation harness remain useful assets. Register changes must not
+be scored as authorization compliance or moral safety.
+
+The literature map below is a historical descriptive analysis. Its harvested
+counts, citation ranks and older novelty statements have not been independently
+revalidated by this update. Growth does not measure scientific merit or decide
+priorities. A rotor alone is also not a new method: compare against
+[Spherical Steering](https://arxiv.org/abs/2602.08169).
 
 ## How the map was built
 
@@ -156,9 +166,10 @@ The full ranked list is in the [reading list](literature_map/reading_list.md).
   - [LangFIR: language-specific SAE features for language steering](https://arxiv.org/abs/2604.03532);
   - [A Universal Vibe? Language-Agnostic Informal Register](https://arxiv.org/abs/2603.26236),
     which bears on the register confound found by this project's evaluation.
-- **C. Attention geometry.** All ten nearest papers are already cited, and none
-  diagnoses transport in trained models. The strand is uncontested but not
-  growing.
+- **C. Attention geometry.** The historical nearest-paper ranking emphasized
+  architecture work. It does not establish an uncontested diagnostic niche;
+  the [checked source review](curvature_literature_roadmap_review.md) includes
+  pretrained representation-trajectory experiments and spherical steering.
 - **D. Agent containment.** This strand is crowded.
   - The closest paper to the whole project is
     [Out-of-Band Policy Enforcement at a Trusted Tool Boundary](https://arxiv.org/abs/2608.27646).
@@ -176,42 +187,29 @@ Papers that bridge steering and agents:
 - [ASA: representation engineering for tool-calling agents](https://arxiv.org/abs/2602.04935);
 - [Same Bytes, Different Authority: reserved-token representations in prompt injection](https://arxiv.org/abs/2609.35932).
 
-## The primary direction
+## Focused contribution and next work
 
-The research question: *once language is controlled, does a Quranic direction
-change Arabic and Islamic knowledge or value judgments, or only register, and at
-what capability cost?*
+The defensible contribution is a causal comparison of geometric behavior control
+and host enforcement on complete agent trajectories. Unauthorized proposals,
+attacker-objective success and committed effects are separate outcomes. An
+always-deny gateway and a model that refuses every task fail the utility objective.
 
-- **The space is uncrowded.** The neighbouring clusters are small, growing, and
-  made of benchmarks and QA systems that do not steer.
-- **The repository combines assets no harvested paper combines:**
-  - a verse-cited Quran corpus;
-  - an Arabic neutral control set;
-  - calibrated dose ratios;
-  - a harness that measures script shift, degeneration, likelihood under the
-    unsteered model and capability together.
-- **Benchmarks now exist.** [QuranicMMLU](https://arxiv.org/abs/2609.22038),
-  [IslamicMMLU](https://arxiv.org/abs/2603.23750) and
-  [PalmX](https://arxiv.org/abs/2509.02550) can join ARC-Easy, so steering can be
-  scored on Islamic knowledge and cultural appropriateness, not only on an
-  embedding proxy.
-- **It runs on modest hardware.** The committed
-  [Qwen2.5-0.5B run](../experiments/results/README.md) ran on CPU. It found that
-  centered steering at dose 0.05 left ARC-Easy accuracy unchanged within its
-  interval, 0.1 raised a religious register but cost 15 points of accuracy, and
-  0.2 degenerated 81% of outputs.
+The design's first implementation slice is a sandbox benchmark adapter plus an
+opt-in low-rank rotor hook. Norm preservation is algebraic; better task utility
+and reduced unsafe proposals are hypotheses. The host boundary still requires
+complete mediation, real isolation, durable state and revocation drills before
+live protection claims. `Gateway.observe()` currently records evidence and does
+not restrict authority; calibrated automatic review would be new work.
 
-## The secondary direction
+The current q/value generator is coordinate dependent, its adjacent difference
+is not a derived curvature two-form, and its three-rotation product lacks loop
+closure. Use [explicit frame/link contracts and negative controls](containment_geometry_research.md#4-repair-the-meaning-of-transport-diagnostics-first)
+before proposing a geometric alarm. Existing scores and historical reports stay
+unchanged pending a separately versioned diagnostic implementation.
 
-The project has both a steering stack and a capability gateway, which is
-unusual. The gateway space itself is crowded, with 54 capability-architecture
-papers in 2026 alone. Instead of competing there, the project can feed
-probe- or steering-derived injection indicators into `Gateway.observe()`. That
-call records the signal and moves a run into the `observe` state; it never adds
-authority, and today it does not remove any either. Part of the work is deciding
-what a calibrated signal should trigger, such as holding the next action for
-review. The evaluation would use AgentDojo and InjecAgent. This needs
-tool-capable models, so it costs more than the primary direction.
+Follow the [milestones and stopping rules](containment_geometry_research.md#7-ordered-deliverables-and-stopping-rules).
+Existing issues #31 and #32 cover relevant parts of agent evaluation and signals;
+the Arabic/Islamic issues below remain valid secondary work.
 
 ## Open problems
 

@@ -117,12 +117,22 @@ steering defaults off and requires an explicit trusted-corpus opt-in.
 
 ## Research directions and how to help
 
+The current priority is [agent containment with bounded geometric interventions](docs/containment_geometry_research.md): test whether low-rank, norm-preserving
+rotor steering reduces unauthorized proposals and review burden at matched benign
+task utility. Host grants and adapters retain authority. The design specifies
+factorial controls, adaptive attacks, service-receipt scoring, and gates before
+learned metrics or mixed-curvature architectures.
+
+The existing transport fields remain reproducible heuristics: the three-rotation
+product does not define closed-loop holonomy. Run the mathematical controls with
+`python experiments/geometry_sanity.py`; these do not evaluate an LLM or live host.
+
+
 A [literature map](docs/research_directions.md) of 7,322 recent arXiv papers
-places the project's strands in the field. Steering toward Arabic and Islamic
-content, with language controlled and capability measured, is almost empty, and
-this repository already has the corpus, controls, dose calibration and harness
-that question needs. The map lists open problems for collaborators, several of
-which need no code:
+provides a historical topic-growth analysis and collaborator problems. Topic
+counts do not decide the current research priority. Arabic/Islamic steering
+remains a language-matched ablation with its own evaluation needs. Several
+existing open problems need no code:
 
 - rating blinded steering outputs, and reviewing the Arabic prompts and controls;
 - adding QuranicMMLU, IslamicMMLU and PalmX to the evaluation harness;
@@ -143,7 +153,8 @@ need no code.
 | [Steering evaluation](docs/evaluation.md) | Evaluation harness spec, held-out prompts, metrics, rating rubric and provenance |
 | [Containment plan](docs/rogue_agent_containment_plan.md) | Baseline findings, delivered slices and remaining deployment gates |
 | [Research note](PAPER.md) | Implemented steering methods and the evidence supporting current claims |
-| [Research directions](docs/research_directions.md) | Literature map, recommended direction and open problems for collaborators |
+| [Research directions](docs/research_directions.md) | Current priorities, historical literature map and collaborator problems |
+| [Containment and geometry design](docs/containment_geometry_research.md) | Threat model, rotor/metric ladder, transport corrections and falsifiable agent experiments |
 | [Workspace research roadmap](docs/global_workspace_improvement_plan.md) | Diagnostic work and experiments still planned |
 | [Improvement plan](docs/improvement_plan.md) | Whole-repository review findings and phased fixes |
 | [Geometry literature notes](docs/curvature_literature_roadmap_review.md) | Research leads; proposed connections require validation |

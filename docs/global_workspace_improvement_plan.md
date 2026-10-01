@@ -9,6 +9,21 @@ authority. See the [steering guide](steering_guide.md) for current APIs and
 [testing guide](testing.md) for the distinction between runtime checks and
 behavioral evidence.
 
+## Current priority and geometry interpretation (2026-09-30)
+
+The [containment/geometry research design](containment_geometry_research.md)
+sets the current experimental order: host/agent baseline, bounded low-rank rotors,
+then learned metrics and shadow signals only if incremental benefit is measured.
+Workspace layer choice remains an ablation, not a proven safety mechanism.
+
+The implemented transport algorithm supplies heuristic generator statistics.
+Its adjacent differences plus commutators do not derive a curvature two-form;
+`T_k T_j T_i` is not a closed loop of directed edge transports. Earlier “Cartan
+curvature” and “holonomy” terminology below is historical. The new design
+specifies frames, inverse links, pure-gauge and constant-generator controls, and
+versioned migration before claiming genuine curvature. Run
+`python experiments/geometry_sanity.py` for the mathematical fixtures.
+
 ## Concepts to incorporate
 
 - **Workspace-like representations**: target the intermediate model states most likely to be reusable by downstream reasoning rather than only early parsing or late token-output states.
@@ -38,6 +53,9 @@ Steering should expose lightweight metrics that make internal perturbations insp
 **Status:** Implemented as `machine_poi/workspace_diagnostics.py` with tensor-only unit tests. Relative perturbation now uses the actual update for add, blend, replace and clamp. After high-level `generate` or `generate_with_graph`, read `QuranSteerer.last_run_diagnostics`: session restoration clears captured tensors. Low-level callers can use `SteeredLLM.get_steering_diagnostics()` while their enabled hooks still hold the captured activations. These summaries do not certify behavior or permissions.
 
 ### 2b. Add attention-transport (curvature) diagnostics
+
+**Interpretation correction:** this section records the legacy heuristic design;
+see the current geometry contract above before interpreting its field names.
 
 Beyond pointwise perturbation metrics, steering should be auditable for whether it changes *how* the model routes context, not just where representations sit. Following the discrete Cartan curvature framework of "Is Attention Commutative?" (2026), each attention head's transport geometry is summarized by:
 
@@ -84,3 +102,4 @@ Future work should cap relative perturbation size per layer and surface warnings
 The README should distinguish retrieval grounding, activation intervention, CAA, and workspace-style interpretability.
 
 **Status:** Implemented through the README, architecture, steering and testing guides. The research note separates measured model evidence from synthetic gateway tests, and the containment plan identifies the live-host work still pending.
+

@@ -23,6 +23,16 @@ When the working tree is clean, each finished condition is also saved to
 and prompts resumes from it after an interruption, and the result lists the
 resumed conditions in `resumed_conditions`. A dirty tree never checkpoints.
 
+## Agent and geometry extension
+
+This harness evaluates text steering; it does not yet run tool-capable agent
+trajectories or the proposed rotor conditions. The
+[containment/geometry design](containment_geometry_research.md#5-a-factorial-trajectory-level-evaluation)
+specifies a separate factorial evaluation with service receipts, matched
+intervention displacement, cluster-aware intervals, benign utility and adaptive
+attacks. Do not reuse the thematic proxy as its compliance score. Historical
+transport fields retain their names and values until a versioned replacement.
+
 ## Spec
 
 A JSON or YAML file. Everything except `name` and `conditions` has a default
@@ -71,7 +81,7 @@ this check.
 | ΔNLL | Mean token negative log-likelihood of the output under the unsteered model, given the same final prompt, minus the baseline's | Rises for any departure from the model's own style, not only for errors |
 | ARC-Easy accuracy | Zero-shot multiple choice under the condition's hooks, scored by log-likelihood per character (lm-eval `acc_norm`) on a seeded sample of the test set | Items are not committed; the result records their IDs and the dataset revision |
 | Thematic proxy | Cosine of the output's embedding to a centroid of sampled verses, minus its cosine to the neutral-control centroid | An embedding proxy; it also rewards Arabic script and religious vocabulary |
-| Δρ, Δholonomy | Attention transport non-abelian ratio and holonomy on English prompts, averaged over the steered layer band, paired with the baseline | Research geometry, not a behavioral measure |
+| Δρ, Δholonomy (legacy names) | Constructed generator commutator ratio and three-rotation product angle on English prompts, averaged over the steered layer band, paired with baseline | No closed edge loop or derived curvature two-form; coordinate dependent; not a behavioral measure |
 | Dose ratio | Peak achieved ratio across steered layers, and achieved over target per layer | Varies with the prompt; the target is calibrated on neutral sentences |
 
 Intervals are 95% percentile bootstraps over prompts (or ARC items). Differences
@@ -112,3 +122,4 @@ corpus and control-set hashes, the dose calibration (text hash and per-layer
 median norms), the ARC dataset revision and item IDs, library versions, thread
 count, platform and timestamps. Commit harness changes before a run you intend to
 report, so the recorded commit contains the code that produced it.
+

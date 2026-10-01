@@ -24,6 +24,22 @@ python -m evals.rogue_agent.run --output /tmp/rogue-agent-results.json
 process demo validates a JSON proposal interface under the same OS account; it
 does not test sandbox escape resistance.
 
+## Algebra and synthetic transport controls
+
+Both guardian CI matrix jobs (Python 3.10 and 3.12) also run the standard-library
+geometry verifier explicitly:
+
+```bash
+python experiments/geometry_sanity.py
+```
+
+It checks rotor identities and degeneracies, distinct same-axis rotations in
+opposite multiplication orders and against their angle sum, closed flat and
+pure-gauge loops, frame covariance, and a query/value reparameterization control.
+Failed assertions fail the CI step. These fixtures evaluate mathematics, not
+model behavior or host containment; see the
+[research design](containment_geometry_research.md).
+
 ## Full offline runtime tests
 
 CI uses Python 3.12 with a CPU PyTorch wheel, the `research`, `graph` and `test`
@@ -78,7 +94,7 @@ passed; this guide does not repeat test counts, which change with every change.
 | Job | Checks |
 | --- | --- |
 | `lint` | `ruff check .` with the pinned version |
-| `guardian` (Python 3.10 and 3.12, no ML packages) | Guardian tests: identity and scope, approvals, replay, budgets, delegation, stop, expiry, retirement, audit bounds, nested validation, and policy, audit and callback failure. Also the mock process demo and the action fixtures and scenarios. The 3.12 run uploads the fixture report as the `containment-eval-report` artifact. |
+| `guardian` (Python 3.10 and 3.12, no ML packages) | Guardian tests: identity and scope, approvals, replay, budgets, delegation, stop, expiry, retirement, audit bounds, nested validation, and policy, audit and callback failure. Also the standalone geometry verifier, mock process demo, and action fixtures and scenarios. The 3.12 run uploads the fixture report as the `containment-eval-report` artifact. |
 | `runtime` (Python 3.12, CPU torch) | The offline suite: steering, pooling, dose calibration, recipes, retrieval, the evaluation harness on a tiny model, CLI and runtime safety |
 
 `tests/guardian/test_eval_report.py` regenerates the fixture report and fails if
