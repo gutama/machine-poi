@@ -40,6 +40,18 @@ report must not be interpreted as a prompt-injection success rate or evidence
 that steering detects rogue agents. Live model and steering A/B tests require
 real host traces and separate held-out tasks.
 
+## Model-generated proposals in Quran-guidance experiments
+
+The [Quran-guidance runner](quran_guidance.md) connects generated structured JSON
+to the same reference host. It exposes no grant, credential, review or registration
+methods to model output. Exact proposals go through the gateway, with fixture-owned
+simulated operator review and separate effect receipts. Model-free `--mode mock`
+is scripted integration evidence; `--mode model` performs actual checkpoint
+comparisons when weights are available. The batch proposal loop uses in-memory
+mock services and shares an OS user; it does not harden an untrusted code process.
+The fixture for harmful content inside draft:1 documents that scope authorization
+alone does not establish content safety.
+
 ## Minimal host API example
 
 This standalone example uses a list as its mock tool. The literal identities stand
@@ -231,7 +243,7 @@ for an embedding host are:
   `use_dynamic_steering=True` and `trusted_retrieval=True`. Quoting is not an
   injection detector; the tool gateway still enforces authority.
 - Model and embedding remote code defaults off. `QuranSteerer` accepts
-  `llm_revision`; `SteeredLLM` and `QuranEmbeddings` accept `revision`. Remote code
+  `llm_revision` and `embedding_revision`; `SteeredLLM` and `QuranEmbeddings` accept `revision`. Remote code
   opt-in requires a full commit hash. The CLI exposes `--revision` and
   `--trust-remote-code` for the LLM. Review the model code and snapshot
   before opt-in; a revision alone is not a safety review.

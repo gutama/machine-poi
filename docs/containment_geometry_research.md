@@ -128,8 +128,12 @@ select a unique plane; choosing an arbitrary plane hides a modeling decision.
 Near-degenerate cases use a declared tolerance. Non-finite inputs abort the
 experimental condition. Do not update the basis or target from untrusted live
 retrieval. The small verifier in `experiments/geometry_sanity.py` checks the
-`Cl(3,0)` identity against its vector implementation; it is not a runtime hook or
-an LLM evaluation.
+`Cl(3,0)` identity against its vector implementation. The opt-in runtime G1 hook
+now lives in `machine_poi/rotor.py`; its invariant tests compare against that
+independent sandwich implementation. The [guidance pipeline](quran_guidance.md)
+fits training-only artifacts and matches measured development displacement, with
+held-out attainment checks. This implementation has scripted integration evidence;
+actual model efficacy remains unmeasured when pinned weights are unavailable.
 
 ## 3. Curved-space design ladder
 

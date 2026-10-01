@@ -50,6 +50,10 @@ Examples:
         """,
     )
 
+    parser.add_argument("--guidance-config", help="Validated Quran-guidance JSON configuration")
+    parser.add_argument("--guidance-mode", choices=("validate", "mock", "model"), default="validate")
+    parser.add_argument("--guidance-output", help="Write the resolved configuration and evaluation report")
+
     # Model selection
     parser.add_argument(
         "--llm",
@@ -473,6 +477,13 @@ def main():
 
 
 def run(args):
+    if getattr(args, "guidance_config", None):
+        from .guidance_cli import run_guidance
+        result = run_guidance(args.guidance_config, args.guidance_mode, args.guidance_output)
+        print(f"{result['kind']}: {len(result['rows'])} trajectories")
+        if result["status"] == "model_unavailable":
+            raise SystemExit(1)
+        return
     if args.llm == "custom" and not args.llm_path:
         raise SystemExit("--llm custom requires --llm-path")
     print_banner()

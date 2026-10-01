@@ -9,6 +9,13 @@ The guardian checks what an agent is permitted to do at the tool boundary.
 Steering changes model activations and can affect language, style, and task
 performance. Neither steering nor a diagnostic score grants tool permissions.
 
+For reproducible **Quran-grounded behavioral comparisons**, see the
+[guidance pipeline](docs/quran_guidance.md): pinned configuration, cited RAG,
+centered/paired steering, an opt-in bounded Euclidean rotor, and model proposals
+mediated by the independent guardian against mock tools. The committed evidence
+separates scripted integration from unavailable model runs. Quran guidance and
+norm preservation are not evidence of ethical behavior or containment.
+
 ## Start with the guardian
 
 From a checkout of this repository, with Python 3.10 or later:

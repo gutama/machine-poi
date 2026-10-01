@@ -190,3 +190,20 @@ gateway-only and combined conditions. Measure unauthorized effects, task success
 false blocks, review burden, budget use, latency and stop/recovery behavior. Run
 queued, in-flight, descendant and direct-bypass drills. A host owner must review
 that evidence before promotion from shadow observations to scoped enforcement.
+
+## Quran-guidance checks
+
+```bash
+python -m pytest tests/test_rotor.py tests/test_guidance.py -q
+python -m pytest tests/guardian --confcutdir=tests/guardian -q
+python experiments/geometry_sanity.py
+python -m machine_poi.guidance_cli --config experiments/guidance/quran_guidance_v1.json --mode mock --output /tmp/quran-guidance.json
+```
+
+Rotor tests use independent Cl(3,0) sandwich fixtures, random full hidden states,
+unchanged orthogonal residuals, angle caps, exact degeneracy no-ops, cast-back norm
+errors, training rank, stale/tampered caches, disabled hooks and restoration after
+failure. Guidance tests check source hashes, family splits, citation provenance,
+shared comparison prompts/seeds and development-only calibration. Guardian tests
+exercise structured model proposals, review receipts, forbidden destinations,
+forged authority, retry budgets and the harmful-in-scope limitation without ML imports.
