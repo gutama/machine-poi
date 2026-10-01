@@ -32,6 +32,14 @@ OUTPUT_PROTOCOL = (
 )
 
 
+class GuidanceModelUnavailable(Exception):
+    """Research dependencies or pinned checkpoints failed during loading only."""
+
+    def __init__(self, stage):
+        self.stage = stage
+        super().__init__(f"Guidance model unavailable during {stage} loading")
+
+
 class QuranGuidance:
     def __init__(self, config: QuranGuidanceConfig):
         self.config = config.validate()  # before optional imports/model loading
@@ -43,14 +51,20 @@ class QuranGuidance:
         self._lock = threading.RLock()
 
     def prepare(self, work_dir=".eval_work/quran_guidance"):
-        from .steerer import ContrastiveQuranSteerer, SteeringConfig
-        from .rotor import fit_rotor, load_rotors, save_rotors, tensor_hash
+        try:
+            from .steerer import ContrastiveQuranSteerer, SteeringConfig
+            from .rotor import fit_rotor, load_rotors, save_rotors, tensor_hash
+        except ImportError as exc:
+            raise GuidanceModelUnavailable("dependencies") from exc
         with self._lock:
             self.config.validate()
             c = self.config
             s = ContrastiveQuranSteerer(c.llm, c.embedding, c.corpus_path, device=c.device,
                 llm_revision=c.llm_revision, embedding_revision=c.embedding_revision)
-            s.load_models()
+            try:
+                s.load_models()
+            except (ImportError, OSError) as exc:
+                raise GuidanceModelUnavailable("checkpoints") from exc
             s._validate_layer_indices(c.layers)
             actual = getattr(s.llm.model.config, "_commit_hash", None)
             if actual is not None and actual != c.llm_revision:
@@ -159,7 +173,8 @@ class QuranGuidance:
     def match_rotor_on_dev(self, recipe, dose):
         """Match measured development displacement, never nominal coefficient.
 
-        Return unmatched when a bounded rotor cannot attain the additive dose.
+        Return unmatched when no sampled angle matches the additive dose.
+        A finite grid does not establish unattainability between its samples.
         The held-out report independently checks displacement transfer.
         """
         if not self.config.experimental_rotor:
@@ -172,23 +187,18 @@ class QuranGuidance:
             return sum(values) / len(values)
         target = measure(recipe)
         if dose == 0:
-            record = {"angle_rad": 0, "additive_displacement": target, "rotor_displacement": 0, "matched": True}
+            candidates = [(0.0, 0.0)]
         else:
-            lo, hi = 0.0, self.config.rotor_max_angle_rad
-            candidates = [(hi, measure("rotor", hi)), (lo, 0.0)]
-            # Generated trajectories need not be monotonic: retain the closest measured candidate.
-            for _ in range(8):
-                mid = (lo + hi) / 2
-                achieved = measure("rotor", mid)
-                candidates.append((mid, achieved))
-                if achieved < target:
-                    lo = mid
-                else:
-                    hi = mid
-            angle, achieved = min(candidates, key=lambda pair: abs(pair[1] - target))
-            record = {"angle_rad": angle, "additive_displacement": target,
-                      "rotor_displacement": achieved,
-                      "matched": abs(achieved - target) <= self.config.displacement_match_tolerance}
+            # Fixed grid: no region is discarded based on a monotonicity assumption.
+            cap = self.config.rotor_max_angle_rad
+            angles = [cap * (i / 9) for i in range(1, 10)]
+            candidates = [(0.0, 0.0)] + [(angle, measure("rotor", angle)) for angle in angles]
+        angle, achieved = min(candidates, key=lambda pair: abs(pair[1] - target))
+        record = {"angle_rad": angle, "additive_displacement": target,
+                  "rotor_displacement": achieved,
+                  "matched": abs(achieved - target) <= self.config.displacement_match_tolerance,
+                  "search": "fixed_grid", "candidates": [
+                      {"angle_rad": a, "rotor_displacement": d} for a, d in candidates]}
         self.calibration["rotor_matches"][f"{recipe}:{dose}"] = record
         return record
 
@@ -199,5 +209,3 @@ class QuranGuidance:
 def displacement(result):
     values = [v["mean_relative_displacement"] for v in result["diagnostics"].values()]
     return sum(values) / len(values) if values else 0.0
-
-

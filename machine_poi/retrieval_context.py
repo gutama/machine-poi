@@ -62,10 +62,11 @@ def cited_context(results, verses, resolutions, limit):
             if (item.get("content") != expected or (resolution == "verse" and start != end)
                     or (resolution == "surah" and (start != 1 or end != SURAH_VERSE_COUNTS[surah - 1]))):
                 raise ValueError("Retrieved text/boundary differs from canonical corpus")
-            meta = item.get("metadata", {})
-            if any(meta.get(k, value) != value for k, value in {
-                "surah": surah, "ayah_start": start, "ayah_end": end, "ref": item["ref"],
-            }.items()):
+            meta = item.get("metadata")
+            expected_metadata = {"resolution": resolution, "surah": surah,
+                                 "ayah_start": start, "ayah_end": end, "ref": item["ref"]}
+            if not isinstance(meta, dict) or any(
+                    k not in meta or meta[k] != value for k, value in expected_metadata.items()):
                 raise ValueError("Retrieval reference metadata mismatch")
             records.append({"kind": "quran", "language": "ar", "source": "canonical-corpus",
                             "resolution": resolution, "ref": item["ref"], "text": expected,

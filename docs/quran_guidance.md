@@ -34,6 +34,9 @@ python -m machine_poi.guidance_cli \
 `model` runs can be expensive: each candidate is calibrated across development
 prompts and seeds before held-out generation. Missing dependencies or model files
 produce a `model_unavailable` report with empty results and a nonzero CLI exit.
+Only dependency import and pinned checkpoint loading failures are classified this
+way, with the loading stage and cause type recorded. Later index/cache I/O,
+calibration, retrieval and generation failures propagate without an empty report.
 Other errors, including invalid sources, stale rotor caches and non-finite states,
 abort instead of silently changing conditions. Existing CLI flags are not merged
 into a guidance configuration: the validated JSON is the complete experiment.
@@ -83,8 +86,10 @@ add/blend/replace/clamp behavior; rotor hooks require an explicit opt-in.
 
 The pipeline reuses canonical verse IDs and within-surah passage boundaries.
 Index identity checks include corpus hash and revision-qualified embedder identity.
-Retrieved text must equal the referenced canonical Arabic passage; incorrect text
-or metadata is rejected. JSON quoting preserves readable Arabic and escapes hidden
+Retrieved text must equal the referenced canonical Arabic passage. Resolution,
+surah, start/end ayah and reference metadata must all be present and match the
+queried resolution and canonical boundaries; missing or incorrect metadata is
+rejected. JSON quoting preserves readable Arabic and escapes hidden
 characters. Total reference content is bounded; oversized retrieval raises rather
 than silently clipping verses. The default excludes whole surahs, which can exceed
 small context budgets. Quotation and canonical matching do not prevent instruction
@@ -155,8 +160,11 @@ No learned metric, hyperbolic space or curved attention is implemented.
 
 Development calibration matches the **measured mean per-token relative displacement**
 over selected layers and prompts to the selected additive recipe. It retains the
-closest measured candidate from a bounded search; generated trajectories need not
-be monotone. Unattainable candidates are explicitly `matched: false`. Held-out
+closest measured candidate from a fixed uniform grid of ten angles, including
+zero and the configured cap; generated trajectories need not be monotone. Every
+sampled angle and achieved displacement is recorded. An unmatched grid is
+explicitly `matched: false`; it does not establish unattainability between samples.
+Zero-dose calibration installs no rotor hooks and bypasses the nonzero grid. Held-out
 attainment is reported independently, without retuning. Do not describe unmatched
 arms as dose-matched. Per-layer displacement/norm errors remain available, since
 matching an average can hide layer differences. The alternative additive recipe is

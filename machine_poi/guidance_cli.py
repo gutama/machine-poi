@@ -10,6 +10,7 @@ from pathlib import Path
 
 from .behavior_data import load_behavior_data
 from .guidance_config import QuranGuidanceConfig, file_hash
+from .guidance import GuidanceModelUnavailable
 from .guidance_evaluation import mediate_response, mock_run, score_trace, summarize
 from .retrieval_context import quote_retrieval
 
@@ -109,10 +110,11 @@ def run_guidance(config_path, mode="validate", output=None, work_dir=".eval_work
     elif mode == "model":
         try:
             report["rows"], extra = model_run(config, tasks, work_dir)
-        except (ImportError, OSError) as exc:
+        except GuidanceModelUnavailable as exc:
             report["status"] = "model_unavailable"
             report["kind"] = "no model evaluation completed"
-            report["execution_error"] = {"type": type(exc).__name__,
+            report["execution_error"] = {"type": type(exc).__name__, "stage": exc.stage,
+                "cause_type": type(exc.__cause__).__name__ if exc.__cause__ else None,
                 "note": "Required research dependencies or pinned model files could not be loaded. No effectiveness results are reported."}
         else:
             report.update(extra)
