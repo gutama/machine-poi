@@ -137,4 +137,3 @@ operator UI, incident delivery and real adapters are host responsibilities.
 Held-out agent evaluations and staged deployment remain open in the
 [containment plan](rogue_agent_containment_plan.md). Research diagnostics have no
 validated threshold for deciding whether an agent is authorized or safe.
-

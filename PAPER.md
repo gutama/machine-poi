@@ -348,4 +348,3 @@ The first command reproduces section 6; the second scores the blinded ratings
 once two raters have filled in copies of the sheet. `experiments/reproduce_paper.py`
 only prints sample outputs for demonstration. Its keyword-counting section 5.2 is
 retired, and its numbering does not match this note.
-

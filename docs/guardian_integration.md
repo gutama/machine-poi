@@ -260,4 +260,3 @@ Complete a deployment profile before enabling real effects:
 
 No values for these fields are assumed in this repository. Slice 5 remains a
 deployment task until a real host and its permitted tools are supplied.
-
