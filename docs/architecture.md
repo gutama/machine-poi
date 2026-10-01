@@ -39,6 +39,8 @@ budgets; it does not infer whether arbitrary content advances that goal. Adapter
 must derive data classification and recipients from real host context. Scope
 labels supplied by the model are insufficient.
 
+The separation between model-generated proposals and host-controlled authority is related to [Out-of-Band Policy Enforcement at a Trusted Tool Boundary](https://arxiv.org/abs/2608.27646) and [Progent](https://arxiv.org/abs/2504.11703), which likewise place policy enforcement outside the model's unconstrained reasoning path. [CaMeL](https://arxiv.org/abs/2503.18813) similarly separates trusted control information from untrusted data. Machine-POI implements a narrower reference gateway: grants are host-issued, and the gateway rechecks structured proposals against those grants before execution.
+
 ## Guardian execution
 
 1. `Gateway.issue` accepts a host-created `TaskGrant`. Run IDs cannot be reused in

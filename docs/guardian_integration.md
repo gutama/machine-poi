@@ -127,6 +127,8 @@ not an authenticated HTTP service or an automatic wrapper around the research CL
 
 ## Host integration contract
 
+The host/agent separation described here is related to [Out-of-Band Policy Enforcement at a Trusted Tool Boundary](https://arxiv.org/abs/2608.27646), which places policy enforcement at a trusted boundary outside the agent's unconstrained reasoning path. [Progent](https://arxiv.org/abs/2504.11703) likewise uses host-side policy enforcement over tool calls, while [CaMeL](https://arxiv.org/abs/2503.18813) separates trusted control information from untrusted data. Machine-POI implements a narrower reference gateway: the host issues bounded grants, and the gateway rechecks structured proposals against those grants before execution.
+
 1. Authenticate the user/operator and agent channel outside this library. The
    `operator` and `caller` arguments are trusted transport context, never fields
    copied from an agent JSON request. Only expose `submit` to an agent. Use
