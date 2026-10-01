@@ -63,9 +63,55 @@ the model input. Dynamic steering additionally constructs a temporary activation
 intervention from retrieval; that path is off by default and requires explicit
 trusted-corpus opt-in.
 
-## 3. Implemented steering methods
 
-### 3.1 Vector construction
+## 3. Related work
+
+### 3.1 Representation steering and representation geometry
+
+[Representation Engineering (RepE)](https://arxiv.org/abs/2310.01405) studies model behavior through population-level representations and shows that high-level concepts and behaviors can be monitored and manipulated through activation-space interventions. Machine-POI follows this general representation-steering paradigm, but applies it to a Quran-derived corpus with neutral Arabic controls and evaluates the resulting intervention together with capability, likelihood, degeneration and thematic measurements rather than treating representation manipulation itself as a safety guarantee.
+
+[The Linear Representation Hypothesis](https://arxiv.org/abs/2311.03658) provides a geometric account of how concepts can be represented approximately linearly in neural representations and develops a causal framework for reasoning about interventions in representation space. Machine-POI uses activation directions empirically rather than testing the hypothesis itself: its centered Quran-derived vectors are intervention tools, and the experiments measure their behavioral and capability effects.
+
+[Refusal in Language Models Is Mediated by a Single Direction](https://arxiv.org/abs/2406.11717) shows that refusal behavior in open-source language models can be strongly mediated by a single activation direction: adding the direction can induce refusal, while removing it can suppress refusal. Machine-POI differs in both target and purpose: its steering direction is derived from Quranic material rather than refusal behavior, and its experiments do not claim to control or improve refusal behavior.
+
+[AxBench](https://arxiv.org/abs/2501.17148) evaluates a broad range of representation-based concept detection and steering methods against prompting and fine-tuning across multiple models and concepts. Machine-POI is narrower: it is not intended as a general steering benchmark, but studies centered Quran-derived directions, Arabic controls, dose calibration and capability trade-offs in a specific 0.5B model setting.
+
+[Persona Dosing](https://arxiv.org/abs/2609.36388) studies how activation steering can be calibrated to produce specified intensities of persona-related behavior, separating the behavioral range achievable by a controller from the accuracy of requested intensities. Machine-POI also calibrates intervention strength, but its dose is defined as a relative activation perturbation rather than a validated human-interpretable behavioral intensity; its goal is to measure the effects of a Quran-derived direction rather than to provide controllable persona expression.
+
+[A Geometric Account of Activation Steering through Angle-Norm Decomposition](https://arxiv.org/abs/2606.06735) argues that additive activation interventions simultaneously change angular alignment and hidden-state norm, and studies these effects separately across several steering methods and models. Machine-POI currently reports activation norms, cosine alignment and relative perturbation, but does not decompose its steering effects into the separate angular and radial components proposed by this account.
+
+### 3.2 Language and cultural alignment
+
+[Do Multilingual LLMs Think In English?](https://arxiv.org/abs/2502.15603) studies whether multilingual models rely on English-shaped internal representations even when processing other languages, finding evidence that key decisions can remain close to English in representation space and that English-derived steering vectors can be more effective. Machine-POI instead studies an Arabic-specific intervention and explicitly uses neutral Arabic controls to reduce the possibility that the measured effect is simply an Arabic-versus-English difference.
+
+[LangFIR](https://arxiv.org/abs/2604.03532) identifies sparse language-specific features from monolingual data using sparse autoencoders and uses them for language steering. Machine-POI does not attempt to identify language-specific SAE features; its centered Quranic direction is intended to capture differences between Quran-derived material and neutral Arabic prose, so language identity is treated as a control rather than the target of steering.
+
+[Steering Multilingual Models Towards Cultural Knowledge](https://arxiv.org/abs/2605.23069) investigates inference-time activation steering for multilingual cultural-knowledge tasks using language vectors extracted from parallel data, and reports that steering effects vary across layers, language-region pairs and prompt formulations. Machine-POI studies a different intervention: rather than steering a model toward general cultural knowledge, it derives directions from Quranic material and evaluates whether those directions change religious register and related behavioral measures while tracking capability costs.
+
+[Investigating Cultural Alignment of Large Language Models](https://arxiv.org/abs/2402.13231) studies cultural alignment through model responses to culturally grounded questions and compares those responses with survey data from human participants, including experiments involving Arabic and English. Machine-POI differs by intervening directly in the model's activation space rather than primarily measuring cultural alignment through simulated surveys or changing the model's training-data mixture. Its neutral Arabic control set is intended to help distinguish Quran-related effects from general Arabic-language effects, although topic, register and cultural confounds remain possible.
+
+### 3.3 Agent containment
+
+[Out-of-Band Policy Enforcement at a Trusted Tool Boundary](https://arxiv.org/abs/2608.27646) is particularly close to Machine-POI's host-side component. It places a trusted enforcement boundary outside agent reasoning so that authorization and policy decisions are made independently of the model, including restrictions on operations, resources and returned information. Machine-POI follows the same central separation between model behavior and authority: the authenticated host creates exact-scope grants and the guardian rechecks authorization before execution. It is substantially narrower, however: the current Machine-POI implementation is a standard-library reference gateway with in-memory state and synthetic action fixtures, rather than a general trusted proxy with the broader policy and information-flow enforcement evaluated by OBPE.
+
+[Progent](https://arxiv.org/abs/2504.11703) addresses least-privilege control for tool-using agents by representing privileges as symbolic policies over tools and arguments and deterministically checking proposed tool calls against those policies. It also uses solver-based policy updates to ensure that an agent's effective action space cannot expand without approval. Machine-POI similarly prevents model output from increasing a host-issued grant, but uses fixed grants, scope and state checks rather than Progent's symbolic policy representation and solver-based privilege-update mechanism.
+
+[CaMeL, in *Defeating Prompt Injections by Design*](https://arxiv.org/abs/2503.18813), separates trusted control information from untrusted data and uses capability-based mechanisms to prevent prompt-injected content from directly controlling privileged operations or causing unauthorized data flows. Machine-POI shares the principle that model-generated text should not itself determine authority, but does not implement CaMeL's control/data-flow analysis or capability propagation and therefore does not claim equivalent prompt-injection protection.
+
+[Cordon](https://arxiv.org/abs/2606.17573) introduces a transaction-oriented approach to agent safety in which multi-step tool use is represented as a semantic transaction with effect lineage, validation and staged external effects before commitment. Machine-POI instead enforces authorization at the structured-action boundary, with expiry, state, budget, review, replay and cancellation checks; it does not currently provide Cordon's transaction-wide lineage or commit/rollback model.
+
+[ContainmentBench](https://arxiv.org/abs/2607.23999) focuses on evaluating agent containment after an agent has been exposed to malicious content. Its trace-based evaluation considers propagation, recovery and subsequent actions rather than only whether the final endpoint was compromised. Machine-POI currently has synthetic gateway fixtures for benign and forbidden proposed actions, but those fixtures begin with structured proposals and do not run an LLM or model an actual prompt-injection trajectory, so they do not establish the type of post-exposure containment measured by ContainmentBench.
+
+[AgentDojo](https://arxiv.org/abs/2406.13352) provides a dynamic benchmark for tool-using agents exposed to indirect prompt injections in stateful environments. It evaluates realistic multi-step tasks in which malicious instructions can arrive through tool outputs and subsequently influence tool use. Machine-POI's current gateway tests are deliberately smaller and begin after an action proposal has already been produced; AgentDojo therefore represents a natural future environment for testing whether the host-side boundary remains effective when proposals originate from an agent operating under prompt injection.
+
+[InjecAgent](https://arxiv.org/abs/2403.02691) provides a benchmark specifically targeting indirect prompt injection against tool-integrated LLM agents, with attack scenarios involving malicious external content and unauthorized agent actions. Machine-POI does not currently reproduce these attack scenarios: its containment evidence consists of synthetic proposed-action fixtures rather than live LLM agents exposed to injected tool content.
+
+Together, these lines of work motivate the separation used by Machine-POI. Activation steering changes model behavior and can introduce capability or stability trade-offs, while the guardian is intended to constrain external effects independently of those behavioral changes. The current implementation should therefore be understood as a combination of a Quran/Arabic activation-steering study and a reference host-side authorization boundary, rather than as a general prompt-injection defense or evidence that steering itself provides agent containment.
+
+
+## 4. Implemented steering methods
+
+### 4.1 Vector construction
 
 For layer `l`, let `h_l(T_i, t)` denote an unsteered decoder-layer output at token
 `t` of sample `T_i`. The mean-activation recipe first pools within each text,
@@ -95,7 +141,7 @@ The raw-vector experiments in `experiments/` can use different normalization and
 dose conventions. Their coefficients must not be substituted directly into the
 high-level normalized persona API.
 
-### 3.2 Intervention
+### 4.2 Intervention
 
 Hooks act on decoder-layer **outputs**, not directly on the
 `post_attention_layernorm` submodule. The hook supports tensor or tuple outputs
@@ -122,7 +168,7 @@ does not transfer between models, whose activation scales differ by more than an
 order of magnitude; a ratio does. The median avoids the first-position
 attention-sink token, whose norm dominates a mean.
 
-### 3.3 Retrieval and domain bridges
+### 4.3 Retrieval and domain bridges
 
 MRA adds verse, passage and surah context to the prompt. Domain bridging first
 tries static keyword/theme mappings, then optional graph traversal, then an
@@ -131,7 +177,7 @@ verses and bridge terms. Retrieved content is bounded and quoted as reference
 data. An explicit trust flag permits dynamic retrieval steering for experiments;
 it does not verify the corpus or detect malicious instructions.
 
-## 4. Runtime and diagnostics
+## 5. Runtime and diagnostics
 
 `SteeredLLM` serializes inference and hook mutations. High-level generation scopes
 temporary steering to a session, restores prior vectors/modes/enabled flags on
@@ -157,7 +203,7 @@ Remote model code defaults off and requires a pinned commit for explicit opt-in.
 Steering caches store numeric arrays and identity metadata rather than pickled
 objects. Metadata detects accidental reuse, not malicious artifact forgery.
 
-## 5. Experimental evidence
+## 6. Experimental evidence
 
 Steering claims in this note cite one run of the evaluation harness,
 `experiments/steering_eval.py` ([evaluation guide](docs/evaluation.md); results in
@@ -165,7 +211,7 @@ Steering claims in this note cite one run of the evaluation harness,
 folder predate the harness. They used 1-16 prompts without held-out separation or
 capability checks; they motivated the harness but are not cited as evidence here.
 
-### 5.1 Protocol
+### 6.1 Protocol
 
 The run steered `Qwen/Qwen2.5-0.5B-Instruct` (revision `7ae5576`) on CPU from
 commit `7a745e0`. It used 48 held-out prompts: 8 neutral, 8 value-laden and 8
@@ -188,7 +234,7 @@ the unsteered model, zero-shot ARC-Easy accuracy on 100 items, an embedding
 thematic proxy and attention transport. Intervals are 95% bootstrap intervals
 over prompts or items, with differences paired against the baseline.
 
-### 5.2 Results
+### 6.2 Results
 
 | Condition | Degenerate outputs | ΔNLL | ΔARC-Easy | Δ thematic proxy |
 | --- | --- | --- | --- | --- |
@@ -220,7 +266,7 @@ Mean legacy attention-transport ρ and three-rotation angles fell as the centere
 dose rose. These constructed diagnostics measure neither intrinsic curvature nor
 safe behavior under the current transport definition.
 
-### 5.3 What the run does not show
+### 6.3 What the run does not show
 
 - It covers one 0.5B model with greedy decoding; other models, sampling and
   intermediate doses are untested.
@@ -233,7 +279,7 @@ safe behavior under the current transport definition.
 - The Arabic prompts and control sentences await a native-speaker review.
 - Nothing here measures moral reasoning, refusal behavior or authorization.
 
-## 6. Host-side action containment
+## 7. Host-side action containment
 
 The guardian evaluates immutable JSON proposals using a trusted adapter registry.
 An authenticated host creates exact-scope grants; adapters resolve real resources,
@@ -259,7 +305,7 @@ proposed actions and do not run an LLM. They demonstrate the tested gateway
 behavior, not prompt-injection resistance or live-agent safety. See
 [testing](docs/testing.md) for what CI covers and how to reproduce it.
 
-## 7. Limitations and next experiments
+## 8. Limitations and next experiments
 
 A model with direct tool credentials can bypass an unenforced gateway. A trusted
 adapter can also be incorrect, and completed remote effects cannot be undone by
@@ -298,7 +344,7 @@ python experiments/steering_eval.py --score-ratings \
     experiments/results/qwen2.5-0.5b_phase4_rating_key.json rater_a.csv rater_b.csv
 ```
 
-The first command reproduces section 5; the second scores the blinded ratings
+The first command reproduces section 6; the second scores the blinded ratings
 once two raters have filled in copies of the sheet. `experiments/reproduce_paper.py`
 only prints sample outputs for demonstration. Its keyword-counting section 5.2 is
 retired, and its numbering does not match this note.
