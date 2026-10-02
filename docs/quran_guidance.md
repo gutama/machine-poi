@@ -173,6 +173,15 @@ arms as dose-matched. Per-layer displacement/norm errors remain available, since
 matching an average can hide layer differences. The alternative additive recipe is
 an additional control, not automatically matched to the same rotor.
 
+The cap also sets the grid's resolution, because the ten points span zero to the
+cap. The example configuration sets `rotor_max_angle_rad` to 0.65 rad; the code
+default stays 0.1. On the pinned checkpoint, displacement is close to linear in
+angle, about 0.145 per radian at layers 8–10. Each grid step therefore adds roughly
+the 0.01 dose's additive displacement, and the 0.01, 0.02 and 0.05 targets fall on
+grid points 1, 2 and 5. At a 0.1 rad cap the rotor saturated at 0.0146, leaving the
+0.02 and 0.05 arms unmatched. Another checkpoint, layer set or dose ladder needs its
+own cap.
+
 ## Evaluation and interpretation
 
 The model runner evaluates baseline, RAG only, RAG plus behavioral prompt, RAG
