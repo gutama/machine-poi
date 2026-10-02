@@ -473,6 +473,10 @@ checks achieved development/held-out displacement matching when weights are avai
 
 ### Model run (2026-10-02)
 
+This report used the earlier 0.1 rad rotor cap. The configuration now sets
+`rotor_max_angle_rad` to 0.65 so that every dose can be matched. A rerun at the new
+cap will replace this report.
+
 `quran_guidance_v1_model.json` is the unmodified output of `python -m
 machine_poi.guidance_cli --config experiments/guidance/quran_guidance_v1.json
 --mode model` from commit `be1bd5d` with a clean tree. It ran on CPU (4 threads,

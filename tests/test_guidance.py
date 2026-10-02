@@ -164,8 +164,8 @@ def test_guidance_active_diagnostics_and_angle_semantics():
         g.generate("same", "rotor", .01, .03, 42)
     with pytest.raises(ValueError):
         g.generate("same", "centered", .01, .03, 42)
-    with pytest.raises(ValueError):
-        g.generate("same", "rotor", 0, .2, 42)
+    with pytest.raises(ValueError, match="cap"):
+        g.generate("same", "rotor", 0, g.config.rotor_max_angle_rad + .01, 42)
 
 
 def test_reproducible_mock_report_records_config_and_exposes_harmful_gap(tmp_path):
@@ -197,7 +197,7 @@ def test_development_grid_finds_nonmonotone_match_without_discarding_angles():
     g, _, _ = fake_guidance()
     g.context = lambda _: ("fixed context", [])
     g.calibration = {"rotor_matches": {}}
-    matching_angle = g.config.rotor_max_angle_rad / 9
+    matching_angle = g.config.rotor_max_angle_rad * (1 / 9)  # the first grid point
     evaluated = []
     def generate(prompt, mechanism, dose, angle, seed):
         evaluated.append((mechanism, angle))
