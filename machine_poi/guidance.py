@@ -48,6 +48,7 @@ class QuranGuidance:
         self.steerer = None
         self.vectors, self.rotors = {}, {}
         self.calibration = {}
+        self._dev_prompts, self._dev_displacements = None, {}
         self._lock = threading.RLock()
 
     def prepare(self, work_dir=".eval_work/quran_guidance"):
@@ -103,6 +104,7 @@ class QuranGuidance:
             # Directions remain frozen. Dev prompts only choose angle/dose parameters.
             self.calibration = {"split": "dev", "ids": [r["id"] for r in self.examples if r["split"] == "dev"],
                                 "dose": s.dose_calibration, "rotor_matches": {}}
+            self._dev_prompts, self._dev_displacements = None, {}
             return self
 
     def context(self, task):
@@ -179,20 +181,15 @@ class QuranGuidance:
         """
         if not self.config.experimental_rotor:
             raise ValueError("Rotor calibration requires experimental opt-in")
-        prompts = [self.prompt(r["task"], self.context(r["task"])[0], True)
-                   for r in self.examples if r["split"] == "dev"]
-        def measure(mechanism, angle=None):
-            values = [displacement(self.generate(p, mechanism, 0 if mechanism == "rotor" else dose, angle, seed))
-                      for p in prompts for seed in self.config.seeds]
-            return sum(values) / len(values)
-        target = measure(recipe)
         if dose == 0:
-            candidates = [(0.0, 0.0)]
+            # Disabled conditions install no hooks, so both displacements are exactly zero.
+            target, candidates = 0.0, [(0.0, 0.0)]
         else:
+            target = self._dev_displacement(recipe, dose)
             # Fixed grid: no region is discarded based on a monotonicity assumption.
             cap = self.config.rotor_max_angle_rad
             angles = [cap * (i / 9) for i in range(1, 10)]
-            candidates = [(0.0, 0.0)] + [(angle, measure("rotor", angle)) for angle in angles]
+            candidates = [(0.0, 0.0)] + [(angle, self._dev_displacement("rotor", 0, angle)) for angle in angles]
         angle, achieved = min(candidates, key=lambda pair: abs(pair[1] - target))
         record = {"angle_rad": angle, "additive_displacement": target,
                   "rotor_displacement": achieved,
@@ -201,6 +198,22 @@ class QuranGuidance:
                       {"angle_rad": a, "rotor_displacement": d} for a, d in candidates]}
         self.calibration["rotor_matches"][f"{recipe}:{dose}"] = record
         return record
+
+    def _dev_displacement(self, mechanism, dose, angle=None):
+        """Mean displacement over development prompts and seeds, measured once.
+
+        Rotor grid points do not depend on the additive dose being matched, so
+        every dose reuses them. Prepare discards these measurements.
+        """
+        key = (mechanism, dose, angle)
+        if key not in self._dev_displacements:
+            if self._dev_prompts is None:
+                self._dev_prompts = [self.prompt(r["task"], self.context(r["task"])[0], True)
+                                     for r in self.examples if r["split"] == "dev"]
+            values = [displacement(self.generate(p, mechanism, dose, angle, seed))
+                      for p in self._dev_prompts for seed in self.config.seeds]
+            self._dev_displacements[key] = sum(values) / len(values)
+        return self._dev_displacements[key]
 
     def citation_report(self, answer, records):
         return citation_report(answer, [r["ref"] for r in records])

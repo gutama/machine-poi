@@ -15,6 +15,18 @@ from .guidance_evaluation import mediate_response, mock_run, score_trace, summar
 from .retrieval_context import quote_retrieval
 
 
+def package_versions():
+    """Installed versions of the packages behind model results; None if absent."""
+    from importlib.metadata import PackageNotFoundError, version
+    result = {}
+    for name in ("torch", "transformers", "sentence-transformers", "chromadb", "numpy"):
+        try:
+            result[name] = version(name)
+        except PackageNotFoundError:
+            result[name] = None
+    return result
+
+
 def process_peak_rss_bytes():
     try:
         import resource
@@ -96,7 +108,8 @@ def run_guidance(config_path, mode="validate", output=None, work_dir=".eval_work
     tasks_path = tasks_path or Path(__file__).parent / "data/guidance_tasks_v1.json"
     tasks = load_tasks(tasks_path, config)
     report = {"kind": mode, "evaluated_at": datetime.now(timezone.utc).isoformat(),
-              "python": platform.python_version(), "status": "completed", "resolved_configuration": config.resolved(),
+              "python": platform.python_version(), "packages": package_versions(),
+              "status": "completed", "resolved_configuration": config.resolved(),
               "tasks_sha256": file_hash(tasks_path), "rows": [], "summary": {},
               "limitations": ["Norm preservation and Quran guidance establish neither ethical behavior nor containment.",
                  "Mock tools only; the reference host is not an OS/network sandbox or an authentication service.",

@@ -1,7 +1,14 @@
 {
   "kind": "scripted mock integration; no model or steering evaluation",
-  "evaluated_at": "2026-10-01T08:54:19.475517+00:00",
-  "python": "3.12.14",
+  "evaluated_at": "2026-10-02T04:49:37.253944+00:00",
+  "python": "3.11.15",
+  "packages": {
+    "torch": null,
+    "transformers": null,
+    "sentence-transformers": null,
+    "chromadb": null,
+    "numpy": null
+  },
   "status": "completed",
   "resolved_configuration": {
     "llm": "qwen2.5-0.5b",
@@ -63,12 +70,14 @@
       "condition": "scripted_mock_integration",
       "seed": 42,
       "model_telemetry": {
-        "latency_ms": 1.0317579999536974,
+        "latency_ms": 1.763385999993261,
         "model_executed": false
       },
       "trace": {
         "answer": "Mock fixture output",
         "parse_error": false,
+        "parse_error_reason": null,
+        "markdown_fence": false,
         "proposal_count": 1,
         "gateway_decisions": [
           {
@@ -117,12 +126,14 @@
       "condition": "scripted_mock_integration",
       "seed": 42,
       "model_telemetry": {
-        "latency_ms": 0.7265490003192099,
+        "latency_ms": 1.1198329998478584,
         "model_executed": false
       },
       "trace": {
         "answer": "Mock fixture output",
         "parse_error": false,
+        "parse_error_reason": null,
+        "markdown_fence": false,
         "proposal_count": 1,
         "gateway_decisions": [
           {
@@ -172,12 +183,14 @@
       "condition": "scripted_mock_integration",
       "seed": 42,
       "model_telemetry": {
-        "latency_ms": 0.32973700035654474,
+        "latency_ms": 0.5510620001132338,
         "model_executed": false
       },
       "trace": {
         "answer": "Mock fixture output",
         "parse_error": false,
+        "parse_error_reason": null,
+        "markdown_fence": false,
         "proposal_count": 1,
         "gateway_decisions": [
           {
@@ -212,12 +225,14 @@
       "condition": "scripted_mock_integration",
       "seed": 42,
       "model_telemetry": {
-        "latency_ms": 0.2778110001599998,
+        "latency_ms": 0.553864000039539,
         "model_executed": false
       },
       "trace": {
         "answer": "Mock fixture output",
         "parse_error": false,
+        "parse_error_reason": null,
+        "markdown_fence": false,
         "proposal_count": 1,
         "gateway_decisions": [
           {
@@ -252,12 +267,14 @@
       "condition": "scripted_mock_integration",
       "seed": 42,
       "model_telemetry": {
-        "latency_ms": 2.261670000734739,
+        "latency_ms": 2.662306000047465,
         "model_executed": false
       },
       "trace": {
         "answer": "Mock fixture output",
         "parse_error": false,
+        "parse_error_reason": null,
+        "markdown_fence": false,
         "proposal_count": 12,
         "gateway_decisions": [
           {
@@ -420,12 +437,14 @@
       "condition": "scripted_mock_integration",
       "seed": 42,
       "model_telemetry": {
-        "latency_ms": 0.43880799967155326,
+        "latency_ms": 0.5131450000135374,
         "model_executed": false
       },
       "trace": {
         "answer": "Mock fixture output",
         "parse_error": false,
+        "parse_error_reason": null,
+        "markdown_fence": false,
         "proposal_count": 1,
         "gateway_decisions": [
           {
@@ -460,12 +479,14 @@
       "condition": "scripted_mock_integration",
       "seed": 42,
       "model_telemetry": {
-        "latency_ms": 0.529727000866842,
+        "latency_ms": 0.684345000081521,
         "model_executed": false
       },
       "trace": {
         "answer": "Mock fixture output",
         "parse_error": false,
+        "parse_error_reason": null,
+        "markdown_fence": false,
         "proposal_count": 1,
         "gateway_decisions": [
           {
@@ -578,7 +599,8 @@
       "citation_count": 0,
       "valid_citation_count": 0,
       "parse_errors": 0,
-      "latency_ms_median": 0.529727000866842,
+      "markdown_fences": 0,
+      "latency_ms_median": 0.684345000081521,
       "unnecessary_refusals_human": null,
       "religious_register_drift_human": null
     }
