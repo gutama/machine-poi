@@ -32,11 +32,14 @@ python -m machine_poi.guidance_cli \
 ```
 
 `model` runs can be expensive: each candidate is calibrated across development
-prompts and seeds before held-out generation. Missing dependencies or model files
-produce a `model_unavailable` report with empty results and a nonzero CLI exit.
-Only dependency import and pinned checkpoint loading failures are classified this
-way, with the loading stage and cause type recorded. Later index/cache I/O,
-calibration, retrieval and generation failures propagate without an empty report.
+prompts and seeds before held-out generation. Rotor grid angles do not depend on
+the additive dose, so each is measured once and shared by every candidate. On a
+4-core CPU, one 256-token generation of the pinned 0.5B model takes about a
+minute. Missing dependencies or model files produce a `model_unavailable` report
+with empty results and a nonzero CLI exit. Only dependency import and pinned
+checkpoint loading failures are classified this way, with the loading stage and
+cause type recorded. Later index/cache I/O, calibration, retrieval and generation
+failures propagate without an empty report.
 Other errors, including invalid sources, stale rotor caches and non-finite states,
 abort instead of silently changing conditions. Existing CLI flags are not merged
 into a guidance configuration: the validated JSON is the complete experiment.
@@ -164,11 +167,20 @@ closest measured candidate from a fixed uniform grid of ten angles, including
 zero and the configured cap; generated trajectories need not be monotone. Every
 sampled angle and achieved displacement is recorded. An unmatched grid is
 explicitly `matched: false`; it does not establish unattainability between samples.
-Zero-dose calibration installs no rotor hooks and bypasses the nonzero grid. Held-out
+Zero-dose calibration generates nothing: both displacements are exactly zero. Held-out
 attainment is reported independently, without retuning. Do not describe unmatched
 arms as dose-matched. Per-layer displacement/norm errors remain available, since
 matching an average can hide layer differences. The alternative additive recipe is
 an additional control, not automatically matched to the same rotor.
+
+The cap also sets the grid's resolution, because the ten points span zero to the
+cap. The example configuration sets `rotor_max_angle_rad` to 0.65 rad; the code
+default stays 0.1. On the pinned checkpoint, displacement is close to linear in
+angle, about 0.145 per radian at layers 8–10. Each grid step therefore adds roughly
+the 0.01 dose's additive displacement, and the 0.01, 0.02 and 0.05 targets fall on
+grid points 1, 2 and 5. At a 0.1 rad cap the rotor saturated at 0.0146, leaving the
+0.02 and 0.05 arms unmatched. Another checkpoint, layer set or dose ladder needs its
+own cap.
 
 ## Evaluation and interpretation
 
@@ -178,7 +190,11 @@ arms reuse one retrieved context and the same final behavioral prompt, checkpoin
 decoding and seed for each task. The model returns one bounded structured response;
 the host loops through at most 12 proposals. This is a minimal batch proposal loop,
 not a multi-turn autonomous-agent benchmark. Strict JSON rejects extra authority
-fields, duplicate keys and non-finite values.
+fields, duplicate keys and non-finite values. Small models often wrap the whole
+response in one Markdown code block; exactly one enclosing block is unwrapped and
+counted as `markdown_fence`. Prose around it or several blocks remain parse errors,
+and every parse error records its reason, which separates truncation at
+`max_new_tokens` from schema violations.
 
 The host owns mock adapters, identities, grants and simulated review decisions.
 Gateway decisions and committed mock receipts are stored separately from model
@@ -192,7 +208,8 @@ Reports include operational benign success, policy-denied proposal rate (includi
 stopped-run and budget rejections), unauthorized committed effects, review frequency,
 reference presence/coverage, refusal and religious-register proxies, model latency,
 process peak RSS, CUDA allocation, and per-layer displacement/norm diagnostics.
-Malformed model responses are separately counted and cannot execute effects.
+Malformed model responses are separately counted and cannot execute effects;
+unwrapped code blocks are counted per condition.
 Human refusal/register assessments are `null` pending blinded review; proxies and
 keyword success rules are not validated behavioral judgments. Confidence intervals
 bootstrap tasks, retaining repeated seeds in each cluster. A small fixture set does
@@ -201,5 +218,9 @@ not establish general safety, and scripted mock intervals do not measure model e
 The harmful in-scope mock fixture deliberately commits one harmful-text note: the
 scope guardian does not infer arbitrary content harm. That is separate from
 unauthorized effects and must not be hidden by a zero unauthorized-effect count.
-Read the committed mock report and model-unavailable report in
-`experiments/results/` for the exact evidence from this implementation.
+Read the committed mock, model and earlier model-unavailable reports in
+`experiments/results/` for the exact evidence from this implementation. The
+[results README](../experiments/results/README.md#model-run-2026-10-02) summarizes the
+model run. With the pinned 0.5B checkpoint most responses fail the output protocol.
+At matched displacement, every rotor arm fails it on every task, while the
+contrastive arm still produces valid responses on about half of them.

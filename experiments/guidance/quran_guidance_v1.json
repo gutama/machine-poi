@@ -7,5 +7,6 @@
   "corpus_sha256": "014f911f29c15a7de16326ba4e03b8a220ea17a39618eb1cc85a28a197b994a0",
   "dataset_path": "machine_poi/data/behavior_pairs_v1.json",
   "dataset_sha256": "b734e70c00c2a19feb0ea2a1c848315ba1d303e596ca9b45e1b2e9eb58652dbf",
-  "experimental_rotor": true
+  "experimental_rotor": true,
+  "rotor_max_angle_rad": 0.65
 }

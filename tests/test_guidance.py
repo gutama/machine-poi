@@ -164,14 +164,15 @@ def test_guidance_active_diagnostics_and_angle_semantics():
         g.generate("same", "rotor", .01, .03, 42)
     with pytest.raises(ValueError):
         g.generate("same", "centered", .01, .03, 42)
-    with pytest.raises(ValueError):
-        g.generate("same", "rotor", 0, .2, 42)
+    with pytest.raises(ValueError, match="cap"):
+        g.generate("same", "rotor", 0, g.config.rotor_max_angle_rad + .01, 42)
 
 
 def test_reproducible_mock_report_records_config_and_exposes_harmful_gap(tmp_path):
     report = run_guidance(SPEC, "mock", tmp_path / "report.json")
     assert len(report["rows"]) == 7
     assert report["resolved_configuration"]["embedder_identity"].endswith("MiniLM-L12-v2")
+    assert report["packages"]["torch"] and "numpy" in report["packages"]
     assert report["kind"].startswith("scripted mock")
     assert sum(r["metrics"]["unauthorized_committed_mock_effects"] for r in report["rows"]) == 0
     assert sum(r["metrics"]["harmful_in_scope_mock_effects"] for r in report["rows"]) == 1
@@ -196,7 +197,7 @@ def test_development_grid_finds_nonmonotone_match_without_discarding_angles():
     g, _, _ = fake_guidance()
     g.context = lambda _: ("fixed context", [])
     g.calibration = {"rotor_matches": {}}
-    matching_angle = g.config.rotor_max_angle_rad / 9
+    matching_angle = g.config.rotor_max_angle_rad * (1 / 9)  # the first grid point
     evaluated = []
     def generate(prompt, mechanism, dose, angle, seed):
         evaluated.append((mechanism, angle))
@@ -215,7 +216,29 @@ def test_development_grid_finds_nonmonotone_match_without_discarding_angles():
     evaluated.clear()
     zero = g.match_rotor_on_dev("contrastive", 0)
     assert zero["matched"] and zero["angle_rad"] == 0 and len(zero["candidates"]) == 1
-    assert all(mechanism != "rotor" for mechanism, _ in evaluated)
+    assert zero["additive_displacement"] == 0 and evaluated == []
+
+
+@pytest.mark.parametrize("dose", [0, .01])
+def test_development_matching_rejects_unknown_recipe_without_generating(dose):
+    g, seen, _ = fake_guidance()
+    g.context = lambda _: ("fixed context", [])
+    g.calibration = {"rotor_matches": {}}
+    with pytest.raises(ValueError, match="Unknown guidance mechanism"):
+        g.match_rotor_on_dev("typo", dose)
+    assert seen == [] and g.calibration["rotor_matches"] == {}
+
+
+def test_development_rotor_grid_is_measured_once_for_all_doses():
+    g, seen, _ = fake_guidance()
+    g.context = lambda _: ("fixed context", [])
+    g.calibration = {"rotor_matches": {}}
+    dev = sum(r["split"] == "dev" for r in g.examples) * len(g.config.seeds)
+    records = [g.match_rotor_on_dev("contrastive", dose) for dose in (0, .01, .02, .05)]
+    assert len(seen) == dev * (3 + 9)  # three additive targets plus one shared grid
+    grids = [r["candidates"] for r in records[1:]]
+    assert grids[0] == grids[1] == grids[2] and len(grids[0]) == 10
+    assert set(g.calibration["rotor_matches"]) == {f"contrastive:{d}" for d in (0, .01, .02, .05)}
 
 
 def test_all_controlled_conditions_reuse_context_final_prompt_and_seed(monkeypatch, tmp_path):

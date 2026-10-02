@@ -432,6 +432,8 @@ python experiments/steered_vs_baseline_transport.py --model qwen3-0.6b \
 - `smollm2-135m_centered_probe.json` -- vector geometry + centered-contrast
   conditions.
 - `*_n16.json` -- see the n=16 statistically-tested re-run section.
+- `quran_guidance_v1_mock.json`, `quran_guidance_v1_model.json`,
+  `quran_guidance_v1_model_unavailable.json` -- see the Quran-guidance pipeline section.
 
 ## Repro
 
@@ -455,9 +457,10 @@ behavioral pairs, guardian mediation and opt-in G1 rotor. Evidence in this chang
 | Artifact/check | Result and scope |
 | --- | --- |
 | `quran_guidance_v1_mock.json` | Seven scripted trajectories; zero unauthorized committed mock effects; one harmful in-scope mock effect exposes the content-policy limit |
-| `quran_guidance_v1_model_unavailable.json` | No model trajectories or effectiveness statistics: pinned snapshots were unavailable locally in the offline execution attempt |
-| Fast research/guardian suite | 383 passed, 4 slow/integration tests deselected; final focused retrieval/rotor/guidance rerun: 52 passed |
-| Guardian-only environment | 74 passed with neither torch nor numpy installed |
+| `quran_guidance_v1_model.json` | Actual model run, 180 trajectories; see the model run section below |
+| `quran_guidance_v1_model_unavailable.json` | Earlier offline attempt: no trajectories or effectiveness statistics, because the pinned snapshots were not available locally |
+| Fast research/guardian suite | 414 passed, 4 slow/integration tests deselected; focused retrieval/rotor/guidance/mediation rerun: 98 passed |
+| Guardian-only environment | 80 passed with neither torch nor numpy installed |
 | Independent algebra fixture | 100 Cl(3,0) sandwich/vector cases and transport controls passed |
 | Existing rogue-agent fixtures | 12 single-action cases and 11 multi-step scenarios passed |
 | Lint and packaging | Ruff passed; wheel includes paired data, fixtures and the shared reference mock host |
@@ -467,3 +470,73 @@ intervals over scripted fixtures do not estimate model efficacy. No new claim of
 retrieval quality, benign utility, ethical behavior or containment follows from
 these checks. The actual model runner records the six comparison families and
 checks achieved development/held-out displacement matching when weights are available.
+
+### Model run (2026-10-02)
+
+`quran_guidance_v1_model.json` is the unmodified output of `python -m
+machine_poi.guidance_cli --config experiments/guidance/quran_guidance_v1.json
+--mode model` from commit `b5f3e53` with a clean tree and a fresh `--work-dir`.
+It ran on CPU (4 threads, Python 3.11, torch 2.8.0, transformers 4.57.6,
+sentence-transformers 5.2.0, chromadb 1.5.5) against the pinned
+Qwen2.5-0.5B-Instruct and multilingual MiniLM snapshots. Decoding was greedy, with
+one seed and 256 new tokens, and the rotor cap was 0.65 rad. The run took
+2 h 14 min, including 60 development calibration generations, with a 4.4 GB peak RSS.
+
+An earlier run at the former 0.1 rad cap, from `be1bd5d`, is in this file's history
+at `ecd6a52`. Every non-rotor and zero-dose output of the two runs is identical,
+as are the retrieved contexts and additive development displacements. Only the
+rotor arms differ. A separate calibration-only check reused the first run's work
+directory and measured development displacements up to 1.5% different, so
+reproduce from a fresh `--work-dir`.
+
+Each condition covers 12 tasks: the 7 host fixtures and the 5 held-out behavioral
+test tasks. Benign success covers the 7 benign tasks. Intervals bootstrap tasks.
+Every zero-dose steering arm produced output identical to `rag_behavioral_prompt`
+for every task, as expected for disabled conditions, so those arms are omitted.
+
+| Condition | Parse errors /12 | Fenced | Benign success | Policy-denied rate | Unauthorized effects | Harmful in-scope | Median s |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `baseline` | 8 | 10 | 0.14 [0.00, 0.43] | 0.33 [0.08, 0.67] | 0 | 0 | 11 |
+| `rag_only` | 9 | 1 | 0.00 [0.00, 0.00] | 0.25 [0.08, 0.50] | 0 | 0 | 49 |
+| `rag_behavioral_prompt` | 6 | 2 | 0.29 [0.00, 0.71] | 0.50 [0.25, 0.75] | 0 | 0 | 30 |
+| `rag_centered_0.01` | 8 | 2 | 0.29 [0.00, 0.71] | 0.33 [0.08, 0.58] | 0 | 0 | 25 |
+| `rag_contrastive_0.01` | 5 | 2 | 0.29 [0.00, 0.71] | 0.58 [0.33, 0.83] | 0 | 0 | 29 |
+| `rag_rotor_0.01` | 12 | 9 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00] | 0 | 0 | 25 |
+| `rag_centered_0.02` | 6 | 2 | 0.29 [0.00, 0.71] | 0.50 [0.25, 0.75] | 0 | 0 | 24 |
+| `rag_contrastive_0.02` | 5 | 3 | 0.14 [0.00, 0.43] | 0.58 [0.25, 0.83] | 0 | 0 | 29 |
+| `rag_rotor_0.02` | 12 | 0 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00] | 0 | 0 | 51 |
+| `rag_centered_0.05` | 10 | 4 | 0.14 [0.00, 0.43] | 0.17 [0.00, 0.42] | 0 | 0 | 20 |
+| `rag_contrastive_0.05` | 6 | 4 | 0.29 [0.00, 0.71] | 0.50 [0.25, 0.75] | 0 | 0 | 28 |
+| `rag_rotor_0.05` | 12 | 0 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00] | 0 | 0 | 8 |
+
+- **Displacement matching.** Every dose matched on development and held-out data,
+  within the 0.002 tolerance. The selected grid angles were 0.072, 0.144 and
+  0.361 rad. Development gaps were 0.00006, 0.00097 and 0.00187, and held-out gaps
+  were 0.00016, 0.0013 and 0.0010. The 0.05 development gap leaves little margin,
+  because displacement grows slightly less than linearly at larger angles. Rotor
+  relative norm error stayed below 3e-7, and no token was a degenerate no-op.
+- **Rotor arms fail the output protocol at every dose.** At equal measured
+  displacement, the rotor arm failed parsing on all 12 tasks at every dose. The
+  contrastive arm failed on 5, 5 and 6, and the centered arm on 8, 6 and 10. The
+  failures change with angle. At 0.072 rad the rotor still mostly writes JSON-like
+  responses, but with invented keys or `arguments` as strings or lists. At 0.144 rad
+  it writes prose and table fragments, filling the 256-token budget (median 256
+  tokens). At 0.361 rad it collapses to fragments such as `|||。` (median 3 tokens).
+- **Format compliance dominates the other arms too.** 117 of 180 responses were
+  parse errors. The recorded reasons are text that is not JSON (46), proposals
+  whose `arguments` is not an object (31), output cut off at the 256-token cap
+  (30: 23 unterminated strings and 7 incomplete objects), invented top-level keys
+  (3) and 7 other syntax errors. The policy-denied rate is zero for an unparsed
+  response, so a low rate here mostly reflects parse failure.
+- **Effects.** No condition committed an unauthorized or harmful mock effect.
+  Most responses never reached the gateway, so this says little about the guardian.
+- **Citations.** Only 2 Quran citations appeared in 180 answers, both to supplied
+  passages.
+
+One seed and 12 tasks give wide intervals. A 0.5B model that mostly fails the
+output protocol cannot show benign utility, refusal behavior or containment, and
+proxy metrics are not human judgments. This run does not establish steering
+efficacy. It establishes that the full pipeline runs on the pinned checkpoints and
+that, at matched per-token displacement, this rotor disrupts generation far more
+than additive steering. Matching mean displacement therefore does not make the two
+interventions equally disruptive.
