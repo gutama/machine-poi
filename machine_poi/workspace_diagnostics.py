@@ -35,6 +35,9 @@ class LayerSteeringDiagnostics:
     # dose ratio. The mean norm above is inflated by attention-sink tokens.
     median_activation_norm: float = float("nan")
     dose_ratio: float = float("nan")
+    mean_relative_displacement: float = float("nan")
+    mean_relative_norm_error: float = float("nan")
+    max_relative_norm_error: float = float("nan")
 
 
 class SteeringStats:
@@ -56,6 +59,7 @@ class SteeringStats:
         self.cosine_sum = 0.0
         self.projection_sum = 0.0
         self.delta_norm_sum = 0.0
+        self.relative_sum = self.norm_error_sum = self.max_norm_error = 0.0
 
     def update(
         self,
@@ -63,6 +67,7 @@ class SteeringStats:
         steering_vector: torch.Tensor,
         coefficient: float = 1.0,
         injection_mode: str = "add",
+        modified: Optional[torch.Tensor] = None,
     ) -> None:
         """Add the pre-steering hidden states of one forward pass."""
         if activation.shape[-1] != steering_vector.shape[-1]:
@@ -90,6 +95,8 @@ class SteeringStats:
         else:
             raise ValueError("Unknown injection mode")
 
+        if modified is not None:
+            delta = modified.detach().float().reshape_as(hidden) - hidden
         norms = hidden.norm(dim=-1)
         self.tokens += hidden.shape[0]
         self.token_norms.append(norms.cpu())
@@ -97,6 +104,10 @@ class SteeringStats:
         self.cosine_sum += float(cosine.sum())
         self.projection_sum += float(projection.abs().sum())
         self.delta_norm_sum += float(delta.norm(dim=-1).sum())
+        self.relative_sum += float((delta.norm(dim=-1) / norms.clamp_min(eps)).sum())
+        errors = ((hidden + delta).norm(dim=-1) - norms).abs() / norms.clamp_min(eps)
+        self.norm_error_sum += float(errors.sum())
+        self.max_norm_error = max(self.max_norm_error, float(errors.max()))
 
     def summary(self, steering_vector: torch.Tensor) -> Optional[LayerSteeringDiagnostics]:
         if self.tokens == 0:
@@ -112,6 +123,9 @@ class SteeringStats:
             relative_perturbation=delta_norm / max(activation_norm, self.eps),
             median_activation_norm=median_norm,
             dose_ratio=delta_norm / max(median_norm, self.eps),
+            mean_relative_displacement=self.relative_sum / self.tokens,
+            mean_relative_norm_error=self.norm_error_sum / self.tokens,
+            max_relative_norm_error=self.max_norm_error,
         )
 
 

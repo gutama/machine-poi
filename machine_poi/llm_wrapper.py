@@ -123,8 +123,10 @@ class ActivationHook:
         coefficient: float = 1.0,
         injection_mode: str = "add",  # "add", "replace", "blend", "clamp"
         capture: bool = False,
+        rotor_artifact=None,
+        rotor_max_angle: float = 0.0,
     ):
-        if injection_mode not in {"add", "blend", "replace", "clamp"}:
+        if injection_mode not in {"add", "blend", "replace", "clamp", "rotor"}:
             raise ValueError("Unknown injection mode")
         if not math.isfinite(coefficient):
             raise ValueError("Steering coefficient must be finite")
@@ -133,6 +135,18 @@ class ActivationHook:
         if steering_vector is not None:
             if steering_vector.ndim != 1 or not torch.isfinite(steering_vector).all():
                 raise ValueError("Steering vector must be a finite 1D tensor")
+        self.rotor_artifact = None
+        self.rotor_max_angle = rotor_max_angle
+        if injection_mode == "rotor":
+            from .rotor import RotorArtifact, RotorStats
+            if not isinstance(rotor_artifact, RotorArtifact):
+                raise ValueError("Rotor hook requires a validated frozen artifact")
+            if steering_vector is not None or coefficient != 1.0:
+                raise ValueError("Rotor angles are separate from additive vectors/coefficients")
+            if not math.isfinite(rotor_max_angle) or not 0 <= rotor_max_angle <= math.pi:
+                raise ValueError("Invalid rotor angle")
+            self.rotor_artifact = rotor_artifact.copy()
+            self.rotor_stats = RotorStats()
         self.layer_idx = layer_idx
         self.steering_vector = steering_vector
         self.coefficient = coefficient
@@ -160,11 +174,13 @@ class ActivationHook:
         if self.capture:
             self.captured_activation = hidden_states.detach().clone()
 
+        if self.enabled and self.rotor_artifact is not None:
+            from .rotor import rotate_hidden
+            modified, diagnostics = rotate_hidden(hidden_states, self.rotor_artifact, self.rotor_max_angle)
+            self.rotor_stats.update(diagnostics)
+            return (modified,) + rest if rest is not None else modified
         if not self.enabled or self.steering_vector is None:
             return output
-        self.stats.update(
-            hidden_states, self.steering_vector, self.coefficient, self.injection_mode
-        )
 
         if hidden_states.shape[-1] != self.steering_vector.shape[0]:
             raise ValueError("Steering vector does not match hidden dimension")
@@ -197,6 +213,8 @@ class ActivationHook:
         else:
             modified = hidden_states
 
+        self.stats.update(hidden_states, self.steering_vector, self.coefficient,
+                          self.injection_mode, modified=modified)
         # Return in same format as input
         if rest is not None:
             return (modified,) + rest
@@ -414,6 +432,10 @@ class SteeredLLM:
         coefficient: float = 1.0,
         injection_mode: str = "add",
         capture: bool = False,
+        *,
+        rotor_artifact=None,
+        rotor_max_angle: float = 0.0,
+        experimental_rotor: bool = False,
     ) -> ActivationHook:
         """
         Register a steering hook at a specific layer.
@@ -428,9 +450,18 @@ class SteeredLLM:
         Returns:
             The registered hook
         """
+        if injection_mode == "rotor" and not experimental_rotor:
+            raise ValueError("Rotor registration requires experimental_rotor=True")
+        if injection_mode != "rotor" and (rotor_artifact is not None or rotor_max_angle != 0 or experimental_rotor):
+            raise ValueError("Rotor options require rotor injection mode")
+        if injection_mode == "rotor":
+            from .rotor import RotorArtifact
+            if not isinstance(rotor_artifact, RotorArtifact):
+                raise ValueError("Rotor registration requires a validated artifact")
         if self.model is None:
             self.load_model()
-
+        if rotor_artifact is not None and rotor_artifact.basis.shape[0] != self.hidden_size:
+            raise ValueError("Rotor basis does not match model hidden dimension")
         layer = self._get_layer_module(layer_idx)
         if steering_vector is not None and steering_vector.shape != (self.hidden_size,):
             raise ValueError("Steering vector does not match model hidden dimension")
@@ -440,6 +471,8 @@ class SteeredLLM:
             coefficient=coefficient,
             injection_mode=injection_mode,
             capture=capture,
+            rotor_artifact=rotor_artifact,
+            rotor_max_angle=rotor_max_angle,
         )
 
         if layer_idx in self._handles_by_layer:
@@ -514,15 +547,18 @@ class SteeredLLM:
         with self._steering_lock:
             previous = [
                 (i, h.steering_vector.detach().clone() if h.steering_vector is not None else None,
-                 h.coefficient, h.injection_mode, h.enabled, h.capture)
+                 h.coefficient, h.injection_mode, h.enabled, h.capture,
+                 h.rotor_artifact.copy() if h.rotor_artifact is not None else None,
+                 h.rotor_max_angle)
                 for i, h in self.hooks.items()
             ]
             try:
                 yield
             finally:
                 self.clear_steering()
-                for i, vector, coefficient, mode, enabled, capture in previous:
-                    hook = self.register_steering_hook(i, vector, coefficient, mode, capture)
+                for i, vector, coefficient, mode, enabled, capture, rotor, angle in previous:
+                    hook = self.register_steering_hook(i, vector, coefficient, mode, capture,
+                        rotor_artifact=rotor, rotor_max_angle=angle, experimental_rotor=rotor is not None)
                     hook.enabled = enabled
 
     @synchronized
@@ -530,6 +566,8 @@ class SteeredLLM:
         """Start new running statistics on every hook."""
         for hook in self.hooks.values():
             hook.stats.reset()
+            if hook.rotor_artifact is not None:
+                hook.rotor_stats.reset()
 
     def get_activations(self, layer_idx: int) -> Optional[torch.Tensor]:
         """Get captured activations from a layer (hooks registered with capture=True)."""
@@ -552,7 +590,10 @@ class SteeredLLM:
             for layer_idx, hook in self.hooks.items()
             if getattr(hook, "enabled", False)
         }
-        return summarize_steering_hooks(enabled_hooks)
+        return {**summarize_steering_hooks(enabled_hooks), **{
+            layer: hook.rotor_stats.summary() for layer, hook in enabled_hooks.items()
+            if getattr(hook, "rotor_artifact", None) is not None
+        }}
 
     @synchronized
     def get_attention_transport_diagnostics(

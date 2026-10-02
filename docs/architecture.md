@@ -129,6 +129,21 @@ Graph provider calls and research storage are not automatically mediated by the
 guardian. A host adopting those operations must include them in its tool inventory,
 permission model and credential boundary.
 
+## Frozen Quran-guidance experiments
+
+`QuranGuidance` orchestrates the existing steerer, retrieval index and serialized
+LLM hooks. It validates canonical reference text, prepares centered and paired
+behavioral directions, fits a training-only low-rank rotor basis, and calibrates
+achieved displacement on development tasks. Retrieval and sentence embeddings
+cannot modify the frozen intervention or host authority. `guidance_evaluation`
+parses model JSON and passes every proposed action through the reference gateway;
+model telemetry, host decisions and mock effect receipts are separate records.
+
+The [pipeline guide](quran_guidance.md) defines configuration, API/CLI routing,
+held-out comparisons, provenance and metrics. The new rotor is opt-in G1 only;
+model-native directions never contain external sentence-embedding coordinates.
+A harmful action in an allowed scope remains a content-policy limitation.
+
 ## Implemented boundary and remaining work
 
 The reference gateway and runtime repairs are implemented and tested with mocks.

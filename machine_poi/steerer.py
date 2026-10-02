@@ -216,6 +216,7 @@ class QuranSteerer:
         llm_func: Optional[callable] = None,  # LLM function for LightRAG
         llm_revision: Optional[str] = None,
         trust_remote_code: bool = False,
+        embedding_revision: Optional[str] = None,
     ):
         """
         Initialize the Quran steerer.
@@ -233,6 +234,7 @@ class QuranSteerer:
             FileNotFoundError: If quran_path doesn't exist
         """
         self._run_lock = threading.RLock()
+        self.embedding_revision = embedding_revision
         self.llm_revision = llm_revision
         self.trust_remote_code = trust_remote_code
         self.llm_model_name = llm_model
@@ -290,6 +292,7 @@ class QuranSteerer:
             self.embedder = QuranEmbeddings(
                 model_name=self.embedding_model_name,
                 device=self.device,
+                revision=self.embedding_revision,
             )
             self.embedder.load_model()
 
@@ -798,6 +801,7 @@ class QuranSteerer:
         sample_size: Optional[int] = None,
         recipe: Literal["centered", "raw_mean"] = "centered",
         control: Literal["ar", "en"] = "ar",
+        seed: Optional[int] = None,
     ) -> Dict[int, torch.Tensor]:
         """
         Prepare steering vectors from Quran text using mean activations.
@@ -828,10 +832,11 @@ class QuranSteerer:
 
         if type(sample_size) is not int or sample_size < 1:
             raise InvalidConfigError("Sample size must be a positive integer")
+        seed = STEERING_DEFAULTS.random_seed if seed is None else seed
         centering = self._recipe_parameters(recipe, control)
         metadata = self._cache_metadata("mean", recipe=recipe, **centering, chunk_by=chunk_by,
                                         sample_size=sample_size,
-                                        seed=STEERING_DEFAULTS.random_seed)
+                                        seed=seed)
         if cache_path and use_cached and Path(cache_path).exists():
             if self._use_cached_vectors(cache_path, metadata):
                 return self.steering_vectors
@@ -842,7 +847,7 @@ class QuranSteerer:
         # Sample texts if too many
         if len(texts) > sample_size:
             logger.info(f"Sampling {sample_size} verses/chunks from {len(texts)} total...")
-            rng = np.random.RandomState(STEERING_DEFAULTS.random_seed)
+            rng = np.random.RandomState(seed)
             selected_texts = rng.choice(texts, size=sample_size, replace=False)
         else:
             selected_texts = texts

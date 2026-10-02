@@ -32,6 +32,7 @@ jobs:
         run: python experiments/geometry_sanity.py
       - run: python -m examples.guarded_agent.process_demo
       - run: python -m evals.rogue_agent.run --output containment-eval-report.json
+      - run: python -m machine_poi.guidance_cli --config experiments/guidance/quran_guidance_v1.json --mode mock --output quran-guidance-mock-report.json
       - if: matrix.python == '3.12'
         uses: actions/upload-artifact@v4
         with:

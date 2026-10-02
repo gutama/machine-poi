@@ -8,6 +8,17 @@ installing research dependencies. Inference examples load model weights; graph
 indexing/querying can invoke the configured provider. They do not automatically
 pass through the guardian.
 
+## Quran-guidance comparisons and experimental rotor
+
+Use the [reproducible guidance pipeline](quran_guidance.md) for pinned revisions,
+verse-cited RAG, matched behavioral pairs, development dose sweeps and opt-in G1
+rotor comparisons submitted to mock guardian tools. `QuranGuidanceConfig` and
+`QuranGuidance` are public APIs. The CLI accepts `--guidance-config`,
+`--guidance-mode validate|mock|model`, and `--guidance-output`.
+Sentence embeddings select references; model-native activations supply directions;
+only the independent guardian authorizes effects. Norm preservation and Quran
+context establish neither ethical behavior nor containment.
+
 ## Generate with mean-activation steering
 
 ```python
@@ -258,7 +269,7 @@ next to any output you report.
 | --- | --- | --- |
 | Remote code | Off by default for LLMs and embedders | Review code before opt-in; supply a full 40-character commit revision |
 | LLM revision | `QuranSteerer(llm_revision=...)` or `SteeredLLM(revision=...)` | Pin the checkpoint for reproducible runs |
-| Embedding revision | `QuranEmbeddings(revision=..., trust_remote_code=...)` | Configure separately; the high-level LLM revision does not pin the embedder |
+| Embedding revision | `QuranEmbeddings(revision=...)` or `QuranSteerer(embedding_revision=...)` | Pin separately from the LLM; remote embedder code still defaults off |
 | Steering caches | Numeric NPZ arrays and JSON model/revision/corpus/recipe metadata, format 3 | Older formats and mismatched caches are recomputed, with a log line naming the reason; do not convert them by loading pickle |
 | Corrupt artifacts | Invalid arrays/metadata are rejected; supported cache errors trigger recomputation | Other corruption can raise; investigate and rebuild from a trusted source |
 | Dynamic retrieval steering | Off by default | Explicitly pass both opt-in flags for trusted-corpus experiments |

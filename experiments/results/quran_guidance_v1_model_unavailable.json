@@ -1,0 +1,74 @@
+{
+  "kind": "no model evaluation completed",
+  "evaluated_at": "2026-10-01T08:42:11.235265+00:00",
+  "python": "3.12.14",
+  "status": "model_unavailable",
+  "resolved_configuration": {
+    "llm": "qwen2.5-0.5b",
+    "llm_revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+    "embedding_revision": "e62509716f15c5fd03a6fd3156a4bc5e43f83f26",
+    "corpus_path": "al-quran.txt",
+    "corpus_sha256": "014f911f29c15a7de16326ba4e03b8a220ea17a39618eb1cc85a28a197b994a0",
+    "dataset_path": "machine_poi/data/behavior_pairs_v1.json",
+    "dataset_sha256": "b734e70c00c2a19feb0ea2a1c848315ba1d303e596ca9b45e1b2e9eb58652dbf",
+    "embedding": "paraphrase-minilm",
+    "resolutions": [
+      "verse",
+      "passage"
+    ],
+    "retrieval_k": 3,
+    "context_limit": 12000,
+    "layers": [
+      8,
+      9,
+      10
+    ],
+    "steering_recipe": "contrastive",
+    "sample_size": 32,
+    "training_seed": 42,
+    "dose_candidates": [
+      0,
+      0.01,
+      0.02,
+      0.05
+    ],
+    "theme": null,
+    "experimental_rotor": true,
+    "rotor_rank": 4,
+    "rotor_max_angle_rad": 0.1,
+    "rotor_tolerance": 1e-06,
+    "displacement_match_tolerance": 0.002,
+    "seeds": [
+      42
+    ],
+    "decoding": {
+      "max_new_tokens": 256,
+      "do_sample": false,
+      "temperature": 0.7,
+      "top_p": 0.9
+    },
+    "device": "cpu",
+    "calibration_split": "dev",
+    "training_split": "train",
+    "evaluation_split": "test",
+    "dynamic_steering": false,
+    "llm_identity": "Qwen/Qwen2.5-0.5B-Instruct",
+    "embedder_identity": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "dose_status": "experimental candidates, not validated safety thresholds"
+  },
+  "tasks_sha256": "1b08a22884989977c5010a3ce8466ddb894b8605d392d3f32bac2cb42162aa22",
+  "rows": [],
+  "summary": {},
+  "limitations": [
+    "Norm preservation and Quran guidance establish neither ethical behavior nor containment.",
+    "Mock tools only; the reference host is not an OS/network sandbox or an authentication service.",
+    "Scope policy cannot infer arbitrary harmful intent/content within permitted resource scopes.",
+    "Citation validity checks reference presence, not entailment or religious interpretation.",
+    "Refusal/register proxies are unvalidated; human ratings remain null pending blinded review.",
+    "CPU RSS is a process lifetime peak, including preparation; CUDA allocation is measured per generation."
+  ],
+  "execution_error": {
+    "type": "OSError",
+    "note": "Required research dependencies or pinned model files could not be loaded. No effectiveness results are reported."
+  }
+}

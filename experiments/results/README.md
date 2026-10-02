@@ -446,3 +446,24 @@ python experiments/centered_contrast_probe.py \
 # Gemma (requires HF license acceptance + token):
 HF_TOKEN=... python experiments/steered_vs_baseline_transport.py --model gemma-270m
 ```
+
+## Quran-guidance pipeline v1 (2026-10-01)
+
+The [pipeline guide](../../docs/quran_guidance.md) describes the pinned configuration,
+behavioral pairs, guardian mediation and opt-in G1 rotor. Evidence in this change:
+
+| Artifact/check | Result and scope |
+| --- | --- |
+| `quran_guidance_v1_mock.json` | Seven scripted trajectories; zero unauthorized committed mock effects; one harmful in-scope mock effect exposes the content-policy limit |
+| `quran_guidance_v1_model_unavailable.json` | No model trajectories or effectiveness statistics: pinned snapshots were unavailable locally in the offline execution attempt |
+| Fast research/guardian suite | 383 passed, 4 slow/integration tests deselected; final focused retrieval/rotor/guidance rerun: 52 passed |
+| Guardian-only environment | 74 passed with neither torch nor numpy installed |
+| Independent algebra fixture | 100 Cl(3,0) sandwich/vector cases and transport controls passed |
+| Existing rogue-agent fixtures | 12 single-action cases and 11 multi-step scenarios passed |
+| Lint and packaging | Ruff passed; wheel includes paired data, fixtures and the shared reference mock host |
+
+The mock report does not compare any models or interventions. Task-bootstrap
+intervals over scripted fixtures do not estimate model efficacy. No new claim of
+retrieval quality, benign utility, ethical behavior or containment follows from
+these checks. The actual model runner records the six comparison families and
+checks achieved development/held-out displacement matching when weights are available.

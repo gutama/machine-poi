@@ -11,6 +11,8 @@ the full retrieval and model-loading stack.
 __version__ = "0.1.0"
 
 _PUBLIC_IMPORTS = {
+    "QuranGuidanceConfig": (".guidance_config", "QuranGuidanceConfig"),
+    "QuranGuidance": (".guidance", "QuranGuidance"),
     "QuranEmbeddings": (".quran_embeddings", "QuranEmbeddings"),
     "SteeredLLM": (".llm_wrapper", "SteeredLLM"),
     "QuranSteerer": (".steerer", "QuranSteerer"),
