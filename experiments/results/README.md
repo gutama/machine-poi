@@ -456,7 +456,7 @@ behavioral pairs, guardian mediation and opt-in G1 rotor. Evidence in this chang
 | --- | --- |
 | `quran_guidance_v1_mock.json` | Seven scripted trajectories; zero unauthorized committed mock effects; one harmful in-scope mock effect exposes the content-policy limit |
 | `quran_guidance_v1_model_unavailable.json` | No model trajectories or effectiveness statistics: pinned snapshots were unavailable locally in the offline execution attempt |
-| Fast research/guardian suite | 412 passed, 4 slow/integration tests deselected; focused retrieval/rotor/guidance/mediation rerun: 96 passed |
+| Fast research/guardian suite | 414 passed, 4 slow/integration tests deselected; focused retrieval/rotor/guidance/mediation rerun: 98 passed |
 | Guardian-only environment | 80 passed with neither torch nor numpy installed |
 | Independent algebra fixture | 100 Cl(3,0) sandwich/vector cases and transport controls passed |
 | Existing rogue-agent fixtures | 12 single-action cases and 11 multi-step scenarios passed |

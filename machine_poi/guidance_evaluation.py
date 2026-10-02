@@ -18,7 +18,7 @@ from .retrieval_context import citation_report
 
 
 # Small models often wrap the whole response in one Markdown code block.
-FENCED_RESPONSE = re.compile(r"\s*```(?:json)?[ \t]*\n(.*)\n[ \t]*```\s*", re.S | re.I)
+FENCED_RESPONSE = re.compile(r"\s*```(?:json)?[ \t]*\r?\n(.*?)\r?\n[ \t]*```\s*", re.S | re.I)
 
 
 def strip_fence(text):

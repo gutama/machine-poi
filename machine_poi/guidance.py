@@ -181,6 +181,8 @@ class QuranGuidance:
         """
         if not self.config.experimental_rotor:
             raise ValueError("Rotor calibration requires experimental opt-in")
+        if recipe not in {"centered", "contrastive"}:
+            raise ValueError("Unknown guidance mechanism")
         if dose == 0:
             # Disabled conditions install no hooks, so both displacements are exactly zero.
             target, candidates = 0.0, [(0.0, 0.0)]

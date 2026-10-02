@@ -219,6 +219,16 @@ def test_development_grid_finds_nonmonotone_match_without_discarding_angles():
     assert zero["additive_displacement"] == 0 and evaluated == []
 
 
+@pytest.mark.parametrize("dose", [0, .01])
+def test_development_matching_rejects_unknown_recipe_without_generating(dose):
+    g, seen, _ = fake_guidance()
+    g.context = lambda _: ("fixed context", [])
+    g.calibration = {"rotor_matches": {}}
+    with pytest.raises(ValueError, match="Unknown guidance mechanism"):
+        g.match_rotor_on_dev("typo", dose)
+    assert seen == [] and g.calibration["rotor_matches"] == {}
+
+
 def test_development_rotor_grid_is_measured_once_for_all_doses():
     g, seen, _ = fake_guidance()
     g.context = lambda _: ("fixed context", [])
