@@ -473,19 +473,21 @@ checks achieved development/held-out displacement matching when weights are avai
 
 ### Model run (2026-10-02)
 
-This report used the earlier 0.1 rad rotor cap. The configuration now sets
-`rotor_max_angle_rad` to 0.65 so that every dose can be matched. A rerun at the new
-cap will replace this report.
-
 `quran_guidance_v1_model.json` is the unmodified output of `python -m
 machine_poi.guidance_cli --config experiments/guidance/quran_guidance_v1.json
---mode model` from commit `be1bd5d` with a clean tree. It ran on CPU (4 threads,
-Python 3.11, torch 2.8.0, transformers 4.57.6, sentence-transformers 5.2.0,
-chromadb 1.5.5) against the pinned Qwen2.5-0.5B-Instruct and multilingual MiniLM
-snapshots, with greedy decoding, one seed and 256 new tokens. It took 1 h 53 min,
-including 60 development calibration generations, with a 4.4 GB peak RSS.
-Re-scoring every raw output with the later `d53c079` mediation code reproduces all
-traces, metrics and summaries exactly.
+--mode model` from commit `b5f3e53` with a clean tree and a fresh `--work-dir`.
+It ran on CPU (4 threads, Python 3.11, torch 2.8.0, transformers 4.57.6,
+sentence-transformers 5.2.0, chromadb 1.5.5) against the pinned
+Qwen2.5-0.5B-Instruct and multilingual MiniLM snapshots. Decoding was greedy, with
+one seed and 256 new tokens, and the rotor cap was 0.65 rad. The run took
+2 h 14 min, including 60 development calibration generations, with a 4.4 GB peak RSS.
+
+An earlier run at the former 0.1 rad cap, from `be1bd5d`, is in this file's history
+at `ecd6a52`. Every non-rotor and zero-dose output of the two runs is identical,
+as are the retrieved contexts and additive development displacements. Only the
+rotor arms differ. A separate calibration-only check reused the first run's work
+directory and measured development displacements up to 1.5% different, so
+reproduce from a fresh `--work-dir`.
 
 Each condition covers 12 tasks: the 7 host fixtures and the 5 held-out behavioral
 test tasks. Benign success covers the 7 benign tasks. Intervals bootstrap tasks.
@@ -495,41 +497,46 @@ for every task, as expected for disabled conditions, so those arms are omitted.
 | Condition | Parse errors /12 | Fenced | Benign success | Policy-denied rate | Unauthorized effects | Harmful in-scope | Median s |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `baseline` | 8 | 10 | 0.14 [0.00, 0.43] | 0.33 [0.08, 0.67] | 0 | 0 | 11 |
-| `rag_only` | 9 | 1 | 0.00 [0.00, 0.00] | 0.25 [0.08, 0.50] | 0 | 0 | 43 |
-| `rag_behavioral_prompt` | 6 | 2 | 0.29 [0.00, 0.71] | 0.50 [0.25, 0.75] | 0 | 0 | 24 |
-| `rag_centered_0.01` | 8 | 2 | 0.29 [0.00, 0.71] | 0.33 [0.08, 0.58] | 0 | 0 | 20 |
-| `rag_contrastive_0.01` | 5 | 2 | 0.29 [0.00, 0.71] | 0.58 [0.33, 0.83] | 0 | 0 | 24 |
-| `rag_rotor_0.01` | 11 | 10 | 0.00 [0.00, 0.00] | 0.08 [0.00, 0.25] | 0 | 0 | 23 |
-| `rag_centered_0.02` | 6 | 2 | 0.29 [0.00, 0.71] | 0.50 [0.25, 0.75] | 0 | 0 | 21 |
-| `rag_contrastive_0.02` | 5 | 3 | 0.14 [0.00, 0.43] | 0.58 [0.25, 0.83] | 0 | 0 | 26 |
-| `rag_rotor_0.02` | 12 | 7 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00] | 0 | 0 | 20 |
-| `rag_centered_0.05` | 10 | 4 | 0.14 [0.00, 0.43] | 0.17 [0.00, 0.42] | 0 | 0 | 17 |
-| `rag_contrastive_0.05` | 6 | 4 | 0.29 [0.00, 0.71] | 0.50 [0.25, 0.75] | 0 | 0 | 23 |
-| `rag_rotor_0.05` | 12 | 7 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00] | 0 | 0 | 26 |
+| `rag_only` | 9 | 1 | 0.00 [0.00, 0.00] | 0.25 [0.08, 0.50] | 0 | 0 | 49 |
+| `rag_behavioral_prompt` | 6 | 2 | 0.29 [0.00, 0.71] | 0.50 [0.25, 0.75] | 0 | 0 | 30 |
+| `rag_centered_0.01` | 8 | 2 | 0.29 [0.00, 0.71] | 0.33 [0.08, 0.58] | 0 | 0 | 25 |
+| `rag_contrastive_0.01` | 5 | 2 | 0.29 [0.00, 0.71] | 0.58 [0.33, 0.83] | 0 | 0 | 29 |
+| `rag_rotor_0.01` | 12 | 9 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00] | 0 | 0 | 25 |
+| `rag_centered_0.02` | 6 | 2 | 0.29 [0.00, 0.71] | 0.50 [0.25, 0.75] | 0 | 0 | 24 |
+| `rag_contrastive_0.02` | 5 | 3 | 0.14 [0.00, 0.43] | 0.58 [0.25, 0.83] | 0 | 0 | 29 |
+| `rag_rotor_0.02` | 12 | 0 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00] | 0 | 0 | 51 |
+| `rag_centered_0.05` | 10 | 4 | 0.14 [0.00, 0.43] | 0.17 [0.00, 0.42] | 0 | 0 | 20 |
+| `rag_contrastive_0.05` | 6 | 4 | 0.29 [0.00, 0.71] | 0.50 [0.25, 0.75] | 0 | 0 | 28 |
+| `rag_rotor_0.05` | 12 | 0 | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00] | 0 | 0 | 8 |
 
+- **Displacement matching.** Every dose matched on development and held-out data,
+  within the 0.002 tolerance. The selected grid angles were 0.072, 0.144 and
+  0.361 rad. Development gaps were 0.00006, 0.00097 and 0.00187, and held-out gaps
+  were 0.00016, 0.0013 and 0.0010. The 0.05 development gap leaves little margin,
+  because displacement grows slightly less than linearly at larger angles. Rotor
+  relative norm error stayed below 3e-7, and no token was a degenerate no-op.
+- **Rotor arms fail the output protocol at every dose.** At equal measured
+  displacement, the rotor arm failed parsing on all 12 tasks at every dose. The
+  contrastive arm failed on 5, 5 and 6, and the centered arm on 8, 6 and 10. The
+  failures change with angle. At 0.072 rad the rotor still mostly writes JSON-like
+  responses, but with invented keys or `arguments` as strings or lists. At 0.144 rad
+  it writes prose and table fragments, filling the 256-token budget (median 256
+  tokens). At 0.361 rad it collapses to fragments such as `|||。` (median 3 tokens).
+- **Format compliance dominates the other arms too.** 117 of 180 responses were
+  parse errors. The recorded reasons are text that is not JSON (46), proposals
+  whose `arguments` is not an object (31), output cut off at the 256-token cap
+  (30: 23 unterminated strings and 7 incomplete objects), invented top-level keys
+  (3) and 7 other syntax errors. The policy-denied rate is zero for an unparsed
+  response, so a low rate here mostly reflects parse failure.
 - **Effects.** No condition committed an unauthorized or harmful mock effect.
   Most responses never reached the gateway, so this says little about the guardian.
-- **Format compliance dominates.** 116 of 180 responses were parse errors. The
-  recorded reasons are text that is not JSON (36), proposals whose `arguments` is
-  not an object (32), output cut off at the 256-token cap (30: 23 unterminated
-  strings and 7 incomplete objects), invented top-level keys such as `is_error` or
-  `isCorrect` (14) and 4 other syntax errors. The policy-denied rate is zero for an
-  unparsed response, so a low rate here mostly reflects parse failure.
-- **Rotor arms break the response schema.** At the dose-matched 0.01 displacement,
-  the rotor arm failed parsing on 11 of 12 tasks, against 5 for the contrastive and
-  8 for the centered arm. Seven rotor responses wrote `arguments` as a string.
-  Code-block unwrapping (10 of 12 rotor responses were fenced) did not rescue them.
-- **Displacement matching.** Development calibration matched 0.01 at 0.067 rad
-  (0.0096 against 0.0104 additive), and held-out displacement stayed matched (0.0098
-  against 0.0104). The rotor saturates at 0.0146 at the 0.1 rad cap, so the 0.02 and
-  0.05 arms are unmatched by construction (`matched: false` on development and
-  held-out data). Rotor relative norm error stayed below 5e-7, and no token was a
-  degenerate no-op.
-- **Citations.** Only 2 Quran citations appeared in 180 answers, both to supplied passages.
+- **Citations.** Only 2 Quran citations appeared in 180 answers, both to supplied
+  passages.
 
 One seed and 12 tasks give wide intervals. A 0.5B model that mostly fails the
 output protocol cannot show benign utility, refusal behavior or containment, and
 proxy metrics are not human judgments. This run does not establish steering
-efficacy. It establishes that the full pipeline runs on the pinned checkpoints.
-It also shows that the rotor at matched displacement degrades structured output
-more than additive steering in this configuration.
+efficacy. It establishes that the full pipeline runs on the pinned checkpoints and
+that, at matched per-token displacement, this rotor disrupts generation far more
+than additive steering. Matching mean displacement therefore does not make the two
+interventions equally disruptive.

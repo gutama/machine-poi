@@ -221,5 +221,6 @@ unauthorized effects and must not be hidden by a zero unauthorized-effect count.
 Read the committed mock, model and earlier model-unavailable reports in
 `experiments/results/` for the exact evidence from this implementation. The
 [results README](../experiments/results/README.md#model-run-2026-10-02) summarizes the
-model run. With the pinned 0.5B checkpoint most responses fail the output protocol,
-and the rotor arms fail it more often than additive arms at matched displacement.
+model run. With the pinned 0.5B checkpoint most responses fail the output protocol.
+At matched displacement, every rotor arm fails it on every task, while the
+contrastive arm still produces valid responses on about half of them.
