@@ -209,5 +209,8 @@ not establish general safety, and scripted mock intervals do not measure model e
 The harmful in-scope mock fixture deliberately commits one harmful-text note: the
 scope guardian does not infer arbitrary content harm. That is separate from
 unauthorized effects and must not be hidden by a zero unauthorized-effect count.
-Read the committed mock report and model-unavailable report in
-`experiments/results/` for the exact evidence from this implementation.
+Read the committed mock, model and earlier model-unavailable reports in
+`experiments/results/` for the exact evidence from this implementation. The
+[results README](../experiments/results/README.md#model-run-2026-10-02) summarizes the
+model run. With the pinned 0.5B checkpoint most responses fail the output protocol,
+and the rotor arms fail it more often than additive arms at matched displacement.
